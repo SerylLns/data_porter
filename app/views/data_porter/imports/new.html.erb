@@ -1,0 +1,31 @@
+<div class="data-porter">
+  <h1 class="dp-title">New Import</h1>
+
+  <%= form_with model: @import, url: imports_path, class: "dp-form" do |f| %>
+    <div class="dp-field">
+      <%= f.label :target_key, "Target", class: "dp-label" %>
+      <%= f.select :target_key,
+            @targets.map { |t| [t[:label], t[:key]] },
+            { prompt: "Select a target..." },
+            class: "dp-select" %>
+    </div>
+
+    <div class="dp-field">
+      <%= f.label :source_type, "Source Type", class: "dp-label" %>
+      <%= f.select :source_type,
+            DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
+            { prompt: "Select source type..." },
+            class: "dp-select" %>
+    </div>
+
+    <div class="dp-field">
+      <%= f.label :file, "File", class: "dp-label" %>
+      <%= f.file_field :file, class: "dp-file-input" %>
+    </div>
+
+    <div class="dp-actions">
+      <%= f.submit "Start Import", class: "dp-btn dp-btn--primary" %>
+      <%= link_to "Cancel", imports_path, class: "dp-btn dp-btn--secondary" %>
+    </div>
+  <% end %>
+</div>
