@@ -44,6 +44,8 @@ require "data_porter/imports_controller"
 $LOAD_PATH.unshift File.expand_path("../app/channels", __dir__)
 require "data_porter/import_channel"
 
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
 RSpec.configure do |config|
   config.example_status_persistence_file_path = ".rspec_status"
   config.disable_monkey_patching!
