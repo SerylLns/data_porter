@@ -46,6 +46,15 @@ DataPorter - Mountable Rails engine for 3-step data import workflows.
 - Prefer composition over inheritance
 - Expose hooks and configuration, not internal state
 
+## Blog Series Automation
+After completing a task, ALWAYS check `docs/blog/SERIES.md` to see if all tasks
+for a blog part are now done. If yes:
+1. Notify the user that a new article can be generated
+2. Ask if they want to generate it now
+3. If yes, follow the `/blog` command process to write the draft
+
+This ensures no article is forgotten as development progresses.
+
 ## Architecture
 See docs/SPEC.md for full specification.
 
