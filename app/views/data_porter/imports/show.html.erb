@@ -1,0 +1,47 @@
+<div class="data-porter">
+  <div class="dp-header">
+    <h1 class="dp-title">
+      <%= @target._label %> Import #<%= @import.id %>
+    </h1>
+    <%= raw DataPorter::Components::StatusBadge.new(status: @import.status).call %>
+  </div>
+
+  <% if @import.parsing? || @import.importing? || @import.dry_running? %>
+    <%= raw DataPorter::Components::ProgressBar.new(import_id: @import.id).call %>
+  <% end %>
+
+  <% if @import.previewing? %>
+    <%= raw DataPorter::Components::SummaryCards.new(report: @import.report).call %>
+    <%= raw DataPorter::Components::PreviewTable.new(
+          columns: @target._columns,
+          records: @records
+        ).call %>
+
+    <div class="dp-actions">
+      <%= button_to "Confirm", confirm_import_path(@import),
+            method: :post, class: "dp-btn dp-btn--primary" %>
+      <% if @target._dry_run_enabled %>
+        <%= button_to "Dry Run", dry_run_import_path(@import),
+              method: :post, class: "dp-btn dp-btn--secondary" %>
+      <% end %>
+      <%= button_to "Cancel", cancel_import_path(@import),
+            method: :post, class: "dp-btn dp-btn--danger" %>
+    </div>
+  <% end %>
+
+  <% if @import.completed? %>
+    <%= raw DataPorter::Components::ResultsSummary.new(report: @import.report).call %>
+  <% end %>
+
+  <% if @import.failed? %>
+    <%= raw DataPorter::Components::FailureAlert.new(report: @import.report).call %>
+    <div class="dp-actions">
+      <%= button_to "Retry", parse_import_path(@import),
+            method: :post, class: "dp-btn dp-btn--primary" %>
+    </div>
+  <% end %>
+
+  <div class="dp-nav">
+    <%= link_to "Back to imports", imports_path, class: "dp-link" %>
+  </div>
+</div>
