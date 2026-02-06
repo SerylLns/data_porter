@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require_relative "dsl/column"
+require_relative "dsl/api_config"
 
 module DataPorter
   class Target
     class << self
       attr_reader :_label, :_model_name, :_icon, :_sources,
-                  :_columns, :_csv_mappings, :_dedup_keys, :_json_root
+                  :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
+                  :_api_config
 
       def label(value)
         @_label = value
@@ -48,6 +50,11 @@ module DataPorter
 
       def json_root(path)
         @_json_root = path
+      end
+
+      def api_config(&)
+        @_api_config = DSL::ApiConfig.new
+        @_api_config.instance_eval(&)
       end
     end
 
