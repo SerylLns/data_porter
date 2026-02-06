@@ -62,7 +62,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** The first end-to-end flow
 - **Covers:** DataImport model, migration, Source base class, CSV source, ActiveStorage integration, column mapping
 - **Key decisions:** Polymorphic user association, enum state machine, auto-mapping vs explicit mapping
-- **Status:** pending
+- **File:** `docs/blog/006-parsing-csv-sources.md`
+- **Status:** draft
 
 ### Part 7 — The Orchestrator: coordinating the import workflow
 - **Tasks:** #9, #10
