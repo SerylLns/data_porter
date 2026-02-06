@@ -1,0 +1,2044 @@
+# DataPorter - Rails Engine pour l'import de donnees
+
+> Gem Rails mountable qui fournit un workflow complet d'import de donnees en 3 etapes :
+> **Upload/Config -> Preview visuel -> Validation & Creation**
+
+---
+
+## Table des matieres
+
+- [Probleme](#probleme)
+- [Solution](#solution)
+- [Architecture](#architecture)
+- [Installation (cote app hote)](#installation-cote-app-hote)
+- [Usage : definir un Target](#usage--definir-un-target)
+- [DSL Target en detail](#dsl-target-en-detail)
+- [Sources supportees](#sources-supportees)
+- [Architecture interne de la gem](#architecture-interne-de-la-gem)
+  - [Engine](#engine)
+  - [Modele DataImport](#modele-dataimport)
+  - [State Machine](#state-machine)
+  - [Orchestrator](#orchestrator)
+  - [Registry & Auto-discovery](#registry--auto-discovery)
+  - [StoreModels (JSONB)](#storemodels-jsonb)
+  - [Sources](#sources-1)
+  - [Controllers](#controllers)
+  - [Vues & Preview](#vues--preview)
+  - [Jobs (ActiveJob)](#jobs-activejob)
+  - [ActionCable & Progress](#actioncable--progress)
+- [Multi-tenancy](#multi-tenancy)
+- [Generators](#generators)
+- [Override & Extension](#override--extension)
+- [Comparaison avec maintenance_tasks](#comparaison-avec-maintenance_tasks)
+- [Structure fichiers de la gem](#structure-fichiers-de-la-gem)
+- [Dry Run (v0.2)](#dry-run-v02)
+- [Rollback (v0.3 / v0.4)](#rollback-v03--v04)
+- [Roadmap](#roadmap)
+
+---
+
+## Probleme
+
+Dans beaucoup d'apps Rails, on a besoin d'importer de la donnee via differents moyens (CSV, JSON, API/scraping) pour creer des instances de modeles. Le pattern se repete a chaque fois :
+
+1. Uploader ou recuperer les donnees
+2. Les parser et les valider
+3. Les afficher pour verification humaine
+4. Les persister en base
+
+Ce workflow est reimplemente a chaque fois, pour chaque modele, sans mutualisation.
+
+## Solution
+
+**DataPorter** est un Rails Engine mountable qui factorise tout le workflow d'import. La gem fournit l'infrastructure (modele, state machine, jobs, UI, progress) et l'app hote ne definit que la partie metier : quels modeles importer et comment les creer.
+
+```
+1 fichier Target = 1 type d'import operationnel
+```
+
+---
+
+## Architecture
+
+```
++---------------------------------------------+
+|  GEM : DataPorter                           |
+|                                             |
+|  - Rails Engine (mountable, isolate_ns)     |
+|  - Modele DataImport + migration generator  |
+|  - State machine (enum)                     |
+|  - Sources : CSV, JSON, API                 |
+|  - StoreModels : ImportRecord, Error, Report|
+|  - Orchestrator                             |
+|  - Workers (ActiveJob)                      |
+|  - ActionCable channel + broadcaster        |
+|  - UI : liste, form, preview, progress      |
+|  - DSL pour declarer des Targets            |
+|  - Registry (auto-discovery)                |
+|  - Generators (install, target)             |
++---------------------------------------------+
+                    ^
+                    | mount + configure + define targets
+                    |
++---------------------------------------------+
+|  APP HOTE                                   |
+|                                             |
+|  - config/initializers/data_porter.rb       |
+|  - app/importers/guests_target.rb           |
+|  - app/importers/stays_target.rb            |
+|  - app/importers/vendors_target.rb          |
+|  - Auth/layout (parent controller)          |
+|  - Styling override (optionnel)             |
++---------------------------------------------+
+```
+
+---
+
+## Installation (cote app hote)
+
+### Gemfile
+
+```ruby
+gem 'data_porter', '~> 0.1'
+```
+
+### Generator
+
+```bash
+rails generate data_porter:install
+rails db:migrate
+```
+
+Le generator cree :
+
+- La migration `data_porter_imports`
+- `config/initializers/data_porter.rb`
+- Le dossier `app/importers/`
+- La route mount dans `config/routes.rb`
+
+### Configuration
+
+```ruby
+# config/initializers/data_porter.rb
+DataPorter.configure do |config|
+  # Controller parent dont herite le controller de la gem
+  # Permet d'heriter l'auth, les layouts, les helpers
+  config.parent_controller = 'AdminController'
+
+  # Backend de jobs (la gem utilise ActiveJob, agnostique du backend)
+  config.queue_name = :imports
+
+  # Service ActiveStorage pour stocker les fichiers uploades
+  config.storage_service = :local
+
+  # Prefix ActionCable
+  config.cable_channel_prefix = 'data_porter'
+
+  # Builder de contexte : injecte des donnees metier dans les targets
+  # Le block recoit le controller courant
+  config.context_builder = ->(controller) {
+    OpenStruct.new(
+      hotel: controller.current_user.hotel,
+      user: controller.current_user
+    )
+  }
+
+  # Nombre max de records affichables en preview (pagination au-dela)
+  config.preview_limit = 500
+
+  # Activer/desactiver les sources disponibles
+  config.enabled_sources = [:csv, :json, :api]
+end
+```
+
+### Routes
+
+```ruby
+# config/routes.rb
+mount DataPorter::Engine, at: '/admin/imports'
+
+# Ou derriere un scope authentifie
+authenticate :user, ->(u) { u.admin? } do
+  mount DataPorter::Engine, at: '/admin/imports'
+end
+```
+
+---
+
+## Usage : definir un Target
+
+Un Target = un type d'import. Un fichier, une classe, c'est tout.
+
+### Exemple simple : Guests
+
+```ruby
+# app/importers/guests_target.rb
+class GuestsTarget < DataPorter::Target
+  label "Guests"
+  model Guest
+  icon "fas fa-users"
+
+  sources :csv, :json
+
+  columns do
+    column :first_name, type: :string, required: true
+    column :last_name,  type: :string, required: true
+    column :email,      type: :email
+    column :phone,      type: :phone
+    column :language,   type: :string, in: %w[fr en es de it]
+    column :date_of_birth, type: :date, format: '%d/%m/%Y'
+  end
+
+  csv_mapping do
+    map "Prenom"          => :first_name
+    map "Nom"             => :last_name
+    map "E-mail"          => :email
+    map "Telephone"       => :phone
+    map "Langue"          => :language
+    map "Date naissance"  => :date_of_birth
+  end
+
+  deduplicate_by :email, :phone
+
+  def persist(record, context:)
+    Guest.create!(
+      hotel: context.hotel,
+      **record.attributes
+    )
+  end
+end
+```
+
+### Exemple avec source API : Scraper Airbnb
+
+```ruby
+# app/importers/airbnb_stays_target.rb
+class AirbnbStaysTarget < DataPorter::Target
+  label "Stays (Airbnb Scraper)"
+  model Stay
+  icon "fas fa-bed"
+
+  sources :api
+
+  api_config do
+    endpoint ->(params) { "https://scraper.internal/api/stays?housing_id=#{params[:housing_id]}" }
+    headers { { 'Authorization' => "Bearer #{ENV['SCRAPER_TOKEN']}" } }
+    response_root :stays
+  end
+
+  params do
+    param :housing_id, type: :integer, required: true, label: "Housing"
+  end
+
+  columns do
+    column :external_confirmation_code, type: :string, required: true
+    column :guest_name,    type: :string, required: true
+    column :check_in,      type: :date, required: true
+    column :check_out,     type: :date, required: true
+    column :total_price,   type: :decimal
+    column :nb_guests,     type: :integer
+    column :source,        type: :string
+  end
+
+  deduplicate_by :external_confirmation_code
+
+  def persist(record, context:)
+    Stays::Upsert.call(
+      hotel: context.hotel,
+      housing_id: record.housing_id,
+      **record.attributes
+    )
+  end
+end
+```
+
+### Exemple JSON : Vendors
+
+```ruby
+# app/importers/vendors_target.rb
+class VendorsTarget < DataPorter::Target
+  label "Vendors"
+  model Vendor
+  icon "fas fa-store"
+
+  sources :csv, :json
+
+  columns do
+    column :name,     type: :string, required: true
+    column :email,    type: :email
+    column :phone,    type: :phone
+    column :address,  type: :string
+    column :category, type: :string, in: %w[cleaning maintenance catering transport]
+    column :website,  type: :url
+  end
+
+  # Hook optionnel : transformation apres parsing, avant preview
+  def transform(record)
+    record.data[:name] = record.data[:name]&.titleize
+    record.data[:category] = record.data[:category]&.downcase
+    record
+  end
+
+  # Hook optionnel : validation metier custom
+  def validate(record)
+    if record.data[:email].blank? && record.data[:phone].blank?
+      record.add_warning("Ni email ni telephone renseigne")
+    end
+  end
+
+  def persist(record, context:)
+    Vendor.create!(hotel: context.hotel, **record.attributes)
+  end
+end
+```
+
+### Generator de target
+
+```bash
+rails generate data_porter:target vendors name:string:required email:email phone:phone
+```
+
+Genere le squelette dans `app/importers/vendors_target.rb`.
+
+---
+
+## DSL Target en detail
+
+### `label(string)`
+
+Nom affiche dans l'UI.
+
+### `model(class)`
+
+Classe ActiveRecord cible. Utilise pour l'affichage et la detection automatique des colonnes (optionnel).
+
+### `icon(string)`
+
+Classe CSS d'icone (FontAwesome). Affiche dans la liste des targets.
+
+### `sources(*types)`
+
+Types de sources acceptes pour ce target. Valeurs : `:csv`, `:json`, `:api`.
+
+### `columns(&block)`
+
+Definition des colonnes attendues. Chaque colonne a :
+
+| Option     | Type    | Description                                                                                     |
+| ---------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `type`     | Symbol  | `:string`, `:integer`, `:decimal`, `:date`, `:datetime`, `:email`, `:phone`, `:url`, `:boolean` |
+| `required` | Boolean | Champ obligatoire (default: false)                                                              |
+| `in`       | Array   | Valeurs autorisees                                                                              |
+| `format`   | String  | Format de parsing (pour les dates)                                                              |
+| `label`    | String  | Label affiche en preview (default: humanize du nom)                                             |
+
+### `csv_mapping(&block)`
+
+Mapping entre les headers CSV et les noms de colonnes internes.
+Si absent, la gem tente un matching automatique (parameterize + fuzzy).
+
+### `deduplicate_by(*keys)`
+
+Colonnes utilisees pour detecter les doublons avec les records existants en base.
+En preview, les doublons sont marques avec le status `:duplicate`.
+
+### `params(&block)`
+
+Parametres additionnels demandes a l'utilisateur au moment du lancement.
+Utilise pour les sources API (ex: housing_id) ou pour filtrer les donnees.
+
+### `api_config(&block)`
+
+Configuration specifique a la source API :
+
+- `endpoint` : URL ou lambda recevant les params
+- `headers` : Hash ou lambda
+- `response_root` : Cle JSON contenant le tableau de records
+
+### Hooks overridables
+
+| Hook                                | Moment                           | Usage                     |
+| ----------------------------------- | -------------------------------- | ------------------------- |
+| `transform(record)`                 | Apres parsing, avant preview     | Normalisation des donnees |
+| `validate(record)`                  | Apres transform, avant preview   | Validation metier custom  |
+| `persist(record, context:)`         | A l'import final                 | Creation en base          |
+| `after_import(results, context:)`   | Apres l'import complet           | Notifications, logs, etc. |
+| `on_error(record, error, context:)` | Si persist echoue pour un record | Gestion d'erreur custom   |
+
+---
+
+## Sources supportees
+
+### CSV
+
+```
+Upload d'un fichier CSV via ActiveStorage.
+Headers mappes aux colonnes via csv_mapping ou matching auto.
+Options CSV Ruby configurables (separateur, encoding, skip_lines...).
+```
+
+### JSON
+
+```
+Upload d'un fichier JSON ou saisie en textarea.
+Attend un tableau d'objets a la racine ou sous une cle configurable.
+Les cles des objets sont mappees aux colonnes.
+```
+
+### API
+
+```
+Appel HTTP a un endpoint configure dans api_config.
+Les params du target sont injectes dans l'URL.
+La reponse JSON est parsee comme un tableau de records.
+Ideal pour les scrapers et les APIs internes.
+```
+
+---
+
+## Architecture interne de la gem
+
+### Engine
+
+```ruby
+# lib/data_porter/engine.rb
+module DataPorter
+  class Engine < ::Rails::Engine
+    isolate_namespace DataPorter
+
+    initializer 'data_porter.assets' do |app|
+      if app.config.respond_to?(:assets)
+        app.config.assets.precompile += %w[
+          data_porter/application.css
+          data_porter/application.js
+        ]
+      end
+    end
+
+    initializer 'data_porter.active_storage' do
+      ActiveSupport.on_load(:active_storage_blob) do
+        # config storage
+      end
+    end
+
+    config.to_prepare do
+      Dir[Rails.root.join('app/importers/*_target.rb')].each { |f| require f }
+    end
+  end
+end
+```
+
+### Modele DataImport
+
+```ruby
+# app/models/data_porter/data_import.rb
+module DataPorter
+  class DataImport < ActiveRecord::Base
+    self.table_name = 'data_porter_imports'
+
+    belongs_to :user, polymorphic: true
+
+    has_one_attached :file
+
+    enum :status, {
+      pending:    0,
+      parsing:    1,
+      previewing: 2,
+      importing:  3,
+      completed:  4,
+      failed:     5
+    }
+
+    attribute :records, DataPorter::StoreModels::ImportRecord.to_array_type, default: []
+    attribute :report, DataPorter::StoreModels::Report.to_type
+
+    serialize :config, coder: JSON
+
+    validates :target_key, presence: true
+    validates :source_type, presence: true, inclusion: { in: %w[csv json api] }
+
+    def target_class
+      DataPorter::Registry.find(target_key)
+    end
+
+    def source_class
+      DataPorter::Sources.resolve(source_type)
+    end
+
+    def previewable?
+      previewing? && records.any?
+    end
+
+    def importable_records
+      records.select { |r| r.status == 'complete' }
+    end
+
+    def records_summary
+      records.group_by(&:status).transform_values(&:count)
+    end
+  end
+end
+```
+
+#### Migration
+
+```ruby
+# db/migrate/xxx_create_data_porter_imports.rb
+class CreateDataPorterImports < ActiveRecord::Migration[7.2]
+  def change
+    create_table :data_porter_imports do |t|
+      t.string  :target_key,  null: false
+      t.string  :source_type, null: false, default: 'csv'
+      t.integer :status,      null: false, default: 0
+      t.jsonb   :records,     null: false, default: []
+      t.jsonb   :report,      null: false, default: {}
+      t.jsonb   :config,      null: false, default: {}
+
+      t.references :user, polymorphic: true, null: false
+
+      t.timestamps
+    end
+
+    add_index :data_porter_imports, :status
+    add_index :data_porter_imports, :target_key
+  end
+end
+```
+
+### State Machine
+
+```
+pending -----> parsing -----> previewing -----> importing -----> completed
+                  |                                |
+                  +--------------> failed <--------+
+```
+
+| Status       | Description                                       | Declencheur              |
+| ------------ | ------------------------------------------------- | ------------------------ |
+| `pending`    | Import cree, en attente de lancement              | `create`                 |
+| `parsing`    | Source en cours de parsing (async)                | `ParseJob`               |
+| `previewing` | Donnees parsees, en attente de validation humaine | Fin du parsing           |
+| `importing`  | Creation des records en cours (async)             | Confirmation utilisateur |
+| `completed`  | Tous les records importes                         | Fin de l'import          |
+| `failed`     | Erreur fatale pendant parsing ou import           | Exception                |
+
+### Orchestrator
+
+Le chef d'orchestre qui coordonne source + target.
+
+```ruby
+# lib/data_porter/orchestrator.rb
+module DataPorter
+  class Orchestrator
+    def initialize(data_import)
+      @data_import = data_import
+      @source = data_import.source_class.new(data_import)
+      @target = data_import.target_class.new
+    end
+
+    def parse!
+      @data_import.parsing!
+      raw_rows = @source.fetch
+      records = raw_rows.each_with_index.map do |row, index|
+        record = DataPorter::StoreModels::ImportRecord.new(
+          line_number: index + 1,
+          data: @target.class._columns.each_with_object({}) do |col, hash|
+            hash[col.name] = row[col.name] || row[col.name.to_s]
+          end
+        )
+        record = @target.transform(record)
+        @target.validate(record)
+        record.run_validations!(@target.class._columns, @target.class._dedup_keys)
+        broadcast_progress(index + 1, raw_rows.size)
+        record
+      end
+
+      @data_import.update!(records: records, status: :previewing)
+      build_report
+      broadcast_success
+    rescue StandardError => e
+      handle_failure(e)
+    end
+
+    def import!
+      @data_import.importing!
+      importable = @data_import.importable_records
+      context = build_context
+
+      results = { created: 0, skipped: 0, errored: 0 }
+
+      importable.each_with_index do |record, index|
+        @target.persist(record, context: context)
+        record.status = 'imported'
+        results[:created] += 1
+        broadcast_progress(index + 1, importable.size)
+      rescue StandardError => e
+        record.status = 'error'
+        record.errors_list << DataPorter::StoreModels::Error.new(message: e.message)
+        @target.on_error(record, e, context: context)
+        results[:errored] += 1
+      end
+
+      @data_import.update!(status: :completed)
+      @target.after_import(results, context: context)
+      broadcast_success
+    rescue StandardError => e
+      handle_failure(e)
+    end
+
+    private
+
+    def broadcast_progress(current, total)
+      DataPorter::Broadcaster.new(@data_import.id).progress(current, total)
+    end
+
+    def broadcast_success
+      DataPorter::Broadcaster.new(@data_import.id).success
+    end
+
+    def handle_failure(error)
+      report = DataPorter::StoreModels::Report.new(
+        error_reports: [DataPorter::StoreModels::Error.new(message: error.message)]
+      )
+      @data_import.update!(status: :failed, report: report)
+      DataPorter::Broadcaster.new(@data_import.id).failure(error.message)
+    end
+
+    def build_context
+      DataPorter.configuration.context_builder&.call(@data_import)
+    end
+
+    def build_report
+      summary = @data_import.records_summary
+      report = DataPorter::StoreModels::Report.new(
+        records_count: @data_import.records.size,
+        complete_count: summary['complete'] || 0,
+        partial_count: summary['partial'] || 0,
+        missing_count: summary['missing'] || 0,
+        duplicate_count: summary['duplicate'] || 0
+      )
+      @data_import.update!(report: report)
+    end
+  end
+end
+```
+
+### Registry & Auto-discovery
+
+```ruby
+# lib/data_porter/registry.rb
+module DataPorter
+  class Registry
+    class << self
+      def targets
+        @targets ||= {}
+      end
+
+      def register(key, klass)
+        targets[key.to_s] = klass
+      end
+
+      def find(key)
+        targets[key.to_s] || raise(TargetNotFound, "Target '#{key}' not found")
+      end
+
+      def available
+        targets.map { |key, klass| { key: key, label: klass._label, icon: klass._icon } }
+      end
+
+      def refresh!
+        @targets = nil
+        DataPorter::Target.descendants.each do |klass|
+          next if klass._label.nil?
+          register(klass._label.parameterize, klass)
+        end
+      end
+    end
+  end
+end
+```
+
+### StoreModels (JSONB)
+
+Donnees typees stockees en JSONB dans `data_porter_imports.records`.
+
+```ruby
+# lib/data_porter/store_models/import_record.rb
+module DataPorter
+  module StoreModels
+    class ImportRecord
+      include StoreModel::Model
+
+      attribute :line_number, :integer
+      attribute :status, :string, default: 'pending'
+      attribute :data, :json, default: {}
+      attribute :errors_list, DataPorter::StoreModels::Error.to_array_type, default: []
+      attribute :warnings, DataPorter::StoreModels::Error.to_array_type, default: []
+      attribute :target_id, :integer
+
+      STATUSES = %w[pending complete partial missing duplicate imported error].freeze
+
+      def complete? = status == 'complete'
+      def importable? = status == 'complete'
+
+      def add_error(message)
+        errors_list << DataPorter::StoreModels::Error.new(message: message)
+      end
+
+      def add_warning(message)
+        warnings << DataPorter::StoreModels::Error.new(message: message)
+      end
+
+      def attributes
+        data.symbolize_keys.compact
+      end
+
+      def run_validations!(columns, dedup_keys)
+        validate_required_columns!(columns)
+        validate_types!(columns)
+        validate_inclusions!(columns)
+        check_duplicates!(dedup_keys)
+        determine_status!
+      end
+
+      private
+
+      def validate_required_columns!(columns)
+        columns.select(&:required).each do |col|
+          if data[col.name].blank?
+            add_error("#{col.label} is required")
+          end
+        end
+      end
+
+      def validate_types!(columns)
+        columns.each do |col|
+          value = data[col.name]
+          next if value.blank?
+          unless TypeValidator.valid?(value, col.type, col.options)
+            add_error("#{col.label}: invalid #{col.type}")
+          end
+        end
+      end
+
+      def validate_inclusions!(columns)
+        columns.select { |c| c.options[:in] }.each do |col|
+          value = data[col.name]
+          next if value.blank?
+          unless col.options[:in].include?(value)
+            add_error("#{col.label}: must be one of #{col.options[:in].join(', ')}")
+          end
+        end
+      end
+
+      def check_duplicates!(dedup_keys)
+        return if dedup_keys.blank?
+        # la logique de dedup est geree par l'orchestrator
+        # qui a acces a la base et aux autres records du batch
+      end
+
+      def determine_status!
+        if errors_list.any? { |e| e.message.include?('is required') }
+          self.status = 'missing'
+        elsif errors_list.any?
+          self.status = 'partial'
+        else
+          self.status = 'complete'
+        end
+      end
+    end
+  end
+end
+```
+
+```ruby
+# lib/data_porter/store_models/error.rb
+module DataPorter
+  module StoreModels
+    class Error
+      include StoreModel::Model
+
+      attribute :message, :string
+    end
+  end
+end
+```
+
+```ruby
+# lib/data_porter/store_models/report.rb
+module DataPorter
+  module StoreModels
+    class Report
+      include StoreModel::Model
+
+      attribute :records_count, :integer, default: 0
+      attribute :complete_count, :integer, default: 0
+      attribute :partial_count, :integer, default: 0
+      attribute :missing_count, :integer, default: 0
+      attribute :duplicate_count, :integer, default: 0
+      attribute :imported_count, :integer, default: 0
+      attribute :errored_count, :integer, default: 0
+      attribute :error_reports, DataPorter::StoreModels::Error.to_array_type, default: []
+    end
+  end
+end
+```
+
+### Sources
+
+```ruby
+# lib/data_porter/sources/base.rb
+module DataPorter
+  module Sources
+    class Base
+      def initialize(data_import)
+        @data_import = data_import
+        @target_class = data_import.target_class
+      end
+
+      def fetch
+        raise NotImplementedError
+      end
+
+      private
+
+      def apply_csv_mapping(row)
+        mappings = @target_class._csv_mappings || {}
+        if mappings.any?
+          mappings.each_with_object({}) do |(header, column), hash|
+            hash[column] = row[header]
+          end
+        else
+          row.to_h.transform_keys { |k| k.parameterize(separator: '_').to_sym }
+        end
+      end
+    end
+  end
+end
+```
+
+```ruby
+# lib/data_porter/sources/csv.rb
+module DataPorter
+  module Sources
+    class Csv < Base
+      def fetch
+        file = @data_import.file
+        csv_options = @target_class._csv_options || { headers: true }
+
+        rows = []
+        ::CSV.parse(URI.parse(file.url).open, **csv_options) do |row|
+          rows << apply_csv_mapping(row)
+        end
+        rows
+      end
+    end
+  end
+end
+```
+
+```ruby
+# lib/data_porter/sources/json.rb
+module DataPorter
+  module Sources
+    class Json < Base
+      def fetch
+        raw = if @data_import.file.attached?
+                @data_import.file.download
+              else
+                @data_import.config['raw_json']
+              end
+
+        parsed = JSON.parse(raw)
+        root = @target_class._json_root
+        records = root ? parsed.dig(*root.split('.')) : parsed
+
+        Array.wrap(records).map do |hash|
+          hash.transform_keys { |k| k.parameterize(separator: '_').to_sym }
+        end
+      end
+    end
+  end
+end
+```
+
+```ruby
+# lib/data_porter/sources/api.rb
+module DataPorter
+  module Sources
+    class Api < Base
+      def fetch
+        api = @target_class._api_config
+        params = @data_import.config.symbolize_keys
+
+        url = api.endpoint.is_a?(Proc) ? api.endpoint.call(params) : api.endpoint
+        headers = api.headers.is_a?(Proc) ? api.headers.call : api.headers
+
+        response = Net::HTTP.get(URI(url), headers)
+        parsed = JSON.parse(response)
+
+        root = api.response_root
+        records = root ? parsed[root.to_s] : parsed
+
+        Array.wrap(records).map do |hash|
+          hash.transform_keys { |k| k.parameterize(separator: '_').to_sym }
+        end
+      end
+    end
+  end
+end
+```
+
+### Controllers
+
+```ruby
+# app/controllers/data_porter/imports_controller.rb
+module DataPorter
+  class ImportsController < DataPorter.configuration.parent_controller.constantize
+    before_action :set_import, only: [:show, :parse, :confirm, :cancel]
+
+    def index
+      @imports = DataPorter::DataImport.order(created_at: :desc).page(params[:page])
+    end
+
+    def new
+      @import = DataPorter::DataImport.new
+      @targets = DataPorter::Registry.available
+    end
+
+    def create
+      @import = DataPorter::DataImport.new(import_params)
+      @import.user = current_user
+      @import.status = :pending
+
+      if @import.save
+        DataPorter::ParseJob.perform_later(@import.id)
+        redirect_to import_path(@import)
+      else
+        @targets = DataPorter::Registry.available
+        render :new
+      end
+    end
+
+    # GET /imports/:id
+    # Affiche le progress (si parsing/importing) ou le preview (si previewing)
+    def show
+      @target = @import.target_class
+      @records = @import.records
+      @grouped = @records.group_by(&:status)
+    end
+
+    # POST /imports/:id/parse
+    # Relance le parsing (si echec)
+    def parse
+      @import.update!(status: :pending)
+      DataPorter::ParseJob.perform_later(@import.id)
+      redirect_to import_path(@import)
+    end
+
+    # POST /imports/:id/confirm
+    # Lance l'import des records valides
+    def confirm
+      DataPorter::ImportJob.perform_later(@import.id)
+      redirect_to import_path(@import)
+    end
+
+    # POST /imports/:id/cancel
+    def cancel
+      @import.update!(status: :failed)
+      redirect_to imports_path
+    end
+
+    private
+
+    def set_import
+      @import = DataPorter::DataImport.find(params[:id])
+    end
+
+    def import_params
+      params.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+    end
+  end
+end
+```
+
+### Vues & Preview
+
+Le coeur de la valeur ajoutee : un tableau de preview auto-genere a partir des colonnes du Target.
+
+#### Layout
+
+```erb
+<%# app/views/layouts/data_porter/application.html.erb %>
+<%= render template: DataPorter.configuration.layout || 'layouts/application' %>
+```
+
+L'engine herite du layout de l'app hote via le `parent_controller`.
+
+#### Page `show` (Preview)
+
+```erb
+<%# app/views/data_porter/imports/show.html.erb %>
+
+<div data-controller="data-porter--progress"
+     data-data-porter--progress-id-value="<%= @import.id %>">
+
+  <%# === HEADER === %>
+  <h1><%= @target._label %> Import #<%= @import.id %></h1>
+  <p>Status: <span class="badge badge-<%= status_color(@import.status) %>">
+    <%= @import.status.humanize %>
+  </span></p>
+
+  <%# === PROGRESS BAR (visible pendant parsing/importing) === %>
+  <% if @import.parsing? || @import.importing? %>
+    <div class="progress">
+      <div class="progress-bar" data-data-porter--progress-target="bar" style="width: 0%">
+        <span data-data-porter--progress-target="text">0%</span>
+      </div>
+    </div>
+  <% end %>
+
+  <%# === SUMMARY (visible apres parsing) === %>
+  <% if @import.previewable? || @import.completed? %>
+    <div class="summary-cards">
+      <div class="card card-complete">
+        <strong><%= @grouped['complete']&.size || 0 %></strong> Ready
+      </div>
+      <div class="card card-partial">
+        <strong><%= @grouped['partial']&.size || 0 %></strong> Incomplete
+      </div>
+      <div class="card card-missing">
+        <strong><%= @grouped['missing']&.size || 0 %></strong> Missing
+      </div>
+      <div class="card card-duplicate">
+        <strong><%= @grouped['duplicate']&.size || 0 %></strong> Duplicates
+      </div>
+    </div>
+  <% end %>
+
+  <%# === PREVIEW TABLE (visible en previewing) === %>
+  <% if @import.previewable? %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Status</th>
+          <% @target._columns.each do |col| %>
+            <th><%= col.label %></th>
+          <% end %>
+          <th>Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @records.each do |record| %>
+          <tr class="row-<%= record.status %>">
+            <td><%= record.line_number %></td>
+            <td><%= status_icon(record.status) %></td>
+            <% @target._columns.each do |col| %>
+              <td><%= record.data[col.name] %></td>
+            <% end %>
+            <td class="errors">
+              <%= record.errors_list.map(&:message).join(', ') %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%# === ACTIONS === %>
+    <div class="actions">
+      <%= link_to "Cancel", cancel_import_path(@import),
+          method: :post, class: "btn btn-outline-secondary" %>
+      <%= link_to "Import #{@import.importable_records.size} records",
+          confirm_import_path(@import),
+          method: :post, class: "btn btn-primary",
+          data: { confirm: "Import #{@import.importable_records.size} records?" } %>
+    </div>
+  <% end %>
+
+  <%# === RESULTS (visible apres import) === %>
+  <% if @import.completed? %>
+    <div class="results">
+      <p>Created: <%= @import.report.imported_count %></p>
+      <p>Errors: <%= @import.report.errored_count %></p>
+    </div>
+  <% end %>
+
+  <%# === FAILURE === %>
+  <% if @import.failed? %>
+    <div class="alert alert-danger">
+      <% @import.report&.error_reports&.each do |err| %>
+        <p><%= err.message %></p>
+      <% end %>
+    </div>
+    <%= link_to "Retry", parse_import_path(@import), method: :post, class: "btn btn-warning" %>
+  <% end %>
+</div>
+```
+
+### Jobs (ActiveJob)
+
+```ruby
+# app/jobs/data_porter/parse_job.rb
+module DataPorter
+  class ParseJob < ActiveJob::Base
+    queue_as { DataPorter.configuration.queue_name }
+
+    def perform(import_id)
+      data_import = DataPorter::DataImport.find(import_id)
+      DataPorter::Orchestrator.new(data_import).parse!
+    end
+  end
+end
+```
+
+```ruby
+# app/jobs/data_porter/import_job.rb
+module DataPorter
+  class ImportJob < ActiveJob::Base
+    queue_as { DataPorter.configuration.queue_name }
+
+    def perform(import_id)
+      data_import = DataPorter::DataImport.find(import_id)
+      DataPorter::Orchestrator.new(data_import).import!
+    end
+  end
+end
+```
+
+### ActionCable & Progress
+
+```ruby
+# lib/data_porter/broadcaster.rb
+module DataPorter
+  class Broadcaster
+    def initialize(import_id)
+      @channel = "#{DataPorter.configuration.cable_channel_prefix}/imports/#{import_id}"
+    end
+
+    def progress(current, total)
+      percentage = ((current.to_f / total) * 100).round
+      broadcast(status: :processing, percentage: percentage, current: current, total: total)
+    end
+
+    def success
+      broadcast(status: :success)
+    end
+
+    def failure(message)
+      broadcast(status: :failure, error: message)
+    end
+
+    private
+
+    def broadcast(message)
+      ActionCable.server.broadcast(@channel, message)
+    end
+  end
+end
+```
+
+```javascript
+// app/javascript/data_porter/progress_controller.js
+import { Controller } from "@hotwired/stimulus";
+import { createConsumer } from "@rails/actioncable";
+
+export default class extends Controller {
+  static targets = ["bar", "text"];
+  static values = { id: Number };
+
+  connect() {
+    this.subscription = createConsumer().subscriptions.create(
+      { channel: "DataPorter::ImportChannel", id: this.idValue },
+      {
+        received: (data) => {
+          if (data.status === "processing") {
+            this.updateProgress(data.percentage);
+          } else {
+            window.location.reload();
+          }
+        },
+      },
+    );
+  }
+
+  updateProgress(percentage) {
+    if (this.hasBarTarget) {
+      this.barTarget.style.width = `${percentage}%`;
+      this.textTarget.textContent = `${percentage}%`;
+    }
+  }
+
+  disconnect() {
+    this.subscription?.unsubscribe();
+  }
+}
+```
+
+---
+
+## Multi-tenancy
+
+La gem est agnostique du concept de tenant. Le scoping se fait via le `context_builder` :
+
+```ruby
+# config/initializers/data_porter.rb
+DataPorter.configure do |config|
+  config.context_builder = ->(controller) {
+    OpenStruct.new(
+      hotel: controller.current_user.hotel,
+      user: controller.current_user
+    )
+  }
+end
+```
+
+Le `context` est passe a chaque appel `persist` :
+
+```ruby
+def persist(record, context:)
+  Guest.create!(hotel: context.hotel, **record.attributes)
+end
+```
+
+Pour filtrer les imports affiches par tenant, override le controller :
+
+```ruby
+# Dans l'app hote
+DataPorter::ImportsController.class_eval do
+  def index
+    @imports = DataPorter::DataImport
+      .joins(:user)
+      .where(users: { hotel_id: current_user.hotel_id })
+      .order(created_at: :desc)
+      .page(params[:page])
+  end
+end
+```
+
+Ou via le `parent_controller` qui expose un `scope_imports` :
+
+```ruby
+DataPorter.configure do |config|
+  config.scope = ->(relation, controller) {
+    relation.where(user: controller.current_user)
+  }
+end
+```
+
+---
+
+## Generators
+
+### `data_porter:install`
+
+```bash
+rails generate data_porter:install
+```
+
+Cree :
+
+- `db/migrate/xxx_create_data_porter_imports.rb`
+- `config/initializers/data_porter.rb`
+- `app/importers/` (dossier vide)
+- Ajoute `mount DataPorter::Engine, at: '/imports'` dans `config/routes.rb`
+
+### `data_porter:target NAME [columns...]`
+
+```bash
+rails generate data_porter:target guests first_name:string:required last_name:string:required email:email phone:phone
+```
+
+Cree :
+
+- `app/importers/guests_target.rb` avec le squelette pre-rempli
+
+---
+
+## Override & Extension
+
+### Vues
+
+Les vues de l'engine sont overridables dans l'app hote :
+
+```
+app/views/data_porter/imports/index.html.erb   -> override la liste
+app/views/data_porter/imports/show.html.erb    -> override le preview
+app/views/data_porter/imports/new.html.erb     -> override le formulaire
+```
+
+### CSS
+
+La gem fournit des classes CSS minimales. Override via :
+
+```css
+/* app/assets/stylesheets/data_porter_overrides.css */
+.data-porter .row-complete {
+  background: #f0fff0;
+}
+.data-porter .row-partial {
+  background: #fffdf0;
+}
+.data-porter .row-missing {
+  background: #fff0f0;
+}
+```
+
+### Controller
+
+Heritage via `parent_controller` pour l'auth et le layout.
+Override individuel via `class_eval` ou monkey-patching classique.
+
+### Custom Source
+
+```ruby
+# lib/data_porter/sources/google_sheets.rb
+module DataPorter
+  module Sources
+    class GoogleSheets < Base
+      def fetch
+        spreadsheet_id = @data_import.config['spreadsheet_id']
+        # ... Google Sheets API logic ...
+        rows.map { |row| map_row(row) }
+      end
+    end
+  end
+end
+
+# config/initializers/data_porter.rb
+DataPorter.configure do |config|
+  config.enabled_sources = [:csv, :json, :api, :google_sheets]
+end
+```
+
+---
+
+## Comparaison avec maintenance_tasks
+
+| Aspect              | maintenance_tasks             | DataPorter                                            |
+| ------------------- | ----------------------------- | ----------------------------------------------------- |
+| Purpose             | One-off maintenance scripts   | Data import workflow                                  |
+| Definition          | `Task` (collection + process) | `Target` (columns + persist)                          |
+| Data source         | CSV or ActiveRecord           | CSV, JSON, API (extensible)                           |
+| Preview             | Non                           | Oui (etat `previewing`)                               |
+| UI auto-generee     | Form params                   | Tableau colonnes dynamiques                           |
+| Auto-discovery      | `Task.descendants`            | `Target.descendants`                                  |
+| Validation visuelle | Non                           | Oui (complete/partial/missing)                        |
+| Progress realtime   | Non                           | Oui (ActionCable)                                     |
+| Multi-step          | Non (fire & forget)           | Oui (parse -> preview -> import)                      |
+| Parent controller   | Configurable                  | Configurable                                          |
+| ActiveJob           | Oui                           | Oui                                                   |
+| State machine       | Run/Pause/Cancel              | Pending/Parsing/Previewing/Importing/Completed/Failed |
+| Throttling          | Oui                           | Non (pas necessaire)                                  |
+| Gem dependencies    | Minimal                       | store_model, actioncable                              |
+
+---
+
+## Structure fichiers de la gem
+
+```
+data_porter/
+  app/
+    channels/
+      data_porter/
+        import_channel.rb
+    controllers/
+      data_porter/
+        imports_controller.rb
+    jobs/
+      data_porter/
+        parse_job.rb
+        import_job.rb
+    models/
+      data_porter/
+        data_import.rb
+    views/
+      data_porter/
+        imports/
+          index.html.erb
+          new.html.erb
+          show.html.erb
+          _form.html.erb
+          _preview_table.html.erb
+          _progress.html.erb
+          _summary.html.erb
+    assets/
+      stylesheets/
+        data_porter/
+          application.css
+      javascript/
+        data_porter/
+          progress_controller.js
+  config/
+    routes.rb
+  db/
+    migrate/
+      create_data_porter_imports.rb
+  lib/
+    data_porter.rb
+    data_porter/
+      configuration.rb
+      engine.rb
+      orchestrator.rb
+      registry.rb
+      broadcaster.rb
+      target.rb
+      type_validator.rb
+      version.rb
+      sources/
+        base.rb
+        csv.rb
+        json.rb
+        api.rb
+      store_models/
+        import_record.rb
+        error.rb
+        report.rb
+      dsl/
+        columns_dsl.rb
+        csv_mapping_dsl.rb
+        api_config_dsl.rb
+        params_dsl.rb
+    generators/
+      data_porter/
+        install_generator.rb
+        target_generator.rb
+        templates/
+          initializer.rb.tt
+          target.rb.tt
+  spec/
+    ...
+  data_porter.gemspec
+  Gemfile
+  README.md
+  LICENSE
+```
+
+---
+
+## Dry Run (v0.2)
+
+Le dry-run permet de simuler l'import sans rien persister. Il comble le gap entre le preview
+(validation colonnes/types) et l'import reel (validation base de donnees).
+
+### Pourquoi c'est essentiel
+
+Le preview valide au niveau **colonnes** (types, required, inclusion). Le dry-run valide au
+niveau **base de donnees** :
+
+| Couche de validation                | Preview | Dry Run |
+| ----------------------------------- | ------- | ------- |
+| Champs requis                       | oui     | oui     |
+| Types (email, date...)              | oui     | oui     |
+| Contraintes DB (unique index, FK)   | **non** | **oui** |
+| Validations ActiveRecord du model   | **non** | **oui** |
+| Callbacks `before_create`           | **non** | **oui** |
+| Interactions entre records du batch | **non** | **oui** |
+
+### Principe
+
+Envelopper l'import dans une transaction ActiveRecord et la rollback systematiquement.
+Les erreurs DB sont capturees et ajoutees aux records, le tableau preview se met a jour.
+
+### Nouveau status
+
+```
+pending -> parsing -> previewing -> dry_running -> previewing -> importing -> completed
+                          ^                            |
+                          +----------------------------+
+                          (retour au preview avec erreurs DB enrichies)
+```
+
+`dry_running` est un status transitoire. Apres le dry-run, l'import revient en `previewing`
+avec les records enrichis des erreurs DB.
+
+### DSL
+
+```ruby
+class GuestsTarget < DataPorter::Target
+  label "Guests"
+  model Guest
+  dry_run_enabled
+
+  # ...
+end
+```
+
+`dry_run_enabled` active le bouton "Test Import" dans l'UI pour ce target.
+Par defaut, le dry-run est desactive (pas tous les targets en ont besoin).
+
+### Orchestrator
+
+```ruby
+# lib/data_porter/orchestrator.rb
+module DataPorter
+  class Orchestrator
+    def dry_run!
+      @data_import.dry_running!
+      context = build_context
+      importable = @data_import.importable_records
+
+      ActiveRecord::Base.transaction do
+        importable.each_with_index do |record, index|
+          instance = @target.persist(record, context: context)
+          record.target_id = instance.id
+          record.status = 'complete'
+          record.dry_run_passed = true
+          broadcast_progress(index + 1, importable.size)
+        rescue ActiveRecord::RecordInvalid => e
+          record.status = 'partial'
+          e.record.errors.full_messages.each { |msg| record.add_error(msg) }
+        rescue ActiveRecord::RecordNotUnique => e
+          record.status = 'partial'
+          record.add_error(extract_unique_violation_message(e))
+        rescue StandardError => e
+          record.status = 'error'
+          record.add_error(e.message)
+        end
+
+        raise ActiveRecord::Rollback
+      end
+
+      reset_target_ids!(importable)
+      @data_import.update!(status: :previewing)
+      build_report
+      broadcast_success
+    rescue StandardError => e
+      handle_failure(e)
+    end
+
+    private
+
+    def reset_target_ids!(records)
+      records.each { |r| r.target_id = nil }
+    end
+
+    def extract_unique_violation_message(error)
+      match = error.message.match(/Key \((.+?)\)=\((.+?)\) already exists/)
+      if match
+        "#{match[1]}: '#{match[2]}' already exists"
+      else
+        "Duplicate record detected"
+      end
+    end
+  end
+end
+```
+
+### Job
+
+```ruby
+# app/jobs/data_porter/dry_run_job.rb
+module DataPorter
+  class DryRunJob < ActiveJob::Base
+    queue_as { DataPorter.configuration.queue_name }
+
+    def perform(import_id)
+      data_import = DataPorter::DataImport.find(import_id)
+      DataPorter::Orchestrator.new(data_import).dry_run!
+    end
+  end
+end
+```
+
+### Controller
+
+```ruby
+# Ajout dans ImportsController
+def dry_run
+  DataPorter::DryRunJob.perform_later(@import.id)
+  redirect_to import_path(@import)
+end
+```
+
+### Migration (ajout au modele DataImport)
+
+```ruby
+# Ajouter dry_running au enum status
+enum :status, {
+  pending:     0,
+  parsing:     1,
+  previewing:  2,
+  importing:   3,
+  completed:   4,
+  failed:      5,
+  dry_running: 6
+}
+```
+
+### StoreModel ImportRecord (ajout)
+
+```ruby
+attribute :dry_run_passed, :boolean, default: false
+```
+
+### UI : boutons preview
+
+Deux boutons sur la page preview quand le target a `dry_run_enabled` :
+
+```erb
+<% if @import.previewable? %>
+  <div class="actions">
+    <%= link_to "Cancel", cancel_import_path(@import),
+        method: :post, class: "btn btn-outline-secondary" %>
+
+    <% if @target.class._dry_run_enabled %>
+      <%= link_to "Test Import (dry-run)",
+          dry_run_import_path(@import),
+          method: :post, class: "btn btn-outline-primary" %>
+    <% end %>
+
+    <%= link_to "Import #{@import.importable_records.size} records",
+        confirm_import_path(@import),
+        method: :post, class: "btn btn-primary",
+        data: { confirm: "Import #{@import.importable_records.size} records?" } %>
+  </div>
+<% end %>
+```
+
+Apres le dry-run, les records enrichis affichent un indicateur supplementaire :
+
+```erb
+<% if record.dry_run_passed %>
+  <span class="badge badge-success" title="DB validation passed">DB OK</span>
+<% end %>
+```
+
+### Workflow utilisateur
+
+```
+1. Upload CSV
+2. Preview : voit 142 records "complete", 3 "partial", 5 "missing"
+3. Clique "Test Import (dry-run)"
+4. Progress bar (parsing async)
+5. Retour au preview : 138 records "complete + DB OK", 4 nouveaux "partial"
+   (ex: "email: 'john@doe.com' already exists", "housing_id: 999 doesn't exist")
+6. Corrige son CSV et relance, OU confirme l'import des 138 valides
+```
+
+---
+
+## Rollback (v0.3 / v0.4)
+
+Le rollback permet d'annuler un import termine en supprimant les records crees.
+
+### Principe
+
+Chaque `ImportRecord` stocke le `target_id` du record cree en base apres l'import.
+Le rollback utilise ces IDs pour identifier et supprimer les records.
+
+### Niveaux de rollback
+
+#### v0.3 — Rollback simple
+
+Suppression directe des records crees, avec un time window configurable.
+
+#### v0.4 — Rollback garde
+
+Verifications de securite avant suppression : records modifies depuis l'import,
+dependances creees, side-effects irreversibles.
+
+### DSL
+
+```ruby
+class GuestsTarget < DataPorter::Target
+  label "Guests"
+  model Guest
+  rollback_enabled
+  rollback_window 2.hours
+  rollback_strategy :destroy
+
+  def rollbackable?(record, context:)
+    instance = Guest.find_by(id: record.target_id)
+    return false if instance.nil?
+    return false if instance.updated_at > context.import_completed_at
+    true
+  end
+end
+```
+
+| Option DSL          | Type     | Description                                                       |
+| ------------------- | -------- | ----------------------------------------------------------------- |
+| `rollback_enabled`  | flag     | Active le rollback pour ce target                                 |
+| `rollback_window`   | Duration | Duree pendant laquelle le rollback est possible (default: 1.hour) |
+| `rollback_strategy` | Symbol   | `:destroy`, `:delete`, `:soft_delete`, `:flag`                    |
+| `rollbackable?`     | Hook     | Verification custom par record avant rollback                     |
+
+### Strategies de rollback
+
+```ruby
+# lib/data_porter/rollback_strategies.rb
+module DataPorter
+  module RollbackStrategies
+    STRATEGIES = {
+      destroy: ->(model, ids) {
+        model.where(id: ids).destroy_all
+      },
+
+      delete: ->(model, ids) {
+        model.where(id: ids).delete_all
+      },
+
+      soft_delete: ->(model, ids) {
+        model.where(id: ids).update_all(discarded_at: Time.current)
+      },
+
+      flag: ->(model, ids) {
+        model.where(id: ids).update_all(import_rolled_back: true)
+      }
+    }.freeze
+
+    def self.execute(strategy, model, ids)
+      handler = STRATEGIES[strategy] || raise(UnknownStrategy, "Unknown strategy: #{strategy}")
+      handler.call(model, ids)
+    end
+  end
+end
+```
+
+| Strategie      | Effet                    | Callbacks                       | Reversible | Quand l'utiliser                                  |
+| -------------- | ------------------------ | ------------------------------- | ---------- | ------------------------------------------------- |
+| `:destroy`     | `destroy_all`            | Oui (after_destroy, dependents) | Non        | Default, quand les callbacks sont importants      |
+| `:delete`      | `delete_all`             | Non (SQL direct)                | Non        | Performance, pas de side-effects                  |
+| `:soft_delete` | Set `discarded_at`       | Non                             | Oui        | Avec discard gem, quand on veut pouvoir restaurer |
+| `:flag`        | Set `import_rolled_back` | Non                             | Oui        | Quand on veut garder les records mais les marquer |
+
+### Orchestrator
+
+```ruby
+# lib/data_porter/orchestrator.rb
+module DataPorter
+  class Orchestrator
+    def rollback!
+      validate_rollback_allowed!
+      @data_import.rolling_back!
+
+      target_class = @target.class
+      model = target_class._model
+      strategy = target_class._rollback_strategy || :destroy
+      context = build_rollback_context
+
+      imported_records = @data_import.records.select { |r| r.status == 'imported' && r.target_id.present? }
+      rollbackable, skipped = partition_rollbackable(imported_records, context)
+
+      rollbackable_ids = rollbackable.map(&:target_id)
+
+      ActiveRecord::Base.transaction do
+        DataPorter::RollbackStrategies.execute(strategy, model, rollbackable_ids)
+      end
+
+      rollbackable.each { |r| r.status = 'rolled_back' }
+      skipped.each { |r| r.status = 'rollback_skipped' }
+
+      @data_import.update!(status: :rolled_back)
+      build_rollback_report(rollbackable, skipped)
+      broadcast_success
+    rescue StandardError => e
+      handle_failure(e)
+    end
+
+    private
+
+    def validate_rollback_allowed!
+      target_class = @target.class
+      raise RollbackNotEnabled, "Rollback not enabled for #{target_class._label}" unless target_class._rollback_enabled
+
+      window = target_class._rollback_window || 1.hour
+      if @data_import.completed_at && @data_import.completed_at < window.ago
+        raise RollbackWindowExpired,
+          "Rollback window expired (#{window.inspect} after completion)"
+      end
+    end
+
+    def partition_rollbackable(records, context)
+      rollbackable = []
+      skipped = []
+
+      records.each do |record|
+        if @target.rollbackable?(record, context: context)
+          rollbackable << record
+        else
+          skipped << record
+          record.add_warning("Skipped: record modified or deleted since import")
+        end
+      end
+
+      [rollbackable, skipped]
+    end
+
+    def build_rollback_context
+      OpenStruct.new(
+        import_completed_at: @data_import.updated_at,
+        **(@data_import.config || {}).symbolize_keys
+      )
+    end
+
+    def build_rollback_report(rollbackable, skipped)
+      report = @data_import.report || DataPorter::StoreModels::Report.new
+      report.rolled_back_count = rollbackable.size
+      report.rollback_skipped_count = skipped.size
+      @data_import.update!(report: report)
+    end
+  end
+end
+```
+
+### Modele DataImport (ajouts)
+
+```ruby
+enum :status, {
+  pending:      0,
+  parsing:      1,
+  previewing:   2,
+  importing:    3,
+  completed:    4,
+  failed:       5,
+  dry_running:  6,
+  rolling_back: 7,
+  rolled_back:  8
+}
+
+def rollback_available?
+  return false unless completed?
+
+  target = target_class
+  return false unless target._rollback_enabled
+
+  window = target._rollback_window || 1.hour
+  updated_at > window.ago
+end
+
+def rollback_expires_at
+  return nil unless rollback_available?
+
+  window = target_class._rollback_window || 1.hour
+  updated_at + window
+end
+```
+
+### StoreModel ImportRecord (ajouts)
+
+```ruby
+STATUSES = %w[
+  pending complete partial missing duplicate
+  imported error
+  rolled_back rollback_skipped
+].freeze
+```
+
+### StoreModel Report (ajouts)
+
+```ruby
+attribute :rolled_back_count, :integer, default: 0
+attribute :rollback_skipped_count, :integer, default: 0
+```
+
+### Controller
+
+```ruby
+def rollback
+  if @import.rollback_available?
+    DataPorter::RollbackJob.perform_later(@import.id)
+    redirect_to import_path(@import)
+  else
+    redirect_to import_path(@import), alert: "Rollback not available"
+  end
+end
+```
+
+### Job
+
+```ruby
+# app/jobs/data_porter/rollback_job.rb
+module DataPorter
+  class RollbackJob < ActiveJob::Base
+    queue_as { DataPorter.configuration.queue_name }
+
+    def perform(import_id)
+      data_import = DataPorter::DataImport.find(import_id)
+      DataPorter::Orchestrator.new(data_import).rollback!
+    end
+  end
+end
+```
+
+### UI : page completed avec rollback
+
+```erb
+<% if @import.completed? %>
+  <div class="results">
+    <p>Created: <%= @import.report.imported_count %></p>
+    <p>Errors: <%= @import.report.errored_count %></p>
+  </div>
+
+  <% if @import.rollback_available? %>
+    <div class="rollback-section">
+      <p>
+        Rollback available for
+        <strong><%= distance_of_time_in_words_to_now(@import.rollback_expires_at) %></strong>
+      </p>
+
+      <% modified_count = @import.records.count { |r|
+        r.status == 'imported' && r.target_id &&
+        @target.class._model.find_by(id: r.target_id)&.updated_at.to_i > @import.updated_at.to_i
+      } %>
+
+      <% if modified_count > 0 %>
+        <div class="alert alert-warning">
+          <strong><%= modified_count %></strong> record(s) modified since import — will be skipped
+        </div>
+      <% end %>
+
+      <%= link_to "Rollback #{@import.records.count { |r| r.status == 'imported' } - modified_count} records",
+          rollback_import_path(@import),
+          method: :post, class: "btn btn-danger",
+          data: { confirm: "This will delete the imported records. Continue?" } %>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @import.rolled_back? %>
+  <div class="results">
+    <p>Rolled back: <%= @import.report.rolled_back_count %></p>
+    <p>Skipped: <%= @import.report.rollback_skipped_count %></p>
+  </div>
+<% end %>
+```
+
+### State machine complete (v0.4)
+
+```
+                                    +-> dry_running -+
+                                    |                |
+pending -> parsing -> previewing ---+                +-> previewing
+                          ^         |                      |
+                          |         +----------------------+
+                          |
+                          +--- (re-upload / retry)
+
+previewing -> importing -> completed -> rolling_back -> rolled_back
+                              |
+                              +-> failed
+
+parsing -> failed
+importing -> failed
+rolling_back -> failed
+```
+
+### Limites documentees
+
+Le rollback ne peut PAS annuler :
+
+- Les emails/notifications envoyees par les callbacks
+- Les webhooks declenches
+- Les fichiers uploades via ActiveStorage dans `persist`
+- Les modifications faites par d'autres utilisateurs sur les records importes
+- Les records dont les associations ont ete supprimees (FK violations)
+
+Ces limites doivent etre clairement affichees dans l'UI avant confirmation du rollback.
+
+### Configuration globale
+
+```ruby
+# config/initializers/data_porter.rb
+DataPorter.configure do |config|
+  config.default_rollback_strategy = :destroy
+  config.default_rollback_window = 1.hour
+  config.rollback_strategies = {
+    # Ajout de strategies custom
+    archive: ->(model, ids) {
+      model.where(id: ids).update_all(archived: true, archived_at: Time.current)
+    }
+  }
+end
+```
+
+### Structure fichiers supplementaires
+
+```
+lib/
+  data_porter/
+    rollback_strategies.rb
+app/
+  jobs/
+    data_porter/
+      dry_run_job.rb
+      rollback_job.rb
+```
+
+---
+
+## Roadmap
+
+### v0.1 - MVP
+
+- Modele DataImport + migration
+- Source CSV
+- Orchestrator (parse + import)
+- Preview table auto-generee
+- DSL Target (columns, csv_mapping, persist)
+- Jobs ActiveJob
+- ActionCable progress
+- Generator install + target
+- Tests RSpec
+
+### v0.2 - Dry Run + Sources
+
+- **Dry-run mode** (transaction + rollback, enrichissement des erreurs DB)
+- DSL `dry_run_enabled`
+- Source JSON (file upload + raw text)
+- Source API (HTTP client + config)
+- Deduplication visuelle
+
+### v0.3 - Rollback simple + UX
+
+- **Rollback simple** (destroy des records crees via target_id)
+- DSL `rollback_enabled`, `rollback_window`, `rollback_strategy`
+- Strategies built-in : destroy, delete, soft_delete, flag
+- Rollback time window avec countdown UI
+- Filtres/tri dans le preview
+- Export des erreurs en CSV
+- Pagination du preview
+
+### v0.4 - Rollback garde + Avance
+
+- **Rollback garde** : hook `rollbackable?`, detection records modifies
+- Strategies de rollback custom (plugin)
+- Affichage pre-rollback des records modifies/non-rollbackables
+- Custom sources (plugin system)
+- Batch persist (bulk insert)
+- Webhook notifications (fin d'import)
+- Import scheduling (cron-like pour les sources API)
+- Row-level accept/reject en preview
+#### UI UX
+
+- Phlex
+- Tailwind
+
+```json
+  // tailwind.config.js (dans la gem, au build)
+ module.exports = {
+   prefix: 'dp-',
+   important: '.data-porter',
+   content: [
+     './app/views/data_porter/**/*.erb',
+     './lib/data_porter/components/**/*.rb',
+     './app/javascript/data_porter/**/*.js'
+   ],
+   corePlugins: {
+     preflight: false  // pas de reset global, on ne touche pas au host
+   },
+   theme: {
+     extend: {
+       colors: {
+         complete: 'var(--dp-color-complete, #16a34a)',
+         partial:  'var(--dp-color-partial, #ca8a04)',
+         missing:  'var(--dp-color-missing, #dc2626)',
+         primary:  'var(--dp-color-primary, #6366f1)',
+       }
+     }
+   }
+ }
+```
+
+---
