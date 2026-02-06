@@ -102,7 +102,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** Great gems install in one command
 - **Covers:** Install generator (migration, initializer, routes), Target generator (column parsing, template), Rails::Generators API
 - **Key decisions:** What to generate vs. what to configure, template format (ERB .tt), route injection strategy
-- **Status:** pending
+- **File:** `docs/blog/011-generators.md`
+- **Status:** draft
 
 ### Part 12 — Adding JSON & API sources
 - **Tasks:** #18, #19
@@ -116,7 +117,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** Testing an engine is different from testing an app
 - **Covers:** Dummy app setup, spec organization, testing StoreModels, mocking ActiveStorage, testing jobs, controller specs
 - **Key decisions:** Dummy app vs. shared examples, factory vs. fixture, what to unit test vs. integration test
-- **Status:** pending
+- **File:** `docs/blog/013-testing-rails-engine.md`
+- **Status:** draft
 
 ### Part 14 — Dry Run: validate before you persist
 - **Tasks:** #20
