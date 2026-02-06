@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
-require "action_view"
+require "spec_helper"
+require_relative "../../../support/view_test_helper"
 
 RSpec.describe "data_porter/imports/show.html.erb" do
+  include ViewTestHelper
+
   let(:target_class) do
     Class.new(DataPorter::Target) do
       label "Guests"
@@ -32,31 +35,13 @@ RSpec.describe "data_porter/imports/show.html.erb" do
   let(:grouped) { records.group_by(&:status) }
   let(:status) { :pending }
 
-  let(:view) { ActionView::Base.new(lookup_context, assigns, controller) }
-
-  let(:lookup_context) do
-    ActionView::LookupContext.new(
-      File.expand_path("../../../../app/views", __dir__)
+  subject(:html) do
+    view = build_view(
+      import: import, target: target,
+      records: records, grouped: grouped
     )
+    view.render(template: "data_porter/imports/show")
   end
-
-  let(:assigns) do
-    { import: import, target: target, records: records, grouped: grouped }
-  end
-
-  let(:controller) do
-    instance_double(DataPorter::ImportsController).tap do |c|
-      allow(c).to receive(:params).and_return({})
-    end
-  end
-
-  before do
-    routes = DataPorter::Engine.routes
-    view.class.include routes.url_helpers
-    view.class.default_url_options = { host: "localhost" }
-  end
-
-  subject(:html) { view.render(template: "data_porter/imports/show") }
 
   it "shows the import target label" do
     expect(html).to include("Guests")

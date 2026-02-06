@@ -1,15 +1,10 @@
 # frozen_string_literal: true
 
-require "action_view"
+require "spec_helper"
+require_relative "../../../support/view_test_helper"
 
 RSpec.describe "data_porter/imports/new.html.erb" do
-  let(:target_class) do
-    Class.new(DataPorter::Target) do
-      label "Guests"
-      icon "fas fa-users"
-      model_name "Guest"
-    end
-  end
+  include ViewTestHelper
 
   let(:import) { DataPorter::DataImport.new }
 
@@ -17,29 +12,10 @@ RSpec.describe "data_porter/imports/new.html.erb" do
     [{ key: :guests, label: "Guests", icon: "fas fa-users" }]
   end
 
-  let(:view) { ActionView::Base.new(lookup_context, assigns, controller) }
-
-  let(:lookup_context) do
-    ActionView::LookupContext.new(
-      File.expand_path("../../../../app/views", __dir__)
-    )
+  subject(:html) do
+    view = build_view(import: import, targets: targets)
+    view.render(template: "data_porter/imports/new")
   end
-
-  let(:assigns) { { import: import, targets: targets } }
-
-  let(:controller) do
-    instance_double(DataPorter::ImportsController).tap do |c|
-      allow(c).to receive(:params).and_return({})
-    end
-  end
-
-  before do
-    routes = DataPorter::Engine.routes
-    view.class.include routes.url_helpers
-    view.class.default_url_options = { host: "localhost" }
-  end
-
-  subject(:html) { view.render(template: "data_porter/imports/new") }
 
   it "renders a form" do
     expect(html).to include("<form")

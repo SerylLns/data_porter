@@ -27,6 +27,10 @@ require "data_porter"
 
 Rails.application.initialize!
 
+Rails.application.routes.draw do
+  mount DataPorter::Engine, at: "/data_porter"
+end
+
 ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
 
 ActiveRecord::Schema.define do
