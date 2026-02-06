@@ -6,6 +6,7 @@ DataPorter::Engine.routes.draw do
       post :parse
       post :confirm
       post :cancel
+      post :dry_run
     end
   end
 end

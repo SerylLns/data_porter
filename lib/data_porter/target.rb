@@ -8,7 +8,7 @@ module DataPorter
     class << self
       attr_reader :_label, :_model_name, :_icon, :_sources,
                   :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
-                  :_api_config
+                  :_api_config, :_dry_run_enabled
 
       def label(value)
         @_label = value
@@ -55,6 +55,10 @@ module DataPorter
       def api_config(&)
         @_api_config = DSL::ApiConfig.new
         @_api_config.instance_eval(&)
+      end
+
+      def dry_run_enabled
+        @_dry_run_enabled = true
       end
     end
 

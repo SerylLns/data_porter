@@ -34,6 +34,7 @@ end
 require "data_porter/data_import"
 require "data_porter/parse_job"
 require "data_porter/import_job"
+require "data_porter/dry_run_job"
 
 # Stub for controller inheritance in test context
 class ApplicationController < ActionController::Base; end unless defined?(ApplicationController)

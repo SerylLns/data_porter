@@ -2,7 +2,7 @@
 
 module DataPorter
   class ImportsController < DataPorter.configuration.parent_controller.constantize
-    before_action :set_import, only: %i[show parse confirm cancel]
+    before_action :set_import, only: %i[show parse confirm cancel dry_run]
 
     def index
       @imports = DataPorter::DataImport.order(created_at: :desc)
@@ -47,6 +47,11 @@ module DataPorter
     def cancel
       @import.update!(status: :failed)
       redirect_to imports_path
+    end
+
+    def dry_run
+      DataPorter::DryRunJob.perform_later(@import.id)
+      redirect_to import_path(@import)
     end
 
     private

@@ -56,7 +56,7 @@ RSpec.describe DataPorter::DataImport, type: :model do
     end
 
     it "defines all expected statuses" do
-      expected = %w[pending parsing previewing importing completed failed]
+      expected = %w[pending parsing previewing importing completed failed dry_running]
 
       expect(described_class.statuses.keys).to match_array(expected)
     end

@@ -8,6 +8,7 @@ RSpec.describe "DataPorter routes" do
           post :parse
           post :confirm
           post :cancel
+          post :dry_run
         end
       end
     end
@@ -23,12 +24,13 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["show", "/imports/:id(.:format)"])
   end
 
-  it "defines member routes for parse, confirm, and cancel" do
+  it "defines member routes for parse, confirm, cancel, and dry_run" do
     routes = DataPorter::Engine.routes
     route_set = routes.routes.map { |r| [r.defaults[:action], r.path.spec.to_s] }
 
     expect(route_set).to include(["parse", "/imports/:id/parse(.:format)"])
     expect(route_set).to include(["confirm", "/imports/:id/confirm(.:format)"])
     expect(route_set).to include(["cancel", "/imports/:id/cancel(.:format)"])
+    expect(route_set).to include(["dry_run", "/imports/:id/dry_run(.:format)"])
   end
 end

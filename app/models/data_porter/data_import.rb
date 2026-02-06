@@ -12,7 +12,8 @@ module DataPorter
       previewing: 2,
       importing: 3,
       completed: 4,
-      failed: 5
+      failed: 5,
+      dry_running: 6
     }
 
     attribute :records, StoreModels::ImportRecord.to_array_type, default: -> { [] }

@@ -26,6 +26,10 @@ Metrics/BlockLength:
     - "spec/**/*"
     - "*.gemspec"
 
+Metrics/ClassLength:
+  Exclude:
+    - "lib/data_porter/orchestrator.rb"
+
 Lint/EmptyBlock:
   Exclude:
     - "config/routes.rb"
