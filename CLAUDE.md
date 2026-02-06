@@ -49,11 +49,11 @@ DataPorter - Mountable Rails engine for 3-step data import workflows.
 ## Blog Series Automation
 After completing a task, ALWAYS check `docs/blog/SERIES.md` to see if all tasks
 for a blog part are now done. If yes:
-1. Notify the user that a new article can be generated
-2. Ask if they want to generate it now
-3. If yes, follow the `/blog` command process to write the draft
+1. Notify the user that a new article is ready to write
+2. Add it to `docs/blog/BACKLOG.md` so it is never forgotten
+3. Continue development — do NOT block on article writing
 
-This ensures no article is forgotten as development progresses.
+The user can run `/blog` or `/blog-status` at any time to write pending articles.
 
 ## Architecture
 See docs/SPEC.md for full specification.
