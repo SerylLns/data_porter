@@ -4,7 +4,9 @@ module DataPorter
   class DataImport < ActiveRecord::Base
     self.table_name = "data_porter_imports"
 
-    belongs_to :user, polymorphic: true
+    has_one_attached :file
+
+    belongs_to :user, polymorphic: true, optional: true
 
     enum :status, {
       pending: 0,

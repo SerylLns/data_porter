@@ -128,6 +128,14 @@ RSpec.describe DataPorter::DataImport, type: :model do
     end
   end
 
+  describe "file attachment" do
+    it "responds to file" do
+      import = described_class.new
+
+      expect(import).to respond_to(:file)
+    end
+  end
+
   describe "persistence" do
     it "saves and reloads with records" do
       import = described_class.create!(
