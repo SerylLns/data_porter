@@ -2,7 +2,7 @@
 series: "Building DataPorter - A Data Import Engine for Rails"
 author: ""
 repo: ""
-status: in-progress
+status: complete
 ---
 
 # Series Plan
@@ -110,7 +110,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** CSV is just the beginning
 - **Covers:** JSON source (file + raw text), API source (HTTP client, params injection), source plugin architecture
 - **Key decisions:** Source abstraction design, how to handle auth headers, response_root extraction
-- **Status:** pending
+- **File:** `docs/blog/012-json-api-sources.md`
+- **Status:** draft
 
 ### Part 13 — Testing a Rails Engine with RSpec
 - **Tasks:** #17
@@ -125,11 +126,29 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** Preview catches column errors, dry-run catches DB errors
 - **Covers:** Transaction + rollback pattern, enriching records with DB errors, DryRunJob, UI integration
 - **Key decisions:** Why two validation layers, transaction rollback approach, when to offer dry-run
-- **Status:** pending
+- **File:** `docs/blog/014-dry-run.md`
+- **Status:** draft
 
 ### Part 15 — Publishing the gem & retrospective
 - **Tasks:** None (wrap-up)
 - **Hook:** From idea to rubygems.org
 - **Covers:** Gemspec final polish, CHANGELOG, versioning, publishing, series recap, what worked, what we'd do differently
 - **Key decisions:** Semantic versioning strategy, open source considerations
-- **Status:** pending
+- **File:** `docs/blog/015-publishing-retro.md`
+- **Status:** draft
+
+### Part 16 — ERB View Templates: Composing Phlex Components
+- **Tasks:** None (view layer completion)
+- **Hook:** Phlex components are pure Ruby. ERB is what the browser sees. The glue is `.call`.
+- **Covers:** ERB templates composing Phlex, has_one_attached bugfix, ActiveStorage test setup, view testing in Rails 8, plain CSS stylesheet
+- **Key decisions:** raw component.call vs phlex-rails, plain CSS vs build step, view test infrastructure
+- **File:** `docs/blog/016-erb-view-templates.md`
+- **Status:** draft
+
+### Part 17 — Showcase & Final Retrospective
+- **Tasks:** None (series finale)
+- **Hook:** 17 articles, 22 components, one complete gem. DataPorter in action.
+- **Covers:** Full workflow walkthrough with screenshots, architecture overview, series recap, lessons learned, what's next
+- **Key decisions:** N/A (retrospective)
+- **File:** `docs/blog/017-showcase-final-retro.md`
+- **Status:** draft
