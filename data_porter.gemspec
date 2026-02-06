@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"] = "https://github.com/SerylLns/data_porter"
   spec.metadata["changelog_uri"] = "https://github.com/SerylLns/data_porter/blob/master/CHANGELOG.md"
   spec.metadata["rubygems_mcp_server_uri"] = "https://rubygems.org/gems/data_porter"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   gemspec = File.basename(__FILE__)
   spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
