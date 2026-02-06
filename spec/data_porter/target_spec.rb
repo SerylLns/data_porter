@@ -81,6 +81,24 @@ RSpec.describe DataPorter::Target do
     end
   end
 
+  describe "auto-registration" do
+    before { DataPorter::Registry.clear }
+
+    it "registers named subclasses when label is called" do
+      klass = Class.new(described_class)
+      stub_const("ContactTarget", klass)
+      klass.label("Contacts")
+
+      expect(DataPorter::Registry.find(:contact)).to eq(klass)
+    end
+
+    it "skips anonymous classes" do
+      Class.new(described_class) { label "Anon" }
+
+      expect(DataPorter::Registry.available).to be_empty
+    end
+  end
+
   describe "default hooks" do
     let(:target) { target_class.new }
     let(:record) { DataPorter::StoreModels::ImportRecord.new }

@@ -12,6 +12,7 @@ module DataPorter
 
       def label(value)
         @_label = value
+        auto_register
       end
 
       def model_name(value)
@@ -59,6 +60,15 @@ module DataPorter
 
       def dry_run_enabled
         @_dry_run_enabled = true
+      end
+
+      private
+
+      def auto_register
+        return unless name
+
+        key = name.demodulize.delete_suffix("Target").underscore
+        Registry.register(key, self)
       end
     end
 
