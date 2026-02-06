@@ -30,14 +30,16 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** `bundle gem` is just the start
 - **Covers:** Gem structure, Engine setup, isolate_namespace, directory tree, gemspec dependencies
 - **Key decisions:** Why isolate_namespace, directory conventions, dependency choices (store_model, phlex, turbo)
-- **Status:** pending
+- **File:** `docs/blog/002-scaffolding-a-rails-engine.md`
+- **Status:** draft
 
 ### Part 3 — Configuration DSL: making the gem flexible
 - **Tasks:** #2
 - **Hook:** A good gem adapts to any host app
 - **Covers:** Configuration singleton pattern, DSL with `configure` block, sensible defaults, context_builder lambda
 - **Key decisions:** Why not Rails config, lambda vs block for context, what to make configurable vs. convention
-- **Status:** pending
+- **File:** `docs/blog/003-configuration-dsl.md`
+- **Status:** draft
 
 ### Part 4 — Modeling import data with StoreModel & JSONB
 - **Tasks:** #3, #4
