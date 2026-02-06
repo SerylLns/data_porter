@@ -27,6 +27,10 @@ module DataPorter
       Registry.find(target_key)
     end
 
+    def source_class
+      Sources.resolve(source_type)
+    end
+
     def previewable?
       previewing? && records.any?
     end
