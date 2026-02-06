@@ -1,0 +1,224 @@
+.data-porter {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1a1a2e;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.dp-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+.dp-table th,
+.dp-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dp-table th {
+  font-weight: 600;
+  background: #f8fafc;
+}
+
+.dp-table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+.dp-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dp-badge--pending { background: #e2e8f0; color: #475569; }
+.dp-badge--parsing { background: #dbeafe; color: #1d4ed8; }
+.dp-badge--previewing { background: #fef3c7; color: #92400e; }
+.dp-badge--importing { background: #dbeafe; color: #1d4ed8; }
+.dp-badge--completed { background: #d1fae5; color: #065f46; }
+.dp-badge--failed { background: #fee2e2; color: #991b1b; }
+.dp-badge--dry_running { background: #ede9fe; color: #5b21b6; }
+
+.dp-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dp-card {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.dp-card strong {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.dp-card--complete { border-color: #d1fae5; background: #ecfdf5; }
+.dp-card--partial { border-color: #fef3c7; background: #fffbeb; }
+.dp-card--missing { border-color: #fee2e2; background: #fef2f2; }
+.dp-card--duplicate { border-color: #e2e8f0; background: #f8fafc; }
+
+.dp-preview-table {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.dp-row--complete { background: #ecfdf5; }
+.dp-row--partial { background: #fffbeb; }
+.dp-row--missing { background: #fef2f2; }
+
+.dp-errors {
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.dp-progress {
+  margin: 1.5rem 0;
+  background: #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 1.5rem;
+}
+
+.dp-progress-bar {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 0.5rem;
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 2rem;
+}
+
+.dp-results {
+  padding: 1rem;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dp-results p { margin: 0.25rem 0; }
+
+.dp-alert {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dp-alert--danger {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+}
+
+.dp-alert p { margin: 0.25rem 0; }
+
+.dp-form { max-width: 480px; }
+
+.dp-field {
+  margin-bottom: 1rem;
+}
+
+.dp-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.dp-select,
+.dp-file-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background: white;
+}
+
+.dp-select:focus,
+.dp-file-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.dp-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.dp-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.dp-btn--primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.dp-btn--primary:hover { background: #2563eb; }
+
+.dp-btn--secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.dp-btn--secondary:hover { background: #e2e8f0; }
+
+.dp-btn--danger {
+  background: #ef4444;
+  color: white;
+}
+
+.dp-btn--danger:hover { background: #dc2626; }
+
+.dp-link {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.dp-link:hover { text-decoration: underline; }
+
+.dp-nav { margin-top: 1.5rem; }
