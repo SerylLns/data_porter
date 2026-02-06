@@ -3,6 +3,7 @@
 require "rails"
 require "active_record"
 require "active_job"
+require "action_controller"
 require "action_cable"
 require "data_porter"
 
@@ -33,6 +34,12 @@ end
 require "data_porter/data_import"
 require "data_porter/parse_job"
 require "data_porter/import_job"
+
+# Stub for controller inheritance in test context
+class ApplicationController < ActionController::Base; end unless defined?(ApplicationController)
+
+$LOAD_PATH.unshift File.expand_path("../app/controllers", __dir__)
+require "data_porter/imports_controller"
 
 $LOAD_PATH.unshift File.expand_path("../app/channels", __dir__)
 require "data_porter/import_channel"
