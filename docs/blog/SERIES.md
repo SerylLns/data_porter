@@ -46,7 +46,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** Storing structured data without extra tables
 - **Covers:** StoreModel gem, ImportRecord/Error/Report models, JSONB attributes, TypeValidator
 - **Key decisions:** JSONB vs. separate tables, store_model vs. hand-rolled, validation strategy (column-level vs DB-level)
-- **Status:** pending
+- **File:** `docs/blog/004-store-model-jsonb.md`
+- **Status:** draft
 
 ### Part 5 — Designing a Target DSL
 - **Tasks:** #5, #6
