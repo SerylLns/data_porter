@@ -78,21 +78,24 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** Users hate staring at a spinner with no feedback
 - **Covers:** Broadcaster service, ImportChannel, Stimulus controller, progress bar updates, auto-reload on completion
 - **Key decisions:** ActionCable vs. polling vs. SSE, channel naming strategy, Stimulus vs. Turbo Streams
-- **Status:** pending
+- **File:** `docs/blog/008-actioncable-stimulus.md`
+- **Status:** draft
 
 ### Part 9 — Building the UI with Phlex & Tailwind
 - **Tasks:** #13
 - **Hook:** Auto-generated preview tables from a DSL
 - **Covers:** Phlex components, scoped Tailwind (dp- prefix), preview table with dynamic columns, status badges, CSS custom properties for theming
 - **Key decisions:** Phlex vs. ERB/ViewComponent, Tailwind prefix strategy, how to not pollute host app styles
-- **Status:** pending
+- **File:** `docs/blog/009-phlex-ui-components.md`
+- **Status:** draft
 
 ### Part 10 — Controllers & routing in a Rails Engine
 - **Tasks:** #12
 - **Hook:** Engine controllers are tricky — here's the clean way
 - **Covers:** ImportsController, inheriting from host's parent controller, engine routes, strong params, Turbo integration
 - **Key decisions:** Dynamic parent controller inheritance, route namespacing, how auth flows from host to engine
-- **Status:** pending
+- **File:** `docs/blog/010-controllers-routing.md`
+- **Status:** draft
 
 ### Part 11 — Generators: install & target scaffolding
 - **Tasks:** #15, #16
