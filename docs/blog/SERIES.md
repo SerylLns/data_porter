@@ -70,7 +70,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** The brain of the engine
 - **Covers:** Orchestrator class (parse! and import!), state transitions, error handling per-record, ActiveJob integration
 - **Key decisions:** Why an orchestrator (not controller logic), transaction boundaries, error recovery strategy
-- **Status:** pending
+- **File:** `docs/blog/007-orchestrator.md`
+- **Status:** draft
 
 ### Part 8 — Real-time progress with ActionCable & Stimulus
 - **Tasks:** #11, #14
