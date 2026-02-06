@@ -2,11 +2,13 @@
 
 require_relative "sources/base"
 require_relative "sources/csv"
+require_relative "sources/json"
 
 module DataPorter
   module Sources
     REGISTRY = {
-      csv: Csv
+      csv: Csv,
+      json: Json
     }.freeze
 
     def self.resolve(type)

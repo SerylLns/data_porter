@@ -6,7 +6,7 @@ module DataPorter
   class Target
     class << self
       attr_reader :_label, :_model_name, :_icon, :_sources,
-                  :_columns, :_csv_mappings, :_dedup_keys
+                  :_columns, :_csv_mappings, :_dedup_keys, :_json_root
 
       def label(value)
         @_label = value
@@ -44,6 +44,10 @@ module DataPorter
 
       def deduplicate_by(*keys)
         @_dedup_keys = keys.map(&:to_sym)
+      end
+
+      def json_root(path)
+        @_json_root = path
       end
     end
 
