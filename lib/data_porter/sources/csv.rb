@@ -25,7 +25,7 @@ module DataPorter
       end
 
       def download_file
-        @data_import.file.download
+        @data_import.file.download.force_encoding("UTF-8")
       end
 
       def csv_options
