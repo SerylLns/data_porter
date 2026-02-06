@@ -2,6 +2,7 @@
 
 require "rails"
 require "active_record"
+require "active_job"
 require "data_porter"
 
 ActiveRecord::Base.establish_connection(
@@ -25,8 +26,12 @@ ActiveRecord::Schema.define do
   end
 end
 
-$LOAD_PATH.unshift File.expand_path("../app/models", __dir__)
+%w[models jobs].each do |dir|
+  $LOAD_PATH.unshift File.expand_path("../app/#{dir}", __dir__)
+end
 require "data_porter/data_import"
+require "data_porter/parse_job"
+require "data_porter/import_job"
 
 RSpec.configure do |config|
   config.example_status_persistence_file_path = ".rspec_status"
