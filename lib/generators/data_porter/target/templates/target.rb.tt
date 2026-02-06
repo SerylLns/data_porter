@@ -1,0 +1,20 @@
+# frozen_string_literal: true
+
+class <%= target_class_name %> < DataPorter::Target
+  label "<%= target_label %>"
+  model_name "<%= model_name %>"
+  icon "fas fa-file-import"
+  sources :csv
+<% if parsed_columns.any? %>
+
+  columns do
+<% parsed_columns.each do |col| -%>
+    column :<%= col[:name] %>, type: :<%= col[:type] %><%= ", required: true" if col[:required] %>
+<% end -%>
+  end
+<% end %>
+
+  def persist(record, context:)
+    # <%= model_name %>.create!(record.attributes)
+  end
+end
