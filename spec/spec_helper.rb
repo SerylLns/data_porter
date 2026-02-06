@@ -4,9 +4,6 @@ require "rails"
 require "active_record"
 require "data_porter"
 
-$LOAD_PATH.unshift File.expand_path("../app/models", __dir__)
-require "data_porter/data_import"
-
 ActiveRecord::Base.establish_connection(
   adapter: "sqlite3",
   database: ":memory:"
@@ -27,6 +24,9 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 end
+
+$LOAD_PATH.unshift File.expand_path("../app/models", __dir__)
+require "data_porter/data_import"
 
 RSpec.configure do |config|
   config.example_status_persistence_file_path = ".rspec_status"

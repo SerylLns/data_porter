@@ -14,6 +14,7 @@ require_relative "data_porter/store_models/report"
 require_relative "data_porter/store_models/import_record"
 require_relative "data_porter/target"
 require_relative "data_porter/registry"
+require_relative "data_porter/sources"
 require_relative "data_porter/engine"
 
 module DataPorter

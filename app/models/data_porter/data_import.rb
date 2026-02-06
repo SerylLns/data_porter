@@ -18,7 +18,7 @@ module DataPorter
     attribute :records, StoreModels::ImportRecord.to_array_type, default: -> { [] }
     attribute :report, StoreModels::Report.to_type, default: -> { StoreModels::Report.new }
 
-    attribute :config, default: -> { {} }
+    attribute :config, :json, default: -> { {} }
 
     validates :target_key, presence: true
     validates :source_type, presence: true, inclusion: { in: %w[csv json api] }
