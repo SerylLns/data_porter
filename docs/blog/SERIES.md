@@ -54,7 +54,8 @@ Each article: ~5-8 min read, one clear concept, real code, decisions explained.
 - **Hook:** One file = one import type, zero boilerplate
 - **Covers:** Target base class, class-level DSL (label, model, columns, csv_mapping), Registry pattern, auto-discovery
 - **Key decisions:** DSL design (class methods vs. instance), class_attribute vs. class instance vars, hook pattern for extensibility
-- **Status:** pending
+- **File:** `docs/blog/005-target-dsl.md`
+- **Status:** draft
 
 ### Part 6 — Parsing CSV data with Sources
 - **Tasks:** #7, #8
