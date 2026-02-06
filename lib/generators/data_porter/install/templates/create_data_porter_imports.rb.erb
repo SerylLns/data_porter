@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+class CreateDataPorterImports < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  def change
+    create_table :data_porter_imports do |t|
+      t.string  :target_key,  null: false
+      t.string  :source_type, null: false, default: "csv"
+      t.integer :status,      null: false, default: 0
+      t.jsonb   :records,     null: false, default: []
+      t.jsonb   :report,      null: false, default: {}
+      t.jsonb   :config,      null: false, default: {}
+
+      t.references :user, polymorphic: true, null: false
+
+      t.timestamps
+    end
+
+    add_index :data_porter_imports, :status
+    add_index :data_porter_imports, :target_key
+  end
+end
