@@ -16,6 +16,7 @@ require_relative "data_porter/target"
 require_relative "data_porter/registry"
 require_relative "data_porter/sources"
 require_relative "data_porter/record_validator"
+require_relative "data_porter/broadcaster"
 require_relative "data_porter/orchestrator"
 require_relative "data_porter/engine"
 

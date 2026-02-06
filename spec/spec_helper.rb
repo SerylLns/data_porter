@@ -3,6 +3,7 @@
 require "rails"
 require "active_record"
 require "active_job"
+require "action_cable"
 require "data_porter"
 
 ActiveRecord::Base.establish_connection(
@@ -32,6 +33,9 @@ end
 require "data_porter/data_import"
 require "data_porter/parse_job"
 require "data_porter/import_job"
+
+$LOAD_PATH.unshift File.expand_path("../app/channels", __dir__)
+require "data_porter/import_channel"
 
 RSpec.configure do |config|
   config.example_status_persistence_file_path = ".rspec_status"
