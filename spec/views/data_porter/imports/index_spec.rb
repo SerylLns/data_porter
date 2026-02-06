@@ -14,6 +14,10 @@ RSpec.describe "data_porter/imports/index.html.erb" do
     end
   end
 
+  let(:targets) do
+    [{ key: :guests, label: "Guests", icon: "fas fa-users" }]
+  end
+
   let(:imports) do
     DataPorter::Registry.clear
     DataPorter::Registry.register(:guests, target_class)
@@ -33,7 +37,7 @@ RSpec.describe "data_porter/imports/index.html.erb" do
   end
 
   subject(:html) do
-    view = build_view(imports: imports)
+    view = build_view(imports: imports, targets: targets)
     view.render(template: "data_porter/imports/index")
   end
 
@@ -55,7 +59,27 @@ RSpec.describe "data_porter/imports/index.html.erb" do
     expect(html).to include("pending")
   end
 
-  it "includes a new import link" do
+  it "includes a new import button" do
     expect(html).to include("New Import")
+  end
+
+  it "includes the modal form" do
+    expect(html).to include("dp-modal")
+    expect(html).to include("<form")
+  end
+
+  it "includes the dropzone file input" do
+    expect(html).to include("dp-dropzone")
+  end
+
+  context "with no imports" do
+    subject(:html) do
+      view = build_view(imports: [], targets: targets)
+      view.render(template: "data_porter/imports/index")
+    end
+
+    it "shows the empty state" do
+      expect(html).to include("No imports yet")
+    end
   end
 end

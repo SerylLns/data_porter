@@ -1,31 +1,142 @@
+<%= stylesheet_link_tag "data_porter/application" %>
+
 <div class="data-porter">
   <div class="dp-header">
     <h1 class="dp-title">Imports</h1>
-    <%= link_to "New Import", new_import_path, class: "dp-btn dp-btn--primary" %>
+    <button type="button" class="dp-btn dp-btn--primary" onclick="document.getElementById('dp-modal').classList.add('dp-modal--open')">
+      New Import
+    </button>
   </div>
 
-  <table class="dp-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Target</th>
-        <th>Source</th>
-        <th>Status</th>
-        <th>Created</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @imports.each do |import| %>
+  <% if @imports.any? %>
+    <table class="dp-table">
+      <thead>
         <tr>
-          <td><%= import.id %></td>
-          <td><%= import.target_key %></td>
-          <td><%= import.source_type %></td>
-          <td><%= raw DataPorter::Components::StatusBadge.new(status: import.status).call %></td>
-          <td><%= import.created_at&.strftime("%Y-%m-%d %H:%M") %></td>
-          <td><%= link_to "View", import_path(import), class: "dp-link" %></td>
+          <th>ID</th>
+          <th>Target</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th></th>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% @imports.each do |import| %>
+          <tr>
+            <td><%= import.id %></td>
+            <td><%= import.target_key %></td>
+            <td><%= import.source_type %></td>
+            <td><%= raw DataPorter::Components::StatusBadge.new(status: import.status).call %></td>
+            <td><%= import.created_at&.strftime("%Y-%m-%d %H:%M") %></td>
+            <td><%= link_to "View", import_path(import), class: "dp-link" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="dp-empty-state">
+      <div class="dp-empty-state__icon">&#128230;</div>
+      <p class="dp-empty-state__text">No imports yet</p>
+      <button type="button" class="dp-btn dp-btn--primary" onclick="document.getElementById('dp-modal').classList.add('dp-modal--open')">
+        Create your first import
+      </button>
+    </div>
+  <% end %>
 </div>
+
+<div id="dp-modal" class="dp-modal">
+  <div class="dp-modal__backdrop" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')"></div>
+  <div class="dp-modal__content">
+    <div class="dp-modal__header">
+      <h2 class="dp-modal__title">New Import</h2>
+      <button type="button" class="dp-modal__close" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')">&times;</button>
+    </div>
+
+    <%= form_with model: DataPorter::DataImport.new, url: imports_path, class: "dp-modal__body", multipart: true do |f| %>
+      <div class="dp-field">
+        <%= f.label :target_key, "Target", class: "dp-label" %>
+        <%= f.select :target_key,
+              @targets.map { |t| [t[:label], t[:key]] },
+              { prompt: "Select a target..." },
+              class: "dp-select" %>
+      </div>
+
+      <div class="dp-field">
+        <%= f.label :source_type, "Source Type", class: "dp-label" %>
+        <%= f.select :source_type,
+              DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
+              { prompt: "Select source type..." },
+              id: "dp-source-select",
+              class: "dp-select" %>
+      </div>
+
+      <div id="dp-file-field" class="dp-field">
+        <%= f.label :file, "File", class: "dp-label" %>
+        <label class="dp-dropzone" id="dp-dropzone">
+          <input type="file" name="data_import[file]" id="dp-file-input" class="dp-dropzone__input" />
+          <div class="dp-dropzone__content">
+            <div class="dp-dropzone__icon">&#128196;</div>
+            <span class="dp-dropzone__text">Drop your file here or <strong>browse</strong></span>
+            <span class="dp-dropzone__hint">CSV or JSON files accepted</span>
+          </div>
+          <div class="dp-dropzone__selected" id="dp-file-name" style="display: none;"></div>
+        </label>
+      </div>
+
+      <div class="dp-modal__footer">
+        <%= f.submit "Start Import", class: "dp-btn dp-btn--primary" %>
+        <button type="button" class="dp-btn dp-btn--secondary" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')">Cancel</button>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var sourceSelect = document.getElementById("dp-source-select");
+    var fileField = document.getElementById("dp-file-field");
+    var fileInput = document.getElementById("dp-file-input");
+    var dropzone = document.getElementById("dp-dropzone");
+    var fileName = document.getElementById("dp-file-name");
+
+    if (sourceSelect) {
+      sourceSelect.addEventListener("change", function() {
+        fileField.style.display = this.value === "api" ? "none" : "";
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function() {
+        if (this.files.length > 0) {
+          fileName.textContent = this.files[0].name;
+          fileName.style.display = "";
+          dropzone.classList.add("dp-dropzone--has-file");
+        }
+      });
+    }
+
+    if (dropzone) {
+      dropzone.addEventListener("dragover", function(e) {
+        e.preventDefault();
+        this.classList.add("dp-dropzone--dragover");
+      });
+      dropzone.addEventListener("dragleave", function() {
+        this.classList.remove("dp-dropzone--dragover");
+      });
+      dropzone.addEventListener("drop", function(e) {
+        e.preventDefault();
+        this.classList.remove("dp-dropzone--dragover");
+        if (e.dataTransfer.files.length > 0) {
+          fileInput.files = e.dataTransfer.files;
+          fileInput.dispatchEvent(new Event("change"));
+        }
+      });
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        document.getElementById("dp-modal").classList.remove("dp-modal--open");
+      }
+    });
+  })();
+</script>

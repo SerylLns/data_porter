@@ -6,6 +6,7 @@ module DataPorter
 
     def index
       @imports = DataPorter::DataImport.order(created_at: :desc)
+      @targets = DataPorter::Registry.available
     end
 
     def new

@@ -29,7 +29,8 @@ RSpec.describe "data_porter/imports/new.html.erb" do
     expect(html).to include("source_type")
   end
 
-  it "includes a file upload field" do
+  it "includes the dropzone file input" do
+    expect(html).to include("dp-dropzone")
     expect(html).to include('type="file"')
   end
 

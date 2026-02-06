@@ -1,7 +1,11 @@
-<div class="data-porter">
-  <h1 class="dp-title">New Import</h1>
+<%= stylesheet_link_tag "data_porter/application" %>
 
-  <%= form_with model: @import, url: imports_path, class: "dp-form" do |f| %>
+<div class="data-porter">
+  <div class="dp-header">
+    <h1 class="dp-title">New Import</h1>
+  </div>
+
+  <%= form_with model: @import, url: imports_path, class: "dp-form", multipart: true do |f| %>
     <div class="dp-field">
       <%= f.label :target_key, "Target", class: "dp-label" %>
       <%= f.select :target_key,
@@ -15,12 +19,21 @@
       <%= f.select :source_type,
             DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
             { prompt: "Select source type..." },
+            id: "dp-source-select-new",
             class: "dp-select" %>
     </div>
 
-    <div class="dp-field">
+    <div id="dp-file-field-new" class="dp-field">
       <%= f.label :file, "File", class: "dp-label" %>
-      <%= f.file_field :file, class: "dp-file-input" %>
+      <label class="dp-dropzone" id="dp-dropzone-new">
+        <input type="file" name="data_import[file]" id="dp-file-input-new" class="dp-dropzone__input" />
+        <div class="dp-dropzone__content">
+          <div class="dp-dropzone__icon">&#128196;</div>
+          <span class="dp-dropzone__text">Drop your file here or <strong>browse</strong></span>
+          <span class="dp-dropzone__hint">CSV or JSON files accepted</span>
+        </div>
+        <div class="dp-dropzone__selected" id="dp-file-name-new" style="display: none;"></div>
+      </label>
     </div>
 
     <div class="dp-actions">
@@ -29,3 +42,47 @@
     </div>
   <% end %>
 </div>
+
+<script>
+  (function() {
+    var sourceSelect = document.getElementById("dp-source-select-new");
+    var fileField = document.getElementById("dp-file-field-new");
+    var fileInput = document.getElementById("dp-file-input-new");
+    var dropzone = document.getElementById("dp-dropzone-new");
+    var fileName = document.getElementById("dp-file-name-new");
+
+    if (sourceSelect) {
+      sourceSelect.addEventListener("change", function() {
+        fileField.style.display = this.value === "api" ? "none" : "";
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function() {
+        if (this.files.length > 0) {
+          fileName.textContent = this.files[0].name;
+          fileName.style.display = "";
+          dropzone.classList.add("dp-dropzone--has-file");
+        }
+      });
+    }
+
+    if (dropzone) {
+      dropzone.addEventListener("dragover", function(e) {
+        e.preventDefault();
+        this.classList.add("dp-dropzone--dragover");
+      });
+      dropzone.addEventListener("dragleave", function() {
+        this.classList.remove("dp-dropzone--dragover");
+      });
+      dropzone.addEventListener("drop", function(e) {
+        e.preventDefault();
+        this.classList.remove("dp-dropzone--dragover");
+        if (e.dataTransfer.files.length > 0) {
+          fileInput.files = e.dataTransfer.files;
+          fileInput.dispatchEvent(new Event("change"));
+        }
+      });
+    }
+  })();
+</script>
