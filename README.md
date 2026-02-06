@@ -4,6 +4,12 @@ A mountable Rails engine for 3-step data import workflows: **Upload**, **Preview
 
 Supports CSV, JSON, and API sources with a declarative DSL for defining import targets. Business-agnostic by design -- all domain logic lives in your host app.
 
+![Import list with status badges](docs/screenshots/index-with-previewing.jpg)
+
+![New import modal with dropzone](docs/screenshots/modal-new-import.jpg)
+
+![Preview with summary cards and data table](docs/screenshots/preview.jpg)
+
 ## Requirements
 
 - Ruby >= 3.2

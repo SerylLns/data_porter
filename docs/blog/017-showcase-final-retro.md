@@ -8,7 +8,7 @@ published: false
 
 # Showcase & Final Retrospective
 
-> 17 articles, 22 composants, un gem complet. Voici DataPorter en action -- et ce que cette serie m'a appris sur la construction de Rails engines.
+> 17 articles, 22 components, one complete gem. Here is DataPorter in action -- and what this series taught me about building Rails engines.
 
 ## Context
 
@@ -32,66 +32,48 @@ The install generator creates everything: the migration for the `data_porter_imp
 
 ### Defining a target
 
-One file, one import type. Here is a target that imports guests from a CSV:
+One file, one import type. Here is a target that imports contacts from a CSV:
 
 ```ruby
-# app/importers/guest_target.rb
-class GuestTarget < DataPorter::Target
-  label "Guests"
-  model_name "Guest"
-  icon "fas fa-users"
-
-  sources :csv, :json
-  dry_run_enabled
+# app/importers/contact_target.rb
+class ContactTarget < DataPorter::Target
+  label "Importer Contact"
+  model_name "Contact"
+  icon "fas fa-file-import"
+  sources :csv
 
   columns do
-    column :first_name, type: :string, required: true
-    column :last_name,  type: :string, required: true
-    column :email,      type: :email,  required: true
-    column :phone,      type: :phone
-    column :company,    type: :string
+    column :name,         type: :string, required: true
+    column :email,        type: :string
+    column :phone_number, type: :string
+    column :address,      type: :string
+    column :room,         type: :string
   end
-
-  csv_mapping do
-    map "Prenom" => :first_name
-    map "Nom" => :last_name
-    map "Email" => :email
-    map "Telephone" => :phone
-    map "Entreprise" => :company
-  end
-
-  deduplicate_by :email
 
   def persist(record, context:)
-    Guest.create!(record.attributes)
-  end
-
-  def after_import(results, context:)
-    GuestMailer.import_complete(results).deliver_later
+    Contact.create!(record.attributes)
   end
 end
 ```
 
-15 lines of DSL, 2 methods. The target declares its columns, maps CSV headers to attribute names, enables deduplication by email, and defines how each record is persisted. Everything else -- parsing, validation, progress tracking, UI rendering -- is handled by the engine.
+A few lines of DSL, one method. The target declares its columns, marks which are required, and defines how each record is persisted. Everything else -- parsing, validation, progress tracking, UI rendering -- is handled by the engine.
 
 ### The workflow
 
-<!-- TODO: Add screenshots here -->
-
 **Step 1: Create a new import**
 
-The user visits `/data_porter/imports/new`, selects "Guests" as the target, chooses "CSV" as the source type, uploads a file, and clicks "Start Import".
+The user visits `/imports`, clicks "New Import", and a modal opens. They select the target, choose the source type, drag and drop a file onto the dropzone, and click "Start Import".
 
-<!-- SCREENSHOT: new import form with target dropdown, source select, and file upload -->
+![New Import modal with target dropdown, source type select, and dropzone file upload](../screenshots/modal-new-import.jpg)
 
 **Step 2: Parsing and preview**
 
 The ParseJob runs in the background. ActionCable pushes progress to the browser via the Stimulus-powered progress bar. When parsing completes, the import transitions to `previewing` and the page shows:
 
-- **Summary cards**: 142 ready, 3 incomplete, 1 missing, 2 duplicates
-- **Preview table**: every row with its status, data, and any errors highlighted in red
+- **Summary cards**: 14 ready, 0 incomplete, 1 missing, 0 duplicates
+- **Preview table**: every row with its status, data, and any errors highlighted
 
-<!-- SCREENSHOT: preview page with summary cards and preview table showing mixed statuses -->
+![Preview page with summary cards and preview table showing record statuses](../screenshots/preview.jpg)
 
 The user sees exactly what will happen before anything touches the database.
 
@@ -99,19 +81,15 @@ The user sees exactly what will happen before anything touches the database.
 
 For targets that enable it, a "Dry Run" button appears. Clicking it runs every record through the actual `persist` method inside a transaction, captures any database-level errors (uniqueness violations, foreign key constraints), then rolls back. The preview table updates with a green check or red cross for each record.
 
-<!-- SCREENSHOT: preview after dry run, showing dry_run_passed indicators -->
-
 **Step 4: Confirm and import**
 
 The user clicks "Confirm Import". The ImportJob processes each importable record, calling the target's `persist` method for real this time. Progress updates flow through ActionCable. When it finishes, the results summary shows the final counts.
 
-<!-- SCREENSHOT: completed import with results summary showing imported/errored counts -->
+**Step 5: Track all imports**
 
-**Step 5: Handle failures**
+The index page lists every import with its status badge. At a glance, the user sees what completed, what failed, and what is still in preview.
 
-If something goes catastrophically wrong, the import transitions to `failed`. The FailureAlert component shows the error messages, and a "Retry" button lets the user re-parse from scratch.
-
-<!-- SCREENSHOT: failed import with error alert and retry button -->
+![Index page listing imports with colored status badges](../screenshots/index-with-previewing.jpg)
 
 ## The architecture at a glance
 
@@ -119,7 +97,7 @@ If something goes catastrophically wrong, the import transitions to `failed`. Th
 Host App                          DataPorter Engine
 ---------                         -----------------
 app/importers/                    lib/data_porter/
-  guest_target.rb                   target.rb (DSL)
+  contact_target.rb                 target.rb (DSL)
                                     registry.rb (discovery)
 config/initializers/                configuration.rb (config)
   data_porter.rb
@@ -149,11 +127,11 @@ config/initializers/                configuration.rb (config)
                                     data_porter/application.css
 ```
 
-La host app fournit un fichier Target et un initializer. Le gem fournit tout le reste. La frontiere est nette : la logique metier vit dans le Target, l'infrastructure vit dans le engine.
+The host app provides a Target file and an initializer. The engine provides everything else. The boundary is clean: business logic lives in the Target, infrastructure lives in the engine.
 
-## Ce que la serie a construit
+## What the series built
 
-| # | Article | Composant |
+| # | Article | Component |
 |---|---------|-----------|
 | 1 | Why build a data import engine? | Motivation, problem statement |
 | 2 | Scaffolding a Rails Engine gem | Engine, isolate_namespace |
@@ -173,71 +151,69 @@ La host app fournit un fichier Target et un initializer. Le gem fournit tout le 
 | 16 | ERB View Templates | ERB + Phlex composition, CSS |
 | 17 | Showcase & Final Retro | This article |
 
-17 articles. Chacun avec du code reel, des tests, et une decision expliquee. Pas un tutoriel theorique -- un gem qui marche, construit etape par etape.
+17 articles. Each one with real code, tests, and an explained decision. Not a theoretical tutorial -- a working gem, built step by step.
 
-## Les chiffres
+## The numbers
 
 ```
-Specs:    216 examples, 0 failures
+Specs:    221 examples, 0 failures
 Rubocop:  80 files, 0 offenses
 Runtime:  < 1 second (full suite)
 ```
 
-216 specs qui couvrent chaque couche : modeles, store models, sources, orchestrator, jobs, channels, composants Phlex, controllers, routes, generators, vues. Tout tourne sur SQLite en memoire, sans dummy app, en moins d'une seconde.
+221 specs covering every layer: models, store models, sources, orchestrator, jobs, channels, Phlex components, controllers, routes, generators, views. Everything runs on in-memory SQLite, without a dummy app, in under a second.
 
-## Reflexion sur l'approche
+## Reflecting on the approach
 
-### TDD sur un gem : le bon compromis
+### TDD on a gem: the right trade-off
 
-Le cycle rouge-vert-refactor a ete applique strictement sur chaque feature. Ecrire les specs d'abord force a definir l'API avant l'implementation. Ca parait lent au debut -- on ecrit du code qui ne compile meme pas. Mais ca raccourcit le cycle total parce que les decisions d'API sont prises une fois, pas trois.
+The red-green-refactor cycle was applied strictly on every feature. Writing specs first forces you to define the API before the implementation. It feels slow at first -- you write code that does not even compile. But it shortens the total cycle because API decisions are made once, not three times.
 
-Le piege : TDD ne remplace pas les tests d'integration dans la host app. Les specs du gem verifient que chaque composant fonctionne en isolation. Elles ne verifient pas que l'ensemble fonctionne avec la vraie config de l'app, les vrais modeles, et le vrai middleware. Le gem teste son cablage. La host app teste son comportement. Les deux sont necessaires.
+The trap: TDD does not replace integration tests in the host app. The gem's specs verify that each component works in isolation. They do not verify that the whole thing works with the real app config, real models, and real middleware. The gem tests its wiring. The host app tests its behavior. Both are necessary.
 
-### Rails 8 et les engines : les surprises
+### Rails 8 and engines: the surprises
 
-Rails 8 a change des choses subtiles pour les engines :
+Rails 8 changed subtle things for engines:
 
-**`ActionView::Base`** refuse d'etre instancie directement. Il faut passer par `with_empty_template_cache`. Ca n'est documente nulle part dans les guides Rails -- on le decouvre quand le test leve `NotImplementedError`.
+**`ActionView::Base`** refuses to be instantiated directly. You must go through `with_empty_template_cache`. This is not documented anywhere in the Rails guides -- you discover it when the test raises `NotImplementedError`.
 
-**`belongs_to` required by default** s'applique meme quand on n'appelle pas `initialize!` dans les anciens tests. Mais des qu'on bootstrap une vraie app Rails (necessaire pour ActiveStorage), la validation s'active et casse tous les tests qui creent un DataImport avec `user_type: "User", user_id: 1` sans avoir un User reel en base. La solution : `optional: true` sur l'association.
+**`belongs_to` required by default** applies even when you do not call `initialize!` in older tests. But as soon as you bootstrap a real Rails app (necessary for ActiveStorage), the validation activates and breaks all tests that create a DataImport with `user_type: "User", user_id: 1` without having a real User in the database. The solution: `optional: true` on the association.
 
-**Les URL helpers des engines** necessitent le controller de l'engine (pas un `ActionController::Base` generique) pour resoudre les routes. Le view delègue `_routes` a son controller. Si le controller n'a pas les routes de l'engine, `import_path` leve une erreur cryptique sur `data_porter_path`.
+**Engine URL helpers** require the engine's controller (not a generic `ActionController::Base`) to resolve routes. The view delegates `_routes` to its controller. If the controller does not have the engine's routes, `import_path` raises a cryptic error about `data_porter_path`.
 
-### Phlex sans phlex-rails : ca marche
+### Phlex without phlex-rails: it works
 
-Le choix de ne pas dependre de phlex-rails etait delibere. Chaque composant est un objet Ruby pur dans `lib/`. On le rend avec `.call`. On le teste avec `.call`. On l'integre dans ERB avec `raw component.call`. Pas de helpers magiques, pas de resolution de templates, pas de conflits avec le systeme de vues de la host app.
+The choice not to depend on phlex-rails was deliberate. Each component is a pure Ruby object in `lib/`. You render it with `.call`. You test it with `.call`. You integrate it in ERB with `raw component.call`. No magic helpers, no template resolution, no conflicts with the host app's view system.
 
-Le cout : chaque appel est un peu verbeux. `<%= raw DataPorter::Components::StatusBadge.new(status: @import.status).call %>` est plus long que `<%= render StatusBadge.new(status: @import.status) %>`. Mais la clarte vaut le compromis. En lisant le template, on sait exactement ce qui se passe.
+The cost: each call is a bit verbose. `<%= raw DataPorter::Components::StatusBadge.new(status: @import.status).call %>` is longer than `<%= render StatusBadge.new(status: @import.status) %>`. But clarity is worth the trade-off. When reading the template, you know exactly what is happening.
 
-### La stylesheet plain CSS : sous-estime
+### Plain CSS stylesheet: underrated
 
-Pas de Tailwind build, pas de PostCSS, pas de Sass. Un fichier CSS avec des classes prefixees `dp-`. Ca marche sur n'importe quelle app Rails, que la host utilise Sprockets, Propshaft, ou importmap. Pas de configuration, pas de compatibilite a gerer.
+No Tailwind build, no PostCSS, no Sass. One CSS file with `dp-` prefixed classes and CSS custom properties for theming. It works on any Rails app, whether the host uses Sprockets, Propshaft, or importmap. No configuration, no compatibility to manage.
 
-Le `dp-` prefix empeche les collisions. La host app peut override n'importe quelle classe. Elle peut aussi ignorer completement la stylesheet et fournir la sienne. La convention est simple et suffisante.
+The `dp-` prefix prevents collisions. The host app can override any class via the CSS custom properties (`--dp-primary`, `--dp-danger`, etc.) or ignore the stylesheet entirely and provide its own. The convention is simple and sufficient.
 
-## Et apres ?
+## What is next?
 
-DataPorter 0.1.0 couvre le workflow complet : upload, parse, preview, dry run, import. Voici les pistes pour les versions suivantes :
+DataPorter 0.1.0 covers the complete workflow: upload, parse, preview, dry run, import. Here are ideas for future versions:
 
-**Batch imports** -- Pour les fichiers de 100k+ lignes, `insert_all` par lots au lieu de `create!` par record. Ca necessite de repenser le contrat de `persist`.
+**Batch imports** -- For files with 100k+ rows, `insert_all` in batches instead of `create!` per record. This requires rethinking the `persist` contract.
 
-**Turbo Streams** -- Remplacer le rechargement complet de la page apres un changement de statut par des Turbo Stream updates cibles. Le show template pourrait se mettre a jour sans rechargement.
+**Turbo Streams** -- Replace the full page reload after a status change with targeted Turbo Stream updates. The show template could update itself without reloading.
 
-**Theming** -- Exposer des CSS custom properties (`--dp-primary`, `--dp-danger`) pour permettre a la host app de themer DataPorter sans reecrire les styles.
+**Export** -- The reverse path. If we can parse and validate records, we can also serialize them. The Target already has all the necessary information.
 
-**Export** -- Le chemin inverse. Si on sait parser et valider des records, on sait aussi les serialiser. Le Target a deja toute l'information necessaire.
+**Dashboard** -- An overview page with aggregated stats: imports per day, error rate, average processing time. The data is already in the `data_porter_imports` table.
 
-**Dashboard** -- Une page d'overview avec des stats agregees : imports par jour, taux d'erreur, temps moyen de traitement. Les donnees sont deja dans la table `data_porter_imports`.
+## Final words
 
-## Le mot de la fin
+DataPorter was born from a simple observation: we rebuild the same import workflow in every Rails app. 17 articles later, it is a published gem with a clean DSL, a complete UI, and 221 tests.
 
-DataPorter est ne d'un constat simple : on reconstruit le meme workflow d'import dans chaque app Rails. 17 articles plus tard, c'est un gem publie avec un DSL propre, une UI complete, et 216 tests.
+The method -- strict TDD, one article per feature, documented decisions -- forces you to build something solid. No shortcuts, no "we will see later". Each component exists because a test requires it, and each test exists because a need was identified.
 
-La methode -- TDD strict, un article par feature, des decisions documentees -- force a construire quelque chose de solide. Pas de raccourcis, pas de "on verra plus tard". Chaque composant existe parce qu'un test l'exige, et chaque test existe parce qu'un besoin a ete identifie.
+The result: one `bundle add data_porter`, one generator, a Target of 15 lines, and any Rails app has a complete import system with preview, real-time validation, dry run, and live progress.
 
-Le resultat : un `bundle add data_porter`, un generator, un Target de 15 lignes, et n'importe quelle app Rails a un systeme d'import complet avec preview, validation temps reel, dry run, et progression live.
-
-C'etait le plan. Il aura fallu 17 articles pour y arriver. Et ca valait le coup.
+That was the plan. It took 17 articles to get there. And it was worth it.
 
 ---
 
