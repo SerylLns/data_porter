@@ -78,6 +78,12 @@ RSpec.describe DataPorter::Components::Mapping::Form do
     expect(html).to include('data-data-porter--mapping-target="requiredWarning"')
   end
 
+  it "renders duplicate warning container" do
+    html = render(component)
+    expect(html).to include("dp-mapping-duplicate-warning")
+    expect(html).to include('data-data-porter--mapping-target="duplicateWarning"')
+  end
+
   it "only includes required columns in Stimulus value" do
     html = render(component)
     json = html.match(/data-data-porter--mapping-required-columns-value="([^"]+)"/)[1]

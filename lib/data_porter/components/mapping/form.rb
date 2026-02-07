@@ -33,7 +33,8 @@ module DataPorter
           render_csrf_token
           render_method_override
           render_template_section
-          render_required_warning
+          render_warning("required")
+          render_warning("duplicate")
           render_column_rows
           render_save_template
           render_actions
@@ -58,10 +59,10 @@ module DataPorter
           end
         end
 
-        def render_required_warning
+        def render_warning(type)
           div(
-            class: "dp-mapping-required-warning",
-            data_data_porter__mapping_target: "requiredWarning",
+            class: "dp-mapping-#{type}-warning",
+            data_data_porter__mapping_target: "#{type}Warning",
             style: "display: none;"
           ) { "" }
         end

@@ -51,3 +51,29 @@
 .dp-mapping-row__select {
   flex: 1;
 }
+
+.dp-mapping-row--duplicate {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.dp-mapping-required-warning,
+.dp-mapping-duplicate-warning {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--dp-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.dp-mapping-required-warning {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.dp-mapping-duplicate-warning {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
