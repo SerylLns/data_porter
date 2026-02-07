@@ -54,6 +54,16 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  create_table :data_porter_mapping_templates, force: true do |t|
+    t.string :target_key, null: false
+    t.string :name,       null: false
+    t.text   :mapping,    null: false, default: "{}"
+    t.timestamps
+  end
+
+  add_index :data_porter_mapping_templates, :target_key
+  add_index :data_porter_mapping_templates, %i[target_key name], unique: true
+
   create_table :active_storage_blobs, force: true do |t|
     t.string   :key,          null: false
     t.string   :filename,     null: false
@@ -100,6 +110,7 @@ require "data_porter/parse_job"
 require "data_porter/import_job"
 require "data_porter/dry_run_job"
 require "data_porter/extract_headers_job"
+require "data_porter/mapping_template"
 
 class ApplicationController < ActionController::Base; end unless defined?(ApplicationController)
 
