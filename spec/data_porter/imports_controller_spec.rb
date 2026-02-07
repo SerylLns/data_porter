@@ -37,8 +37,8 @@ RSpec.describe DataPorter::ImportsController do
   end
 
   describe "action methods" do
-    it "defines index, new, create, show, parse, confirm, cancel, and dry_run" do
-      actions = %i[index new create show parse confirm cancel dry_run]
+    it "defines index, new, create, show, parse, confirm, cancel, dry_run, and update_mapping" do
+      actions = %i[index new create show parse confirm cancel dry_run update_mapping]
       actions.each do |action|
         expect(described_class.instance_method(action)).to be_a(UnboundMethod)
       end

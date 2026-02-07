@@ -134,7 +134,7 @@ RSpec.describe DataPorter::Orchestrator do
 
       orchestrator.extract_headers!
 
-      expect(data_import.reload.config["file_headers"]).to eq(%w[First\ Name Last\ Name Email])
+      expect(data_import.reload.config["file_headers"]).to eq(["First Name", "Last Name", "Email"])
     end
 
     it "transitions to failed on error" do
