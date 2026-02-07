@@ -53,5 +53,52 @@ RSpec.describe DataPorter::ImportsController do
     it "defines import_params" do
       expect(described_class.private_instance_methods).to include(:import_params)
     end
+
+    it "defines valid_file_presence?" do
+      expect(described_class.private_instance_methods).to include(:valid_file_presence?)
+    end
+  end
+
+  describe "#valid_file_presence?" do
+    let(:controller) { described_class.new }
+
+    before { controller.instance_variable_set(:@import, import) }
+
+    context "with csv source and no file" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+
+      it "returns false" do
+        expect(controller.send(:valid_file_presence?)).to be false
+      end
+
+      it "adds error message" do
+        controller.send(:valid_file_presence?)
+        expect(import.errors[:file]).to include("must be attached for CSV imports")
+      end
+    end
+
+    context "with json source and no file" do
+      let(:import) { DataPorter::DataImport.new(source_type: "json") }
+
+      it "returns false" do
+        expect(controller.send(:valid_file_presence?)).to be false
+      end
+    end
+
+    context "with xlsx source and no file" do
+      let(:import) { DataPorter::DataImport.new(source_type: "xlsx") }
+
+      it "returns false" do
+        expect(controller.send(:valid_file_presence?)).to be false
+      end
+    end
+
+    context "with api source and no file" do
+      let(:import) { DataPorter::DataImport.new(source_type: "api") }
+
+      it "returns true" do
+        expect(controller.send(:valid_file_presence?)).to be true
+      end
+    end
   end
 end

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["columnSelect", "requiredWarning", "duplicateWarning"]
+  static targets = ["columnSelect", "requiredWarning", "duplicateWarning", "saveTemplate"]
   static values = { requiredColumns: Array }
 
   connect() {
@@ -21,6 +21,7 @@ export default class extends Controller {
         select.value = ""
       }
     })
+    if (this.hasSaveTemplateTarget) this.saveTemplateTarget.style.display = "none"
     this.validate()
   }
 

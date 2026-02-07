@@ -5,27 +5,23 @@ module DataPorter
     layout "data_porter/application"
 
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping]
+    before_action :load_targets, only: %i[index new create]
 
     def index
       @imports = DataPorter::DataImport.order(created_at: :desc)
-      @targets = DataPorter::Registry.available
     end
 
     def new
       @import = DataPorter::DataImport.new
-      @targets = DataPorter::Registry.available
     end
 
     def create
-      @import = DataPorter::DataImport.new(import_params)
-      @import.user = current_user if respond_to?(:current_user, true)
-      @import.status = :pending
+      build_import
 
-      if @import.save
+      if valid_file_presence? && @import.save
         enqueue_after_create
         redirect_to import_path(@import)
       else
-        @targets = DataPorter::Registry.available
         render :new
       end
     end
@@ -71,8 +67,26 @@ module DataPorter
       @import = DataPorter::DataImport.find(params[:id])
     end
 
+    def load_targets
+      @targets = DataPorter::Registry.available
+    end
+
+    def build_import
+      @import = DataPorter::DataImport.new(import_params)
+      @import.user = current_user if respond_to?(:current_user, true)
+      @import.status = :pending
+    end
+
     def import_params
       params.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+    end
+
+    def valid_file_presence?
+      return true unless %w[csv json xlsx].include?(@import.source_type)
+      return true if @import.file.attached?
+
+      @import.errors.add(:file, "must be attached for #{@import.source_type.upcase} imports")
+      false
     end
 
     def enqueue_after_create
@@ -84,22 +98,12 @@ module DataPorter
     end
 
     def load_mapping_data
-      @file_headers = @import.config["file_headers"] || []
-      @target_columns = target_field_options
-      @default_mapping = build_default_mapping
-      @templates = load_templates
-    end
-
-    def target_field_options
       target = @import.target_class
       columns = target._columns || []
-      columns.map { |c| [c.label, c.name.to_s, c.required] }
-    end
-
-    def build_default_mapping
-      target = @import.target_class
-      mappings = target._csv_mappings || {}
-      mappings.transform_values(&:to_s)
+      @file_headers = @import.config["file_headers"] || []
+      @target_columns = columns.map { |c| [c.label, c.name.to_s, c.required] }
+      @default_mapping = (target._csv_mappings || {}).transform_values(&:to_s)
+      @templates = load_templates
     end
 
     def load_templates
@@ -110,9 +114,8 @@ module DataPorter
 
     def save_column_mapping
       mapping = params.require(:column_mapping).permit!.to_h
-      config = @import.config || {}
-      config["column_mapping"] = mapping
-      @import.update!(config: config, status: :pending)
+      merged = (@import.config || {}).merge("column_mapping" => mapping)
+      @import.update!(config: merged, status: :pending)
     end
 
     def save_template_if_requested

@@ -23,7 +23,7 @@
     const application = Application.start()
 
     application.register("data-porter--mapping", class extends Controller {
-      static targets = ["columnSelect", "requiredWarning", "duplicateWarning"]
+      static targets = ["columnSelect", "requiredWarning", "duplicateWarning", "saveTemplate"]
       static values = { requiredColumns: Array }
 
       connect() { this.validate() }
@@ -36,6 +36,7 @@
           const header = select.name.match(/\[(.+)\]/)?.[1]
           select.value = (header && mapping[header]) ? mapping[header] : ""
         })
+        if (this.hasSaveTemplateTarget) this.saveTemplateTarget.style.display = "none"
         this.validate()
       }
 

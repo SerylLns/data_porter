@@ -83,7 +83,11 @@ module DataPorter
         end
 
         def render_save_template
-          div(class: "dp-field", style: "margin-top: 1.5rem;") do
+          div(
+            class: "dp-field",
+            style: "margin-top: 1.5rem;",
+            data_data_porter__mapping_target: "saveTemplate"
+          ) do
             render_template_checkbox
             render_template_name_input
           end

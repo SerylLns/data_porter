@@ -19,7 +19,7 @@ Style/FrozenStringLiteralComment:
   EnforcedStyle: always
 
 Metrics/MethodLength:
-  Max: 10
+  Max: 15
 
 Metrics/BlockLength:
   Exclude:
@@ -27,8 +27,7 @@ Metrics/BlockLength:
     - "*.gemspec"
 
 Metrics/ClassLength:
-  Exclude:
-    - "lib/data_porter/orchestrator.rb"
+  Max: 150
 
 Lint/EmptyBlock:
   Exclude:
