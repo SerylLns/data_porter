@@ -32,6 +32,7 @@ export default class extends Controller {
   }
 
   buildParamField(p) {
+    if (p.type === "hidden") return this.buildInput(p)
     var div = document.createElement("div")
     div.className = "dp-field"
     div.appendChild(this.buildLabel(p))
