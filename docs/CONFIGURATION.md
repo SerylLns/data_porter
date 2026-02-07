@@ -28,6 +28,10 @@ DataPorter.configure do |config|
 
   # Enabled source types.
   config.enabled_sources = %i[csv json api xlsx]
+
+  # Auto-purge completed/failed imports older than this duration.
+  # Set to nil to disable. Run `rake data_porter:purge` manually or via cron.
+  config.purge_after = 60.days
 end
 ```
 
@@ -42,6 +46,7 @@ end
 | `context_builder` | `nil` | Lambda receiving the controller, returns context passed to target methods |
 | `preview_limit` | `500` | Max records shown in the preview step |
 | `enabled_sources` | `%i[csv json api xlsx]` | Source types available in the UI |
+| `purge_after` | `60.days` | Auto-purge completed/failed imports older than this duration |
 
 ## Authentication
 
@@ -68,14 +73,31 @@ config.context_builder = ->(controller) {
 
 The returned object is available as `context` in all target instance methods.
 
-## Real-time updates
+## Real-time progress
 
-DataPorter broadcasts import progress via ActionCable. The channel streams on:
+DataPorter tracks import progress via JSON polling. The Stimulus progress controller polls `GET /imports/:id/status` every second and updates an animated progress bar.
 
+The status endpoint returns:
+
+```json
+{
+  "status": "importing",
+  "progress": { "current": 42, "total": 100, "percentage": 42 }
+}
 ```
-#{cable_channel_prefix}/imports/#{import_id}
+
+No ActionCable or WebSocket configuration required -- it works out of the box with any deployment.
+
+## Auto-purge
+
+Old completed/failed imports can be cleaned up automatically:
+
+```bash
+# Run manually
+bin/rails data_porter:purge
+
+# Or schedule via cron (e.g. with whenever or solid_queue)
+# Removes imports older than purge_after (default: 60 days)
 ```
 
-The default prefix is `data_porter`, so a typical stream name is `data_porter/imports/42`.
-
-The engine ships with a Stimulus controller that automatically subscribes to the channel and updates a progress bar during parsing and importing. If ActionCable is unavailable, it falls back to polling every 3 seconds.
+Attached files are purged from ActiveStorage along with the import record.

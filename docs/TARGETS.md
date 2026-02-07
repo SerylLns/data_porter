@@ -5,19 +5,22 @@ Targets are plain Ruby classes in `app/importers/` that inherit from `DataPorter
 ## Generator
 
 ```bash
-bin/rails generate data_porter:target ModelName column:type[:required] ...
+bin/rails generate data_porter:target ModelName column:type[:required] ... [--sources csv xlsx]
 ```
 
 Examples:
 
 ```bash
-bin/rails generate data_porter:target User email:string:required name:string age:integer
-bin/rails generate data_porter:target Product name:string price:decimal
+bin/rails generate data_porter:target User email:string:required name:string age:integer --sources csv xlsx
+bin/rails generate data_porter:target Product name:string price:decimal --sources csv
+bin/rails generate data_porter:target Order order_number:string total:decimal
 ```
 
 Column format: `name:type[:required]`
 
 Supported types: `string`, `integer`, `decimal`, `boolean`, `date`.
+
+The `--sources` option specifies which source types the target accepts (default: `csv`). The UI will only show these sources when the target is selected.
 
 ## Class-level DSL
 

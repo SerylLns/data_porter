@@ -23,9 +23,11 @@ Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining im
 - **4 source types** -- CSV, XLSX, JSON, and API with a unified parsing pipeline
 - **Interactive column mapping** -- Drag-free UI to match file headers to target fields ([docs](docs/MAPPING.md))
 - **Mapping templates** -- Save and reuse column mappings across imports ([docs](docs/MAPPING.md#mapping-templates))
-- **Real-time progress** -- ActionCable updates with polling fallback
+- **Real-time progress** -- JSON polling with animated progress bar, no ActionCable required
 - **Dry run mode** -- Validate against the database without persisting
 - **Standalone UI** -- Self-contained layout with Turbo Drive and Stimulus, no host app dependencies
+- **Per-target source filtering** -- Each target declares its allowed sources, the UI filters accordingly
+- **Import deletion & auto-purge** -- Delete imports from the UI, or schedule `rake data_porter:purge` for automatic cleanup
 - **Declarative Target DSL** -- One class per import type, zero boilerplate ([docs](docs/TARGETS.md))
 
 ## Requirements
@@ -33,7 +35,6 @@ Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining im
 - Ruby >= 3.2
 - Rails >= 7.0
 - ActiveStorage (for file uploads)
-- ActionCable (optional, for real-time progress)
 
 ## Installation
 
@@ -54,7 +55,7 @@ The generator creates:
 Generate a target:
 
 ```bash
-bin/rails generate data_porter:target Product name:string:required price:integer sku:string
+bin/rails generate data_porter:target Product name:string:required price:integer sku:string --sources csv xlsx
 ```
 
 Implement `persist` in `app/importers/product_target.rb`:
@@ -118,6 +119,8 @@ pending -> parsing -> previewing -> importing -> completed
 | GET | `/imports` | List imports |
 | POST | `/imports` | Create import |
 | GET | `/imports/:id` | Show import |
+| DELETE | `/imports/:id` | Delete import |
+| GET | `/imports/:id/status` | JSON progress polling |
 | PATCH | `/imports/:id/update_mapping` | Save column mapping |
 | POST | `/imports/:id/parse` | Parse source |
 | POST | `/imports/:id/confirm` | Run import |
@@ -131,7 +134,7 @@ pending -> parsing -> previewing -> importing -> completed
 git clone https://github.com/SerylLns/data_porter.git
 cd data_porter
 bin/setup
-bundle exec rspec     # 280 specs
+bundle exec rspec     # 300 specs
 bundle exec rubocop   # 0 offenses
 ```
 
