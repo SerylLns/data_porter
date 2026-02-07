@@ -30,6 +30,9 @@ Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining im
 - **Import params** -- Declare extra form fields (select, text, number, hidden) per target for scoped imports ([docs](docs/TARGETS.md#params--))
 - **Per-target source filtering** -- Each target declares its allowed sources, the UI filters accordingly
 - **Import deletion & auto-purge** -- Delete imports from the UI, or schedule `rake data_porter:purge` for automatic cleanup
+- **Reject rows export** -- Download a CSV of failed/errored records with error messages after import
+- **Security validations** -- File size limit, MIME type check, strong parameter whitelisting
+- **Safety guards** -- Max records limit (`config.max_records`), configurable transaction mode (`:per_record` or `:all`)
 - **Declarative Target DSL** -- One class per import type, zero boilerplate ([docs](docs/TARGETS.md))
 
 ## Requirements
@@ -129,6 +132,7 @@ pending -> parsing -> previewing -> importing -> completed
 | POST | `/imports/:id/confirm` | Run import |
 | POST | `/imports/:id/cancel` | Cancel import |
 | POST | `/imports/:id/dry_run` | Dry run validation |
+| GET | `/imports/:id/export_rejects` | Download rejects CSV |
 | | `/mapping_templates` | Full CRUD for templates |
 
 ## Development
@@ -137,7 +141,7 @@ pending -> parsing -> previewing -> importing -> completed
 git clone https://github.com/SerylLns/data_porter.git
 cd data_porter
 bin/setup
-bundle exec rspec     # 354 specs
+bundle exec rspec     # 391 specs
 bundle exec rubocop   # 0 offenses
 ```
 

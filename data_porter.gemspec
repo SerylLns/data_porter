@@ -16,8 +16,11 @@ Gem::Specification.new do |spec|
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
 
+  spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/SerylLns/data_porter"
   spec.metadata["changelog_uri"] = "https://github.com/SerylLns/data_porter/blob/main/CHANGELOG.md"
+  spec.metadata["documentation_uri"] = "https://github.com/SerylLns/data_porter#readme"
+  spec.metadata["bug_tracker_uri"] = "https://github.com/SerylLns/data_porter/issues"
   spec.metadata["rubygems_mcp_server_uri"] = "https://rubygems.org/gems/data_porter"
   spec.metadata["rubygems_mfa_required"] = "true"
 

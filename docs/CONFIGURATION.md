@@ -18,9 +18,9 @@ DataPorter.configure do |config|
   config.cable_channel_prefix = "data_porter"
 
   # Context builder: inject business data into targets.
-  # Receives the current controller instance.
-  config.context_builder = ->(controller) {
-    OpenStruct.new(user: controller.current_user)
+  # Receives the DataImport record.
+  config.context_builder = ->(data_import) {
+    OpenStruct.new(user: data_import.user)
   }
 
   # Maximum number of records displayed in preview.
@@ -32,6 +32,18 @@ DataPorter.configure do |config|
   # Auto-purge completed/failed imports older than this duration.
   # Set to nil to disable. Run `rake data_porter:purge` manually or via cron.
   config.purge_after = 60.days
+
+  # Maximum file size for uploads (default: 10 MB).
+  config.max_file_size = 10.megabytes
+
+  # Maximum number of records per import (default: 10,000).
+  # Set to nil to disable.
+  config.max_records = 10_000
+
+  # Transaction mode for imports.
+  # :per_record -- each record persisted independently (default)
+  # :all -- single transaction, rolls back entirely on any failure
+  config.transaction_mode = :per_record
 end
 ```
 
@@ -43,10 +55,13 @@ end
 | `queue_name` | `:imports` | ActiveJob queue for import jobs |
 | `storage_service` | `:local` | ActiveStorage service name |
 | `cable_channel_prefix` | `"data_porter"` | ActionCable stream prefix |
-| `context_builder` | `nil` | Lambda receiving the controller, returns context passed to target methods |
+| `context_builder` | `nil` | Lambda receiving the DataImport record, returns context passed to target methods |
 | `preview_limit` | `500` | Max records shown in the preview step |
 | `enabled_sources` | `%i[csv json api xlsx]` | Source types available in the UI |
 | `purge_after` | `60.days` | Auto-purge completed/failed imports older than this duration |
+| `max_file_size` | `10.megabytes` | Maximum file size for uploads |
+| `max_records` | `10_000` | Maximum number of records per import (nil to disable) |
+| `transaction_mode` | `:per_record` | `:per_record` or `:all` (single transaction rollback) |
 
 ## Authentication
 
@@ -60,13 +75,13 @@ All engine routes will require the same authentication as your base controller.
 
 ## Context builder
 
-The `context_builder` lambda lets you inject business data (current user, tenant, permissions) into target methods (`persist`, `after_import`, `on_error`):
+The `context_builder` lambda lets you inject business data (current user, tenant, permissions) into target methods (`persist`, `after_import`, `on_error`). It receives the `DataImport` record:
 
 ```ruby
-config.context_builder = ->(controller) {
+config.context_builder = ->(data_import) {
   OpenStruct.new(
-    user: controller.current_user,
-    organization: controller.current_organization
+    user: data_import.user,
+    import_id: data_import.id
   )
 }
 ```

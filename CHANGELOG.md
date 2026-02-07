@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Transaction mode** -- `config.transaction_mode` (`:per_record` or `:all`); `:all` wraps entire import in a single transaction that rolls back on any failure
 - **Fallback headers** -- Auto-generate `col_1, col_2...` when CSV/XLSX header row is empty
 - **Reject rows CSV export** -- Download CSV of failed/errored records with original data + error messages after import; available when `errored_count > 0`
+- **E2E specs** -- 6 end-to-end integration tests covering all source types (CSV, XLSX, JSON, API), import params, and reject rows export
 
 ### Fixed
 
@@ -24,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **E2E specs** -- 6 end-to-end integration tests covering all source types (CSV, XLSX, JSON, API), import params, and reject rows export
 - Validation chain refactored to `all_validations_pass?` using `.all?` to collect all errors at once instead of short-circuiting
 - 391 RSpec examples (up from 354), 0 failures
 

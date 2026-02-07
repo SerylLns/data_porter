@@ -15,10 +15,35 @@ Implemented in v0.9.0. Targets declare `params` with a DSL (`:select`, `:text`,
 `:number`, `:hidden`). Values stored in `config["import_params"]`, accessible
 via `import_params` in all target instance methods. See [Targets docs](TARGETS.md#params--).
 
+### ~~3. Security audit~~ DONE
+
+- Replaced `permit!` on import params and column mapping with whitelists
+- File size validation (`config.max_file_size`, default 10 MB)
+- MIME type validation per source type
+- XSS fix in template form controller (safe DOM methods)
+
+### ~~4. Safety guards~~ DONE
+
+- Max records guard (`config.max_records`, default 10,000)
+- Transaction mode (`config.transaction_mode`: `:per_record` or `:all`)
+- Fallback headers (auto-generate `col_1, col_2...` for empty header rows)
+
+### ~~5. Reject rows export~~ DONE
+
+Download CSV of failed/errored records with original data + error messages.
+Zero-dependency streaming via `send_data`.
+
+### ~~6. E2E integration tests~~ DONE
+
+6 end-to-end specs covering all source types (CSV, XLSX, JSON, API),
+import params flow, and reject rows CSV export. 391 specs total.
+
 ---
 
 ## v2+ (future)
 
+- Dry-run performance estimate ("Estimated import time: ~2m30s")
+- Auto-map heuristics: tokenized header match + synonyms (email → email_address)
 - Scoped imports (filter index by user/tenant)
 - Webhooks / callbacks on import completion
 - Batch persist (`insert_all` support)
