@@ -4,17 +4,17 @@
 
 ### High Priority
 
+#### XLSX Source
+- Parse `.xlsx` files natively (via `creek` or `roo` gem)
+- Sheet selector when the file contains multiple sheets
+- Same parsing pipeline as CSV (prerequisite for column mapping)
+
 #### Interactive Column Mapping & Templates
 - Mapping UI on the preview step: each CSV/XLSX column header gets a dropdown to select the target field
 - Auto-suggest based on column name similarity
 - Save mapping as a reusable template (name + column-to-field pairs)
 - Template selector that pre-fills all dropdowns at once
 - Stored per-target so each import type has its own template library
-
-#### XLSX Source
-- Parse `.xlsx` files natively (via `creek` or `roo` gem)
-- Sheet selector when the file contains multiple sheets
-- Same column mapping UI as CSV
 
 #### Export (reverse workflow)
 - `ExportTarget` DSL mirroring the import Target
