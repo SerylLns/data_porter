@@ -40,38 +40,9 @@ import params flow, and reject rows CSV export. 395 specs total.
 
 ---
 
-## v1.1 — UX & Workflow
+## v1.1 — Deploy-ready
 
-### Preview ↔ Mapping navigation
-
-Allow users to go back from preview to the mapping step and adjust column
-mapping without restarting the import. Currently the flow is one-way:
-mapping → parse → preview. Adding a "Back to mapping" button on the preview
-page would let users correct mapping mistakes after seeing the parsed data.
-
-### Column mapping for JSON and API sources
-
-The interactive column mapping step currently only works for file-based sources
-(CSV, XLSX). JSON and API sources have stable, predictable keys that rarely need
-remapping, but supporting mapping for all sources would provide a consistent UX.
-
-### Dry-run performance estimate
-
-After a dry run, display an estimated import time based on average record
-processing speed: "Estimated import time: ~2m30s". Helps users decide whether
-to launch the import now or schedule it for off-peak hours.
-
-### Bug fixes from v1.0 manual testing
-
-- `dp-input` CSS styling (text inputs matched select appearance)
-- `param.collection` accepts both lambdas and plain arrays
-- Migration template: nullable user reference (allows engine without authentication)
-- Results summary: show skipped count (missing + partial) alongside imported/errored
-- Export rejects button: show when any records were rejected, not just persist errors
-
----
-
-## v1.2 — Permissions & Multi-tenancy
+Priority: features required to deploy DataPorter to real users.
 
 ### Scoped imports
 
@@ -89,23 +60,42 @@ Combined with `parent_controller` inheriting from an authenticated controller,
 this enables full multi-tenant isolation — suitable for both B2B (tenant per
 organization) and B2C (user-level) scenarios.
 
+### Preview ↔ Mapping navigation
+
+Allow users to go back from preview to the mapping step and adjust column
+mapping without restarting the import. Currently the flow is one-way:
+mapping → parse → preview. Adding a "Back to mapping" button on the preview
+page would let users correct mapping mistakes after seeing the parsed data.
+
+### CSV auto-detect: delimiter & encoding
+
+Auto-detect CSV delimiter (`,` `;` `\t`) and file encoding (UTF-8, Latin-1,
+Windows-1252). European Excel exports default to `;` as separator and
+Windows-1252 encoding — guaranteed first bug report without this. Detect via
+byte-order mark and frequency analysis on the first 10 lines.
+
+### Column mapping for JSON and API sources
+
+The interactive column mapping step currently only works for file-based sources
+(CSV, XLSX). JSON and API sources have stable, predictable keys that rarely need
+remapping, but supporting mapping for all sources would provide a consistent UX.
+
+---
+
+## v1.2 — Smart imports
+
+### Dry-run performance estimate
+
+After a dry run, display an estimated import time based on average record
+processing speed: "Estimated import time: ~2m30s". Helps users decide whether
+to launch the import now or schedule it for off-peak hours.
+
 ### Permissions / RBAC
 
 Role-based access control for import operations. Allow host apps to restrict
 who can create imports, confirm imports, or access specific targets. Integrate
 with existing authorization frameworks (Pundit, CanCanCan) via a configurable
 policy hook.
-
----
-
-## v2.0 — Scale & Automation
-
-### Bulk import
-
-High-volume import support using `insert_all` / `upsert_all` for batch
-persistence. Bypass per-record `persist` calls when the target opts in,
-enabling 10-100x throughput for simple create/upsert scenarios. Configurable
-batch size, with fallback to per-record mode on conflict.
 
 ### Column transformers
 
@@ -130,12 +120,44 @@ dictionaries. When a CSV has "E-mail Address", auto-suggest mapping to `:email`.
 Built-in synonyms for common patterns (phone → phone_number,
 first name → first_name). Configurable synonym lists per target.
 
+---
+
+## v2.0 — Scale & Automation
+
+### Bulk import
+
+High-volume import support using `insert_all` / `upsert_all` for batch
+persistence. Bypass per-record `persist` calls when the target opts in,
+enabling 10-100x throughput for simple create/upsert scenarios. Configurable
+batch size, with fallback to per-record mode on conflict.
+
 ### Update & diff mode
 
 Support update (upsert) imports alongside create-only. Given a
 `deduplicate_by` key, detect existing records and show a diff preview:
 new records, changed fields (highlighted), unchanged rows. User confirms
 which changes to apply. Enables recurring data sync workflows.
+
+### Resume / retry on failure
+
+If an import fails mid-way (timeout, crash, transient error), resume from
+the last successful record instead of restarting from scratch. Track a
+checkpoint index in the report. Critical for large imports (5k+ records)
+where re-processing everything is not acceptable.
+
+### API pagination
+
+Support paginated API sources. The current API source does a single GET,
+which works for small datasets but not for APIs returning thousands of
+records across multiple pages. Support offset, cursor, and link-header
+pagination strategies via `api_config`:
+
+```ruby
+api_config do
+  endpoint "https://api.example.com/contacts"
+  pagination :cursor, param: "after", root: "data", next_key: "meta.next_cursor"
+end
+```
 
 ### Scheduled imports
 
