@@ -22,7 +22,8 @@ module DataPorter
             action: @action_url,
             method: "post",
             class: "dp-mapping-form",
-            data_controller: "data-porter--mapping"
+            data_controller: "data-porter--mapping",
+            data_data_porter__mapping_required_columns_value: required_columns_json
           ) { render_form_body }
         end
 
@@ -32,6 +33,7 @@ module DataPorter
           render_csrf_token
           render_method_override
           render_template_section
+          render_required_warning
           render_column_rows
           render_save_template
           render_actions
@@ -54,6 +56,14 @@ module DataPorter
             label(class: "dp-label") { "Load Template" }
             render TemplateSelect.new(templates: @templates)
           end
+        end
+
+        def render_required_warning
+          div(
+            class: "dp-mapping-required-warning",
+            data_data_porter__mapping_target: "requiredWarning",
+            style: "display: none;"
+          ) { "" }
         end
 
         def render_column_rows
@@ -98,6 +108,13 @@ module DataPorter
           div(class: "dp-actions") do
             button(type: "submit", class: "dp-btn dp-btn--primary") { "Continue" }
           end
+        end
+
+        def required_columns_json
+          @target_columns
+            .select { |_, _, required| required }
+            .map { |label, name, _| { label: label, name: name } }
+            .to_json
         end
       end
     end

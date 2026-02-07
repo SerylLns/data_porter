@@ -91,7 +91,7 @@ module DataPorter
     def target_field_options
       target = @import.target_class
       columns = target._columns || []
-      columns.map { |c| [c.label, c.name.to_s] }
+      columns.map { |c| [c.label, c.name.to_s, c.required] }
     end
 
     def build_default_mapping

@@ -11,7 +11,7 @@ RSpec.describe DataPorter::Components::Mapping::Form do
       model_name "Test"
 
       columns do
-        column :first_name, type: :string
+        column :first_name, type: :string, required: true
         column :last_name, type: :string
       end
 
@@ -29,7 +29,7 @@ RSpec.describe DataPorter::Components::Mapping::Form do
   end
 
   let(:file_headers) { %w[Prenom Nom] }
-  let(:target_columns) { [["First name", "first_name"], ["Last name", "last_name"]] }
+  let(:target_columns) { [["First name", "first_name", true], ["Last name", "last_name", false]] }
   let(:default_mapping) { { "Prenom" => "first_name", "Nom" => "last_name" } }
   let(:templates) { [] }
 
@@ -64,5 +64,25 @@ RSpec.describe DataPorter::Components::Mapping::Form do
   it "renders submit button" do
     html = render(component)
     expect(html).to include("Continue")
+  end
+
+  it "renders required columns as Stimulus value" do
+    html = render(component)
+    expect(html).to include("data-data-porter--mapping-required-columns-value")
+    expect(html).to include("first_name")
+  end
+
+  it "renders required warning container" do
+    html = render(component)
+    expect(html).to include("dp-mapping-required-warning")
+    expect(html).to include('data-data-porter--mapping-target="requiredWarning"')
+  end
+
+  it "only includes required columns in Stimulus value" do
+    html = render(component)
+    json = html.match(/data-data-porter--mapping-required-columns-value="([^"]+)"/)[1]
+    decoded = JSON.parse(CGI.unescapeHTML(json))
+    expect(decoded.length).to eq(1)
+    expect(decoded.first["name"]).to eq("first_name")
   end
 end
