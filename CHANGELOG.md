@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-02-07
+
+### Added
+
+- **Import params DSL** -- Targets declare extra form fields via `params { param :hotel_id, type: :select, ... }` with support for `:select`, `:text`, `:number`, and `:hidden` types
+- **`DSL::Param` struct** -- Stores param definitions (name, type, required, label, collection, default) with type validation
+- **`import_params` accessor** -- Available in all target instance methods (`persist`, `transform`, `validate`, `after_import`, `on_error`), defaults to `{}`
+- **Dynamic form rendering** -- Stimulus controller and inline JS dynamically render param fields when a target is selected, with default values and required indicators
+- **Required params validation** -- Controller validates required import params on create, with error messages per missing field
+- **Registry params serialization** -- `Registry.available` includes serialized param definitions with collection lambdas evaluated at call time
+
+### Changed
+
+- Controller concerns extracted into `ImportValidation`, `MappingManagement`, `RecordPagination`
+- Orchestrator logic extracted into `RecordBuilder`, `Importer`, `DryRunner` modules
+- Inline JS in `new.html.erb` extracted for consistency
+- 354 RSpec examples (up from 313), 0 failures
+
 ## [0.6.0] - 2026-02-07
 
 ### Added
