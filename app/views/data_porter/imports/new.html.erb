@@ -3,6 +3,14 @@
     <h1 class="dp-title">New Import</h1>
   </div>
 
+  <% if @import.errors.any? %>
+    <div class="dp-alert dp-alert--danger">
+      <% @import.errors.full_messages.each do |msg| %>
+        <p><%= msg %></p>
+      <% end %>
+    </div>
+  <% end %>
+
   <%= form_with model: @import, url: imports_path, class: "dp-form", multipart: true do |f| %>
     <div class="dp-field">
       <%= f.label :target_key, "Target", class: "dp-label" %>

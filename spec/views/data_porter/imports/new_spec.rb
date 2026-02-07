@@ -37,4 +37,17 @@ RSpec.describe "data_porter/imports/new.html.erb" do
   it "includes a submit button" do
     expect(html).to include('type="submit"')
   end
+
+  context "with errors" do
+    let(:import) do
+      i = DataPorter::DataImport.new
+      i.errors.add(:file, "must be attached for CSV imports")
+      i
+    end
+
+    it "renders error messages" do
+      expect(html).to include("dp-alert--danger")
+      expect(html).to include("must be attached for CSV imports")
+    end
+  end
 end
