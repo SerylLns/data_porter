@@ -15,7 +15,7 @@ RSpec.describe "data_porter/imports/index.html.erb" do
   end
 
   let(:targets) do
-    [{ key: :guests, label: "Guests", icon: "fas fa-users" }]
+    [{ key: :guests, label: "Guests", icon: "fas fa-users", params: [] }]
   end
 
   let(:imports) do
@@ -74,6 +74,14 @@ RSpec.describe "data_porter/imports/index.html.erb" do
 
   it "includes the dropzone file input" do
     expect(html).to include("dp-dropzone")
+  end
+
+  it "includes the params container target" do
+    expect(html).to include("paramsContainer")
+  end
+
+  it "includes params data value" do
+    expect(html).to include("params-value")
   end
 
   context "with no imports" do

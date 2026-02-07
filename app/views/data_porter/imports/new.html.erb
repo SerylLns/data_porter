@@ -19,8 +19,13 @@
             { prompt: "Select a target..." },
             id: "dp-target-select-new",
             class: "dp-select",
-            data: { sources: @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json } %>
+            data: {
+              sources: @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json,
+              params: @targets.map { |t| [t[:key], t[:params]] }.to_h.to_json
+            } %>
     </div>
+
+    <div id="dp-params-container" class="dp-params-container"></div>
 
     <div class="dp-field">
       <%= f.label :source_type, "Source Type", class: "dp-label" %>
@@ -59,6 +64,47 @@
     var fileInput = document.getElementById("dp-file-input-new");
     var dropzone = document.getElementById("dp-dropzone-new");
     var fileName = document.getElementById("dp-file-name-new");
+    var paramsContainer = document.getElementById("dp-params-container");
+    var paramsData = JSON.parse((targetSelect && targetSelect.dataset.params) || "{}");
+
+    function renderParams() {
+      if (!paramsContainer || !targetSelect) return;
+      paramsContainer.innerHTML = "";
+      var defs = paramsData[targetSelect.value] || [];
+      defs.forEach(function(p) {
+        var div = document.createElement("div");
+        div.className = "dp-field";
+        var label = document.createElement("label");
+        label.className = "dp-label";
+        label.textContent = p.label + (p.required ? " *" : "");
+        div.appendChild(label);
+        var input;
+        if (p.type === "select" && p.collection) {
+          input = document.createElement("select");
+          input.className = "dp-select";
+          var blank = document.createElement("option");
+          blank.value = "";
+          blank.textContent = "Select...";
+          input.appendChild(blank);
+          p.collection.forEach(function(opt) {
+            var o = document.createElement("option");
+            o.textContent = opt[0];
+            o.value = opt[1];
+            if (p["default"] && String(opt[1]) === String(p["default"])) o.selected = true;
+            input.appendChild(o);
+          });
+        } else {
+          input = document.createElement("input");
+          input.className = "dp-input";
+          input.type = p.type === "number" ? "number" : (p.type === "hidden" ? "hidden" : "text");
+          if (p["default"]) input.value = p["default"];
+        }
+        input.name = "data_import[config][import_params][" + p.name + "]";
+        if (p.required) input.required = true;
+        div.appendChild(input);
+        paramsContainer.appendChild(div);
+      });
+    }
 
     function filterSources() {
       if (!targetSelect || !sourceSelect) return;
@@ -75,7 +121,10 @@
     }
 
     if (targetSelect) {
-      targetSelect.addEventListener("change", filterSources);
+      targetSelect.addEventListener("change", function() {
+        filterSources();
+        renderParams();
+      });
     }
 
     if (sourceSelect) {

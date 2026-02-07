@@ -9,7 +9,7 @@ RSpec.describe "data_porter/imports/new.html.erb" do
   let(:import) { DataPorter::DataImport.new }
 
   let(:targets) do
-    [{ key: :guests, label: "Guests", icon: "fas fa-users" }]
+    [{ key: :guests, label: "Guests", icon: "fas fa-users", params: [] }]
   end
 
   subject(:html) do
@@ -36,6 +36,14 @@ RSpec.describe "data_porter/imports/new.html.erb" do
 
   it "includes a submit button" do
     expect(html).to include('type="submit"')
+  end
+
+  it "includes the params container" do
+    expect(html).to include("dp-params-container")
+  end
+
+  it "includes params data attribute" do
+    expect(html).to include("data-params=")
   end
 
   context "with errors" do

@@ -1,5 +1,6 @@
 <div class="data-porter" data-controller="data-porter--import-form"
      data-data-porter--import-form-sources-value="<%= @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json %>"
+     data-data-porter--import-form-params-value="<%= @targets.map { |t| [t[:key], t[:params]] }.to_h.to_json %>"
      data-action="keydown@document->data-porter--import-form#closeModal">
   <div class="dp-header">
     <h1 class="dp-title">Imports</h1>
@@ -73,6 +74,8 @@
                   action: "data-porter--import-form#filterSources"
                 } %>
         </div>
+
+        <div data-data-porter--import-form-target="paramsContainer"></div>
 
         <div class="dp-field">
           <%= f.label :source_type, "Source Type", class: "dp-label" %>
