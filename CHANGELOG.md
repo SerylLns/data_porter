@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Max records guard** -- `config.max_records` (default: 10,000) rejects files exceeding the limit before parsing
+- **Transaction mode** -- `config.transaction_mode` (`:per_record` or `:all`); `:all` wraps entire import in a single transaction that rolls back on any failure
+- **Fallback headers** -- Auto-generate `col_1, col_2...` when CSV/XLSX header row is empty
+- **Reject rows CSV export** -- Download CSV of failed/errored records with original data + error messages after import; available when `errored_count > 0`
+
+### Fixed
+
+- **Import params whitelist** -- `merge_import_params` now permits only param names declared in the Target DSL instead of using `permit!`
+- **Column mapping whitelist** -- `permitted_column_mapping` filters mapping values to valid target column names; invalid values replaced with `""`
+- **File size validation** -- Uploads exceeding `config.max_file_size` (default: 10 MB) are rejected before save
+- **MIME type validation** -- Uploaded files must match allowed content types per source (CSV: `text/csv`, `text/plain`; JSON: `application/json`, `text/plain`; XLSX: OpenXML spreadsheet)
+- **XSS in template form** -- Replaced `innerHTML` with safe DOM methods in `template_form_controller.js`
+
+### Changed
+
+- Validation chain refactored to `all_validations_pass?` using `.all?` to collect all errors at once instead of short-circuiting
+- 385 RSpec examples (up from 354), 0 failures
+
 ## [0.9.0] - 2026-02-07
 
 ### Added
