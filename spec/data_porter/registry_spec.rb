@@ -54,9 +54,9 @@ RSpec.describe DataPorter::Registry do
 
       expect(result).to contain_exactly(
         { key: :guests, label: "Guests", icon: "fas fa-users",
-          sources: DataPorter.configuration.enabled_sources },
+          sources: DataPorter.configuration.enabled_sources, params: [] },
         { key: :products, label: "Products", icon: "fas fa-box",
-          sources: DataPorter.configuration.enabled_sources }
+          sources: DataPorter.configuration.enabled_sources, params: [] }
       )
     end
 
@@ -90,6 +90,70 @@ RSpec.describe DataPorter::Registry do
         result = described_class.available.find { |t| t[:key] == :guests }
 
         expect(result[:sources]).to eq(DataPorter.configuration.enabled_sources)
+      end
+    end
+
+    context "when target declares params" do
+      let(:params_target) do
+        Class.new(DataPorter::Target) do
+          label "Hotels"
+          model_name "Hotel"
+          icon "fas fa-hotel"
+
+          params do
+            param :region, type: :select, label: "Region", required: true,
+                           collection: -> { [%w[EU eu], %w[US us]] }
+            param :currency, type: :text, default: "EUR"
+          end
+        end
+      end
+
+      it "includes serialized params" do
+        described_class.register(:hotels, params_target)
+
+        result = described_class.available.find { |t| t[:key] == :hotels }
+
+        expect(result[:params].size).to eq(2)
+      end
+
+      it "serializes param attributes" do
+        described_class.register(:hotels, params_target)
+
+        result = described_class.available.find { |t| t[:key] == :hotels }
+        region = result[:params].first
+
+        expect(region[:name]).to eq(:region)
+        expect(region[:type]).to eq(:select)
+        expect(region[:required]).to be true
+        expect(region[:label]).to eq("Region")
+      end
+
+      it "evaluates collection lambdas at call time" do
+        described_class.register(:hotels, params_target)
+
+        result = described_class.available.find { |t| t[:key] == :hotels }
+        region = result[:params].first
+
+        expect(region[:collection]).to eq([%w[EU eu], %w[US us]])
+      end
+
+      it "includes default values" do
+        described_class.register(:hotels, params_target)
+
+        result = described_class.available.find { |t| t[:key] == :hotels }
+        currency = result[:params].last
+
+        expect(currency[:default]).to eq("EUR")
+      end
+    end
+
+    context "when target does not declare params" do
+      it "returns empty params array" do
+        described_class.register(:guests, target_class)
+
+        result = described_class.available.find { |t| t[:key] == :guests }
+
+        expect(result[:params]).to eq([])
       end
     end
   end

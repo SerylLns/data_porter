@@ -21,7 +21,8 @@ module DataPorter
             key: key,
             label: klass._label,
             icon: klass._icon,
-            sources: klass._sources || DataPorter.configuration.enabled_sources
+            sources: klass._sources || DataPorter.configuration.enabled_sources,
+            params: serialize_params(klass._params)
           }
         end
       end
@@ -32,6 +33,25 @@ module DataPorter
 
       def clear
         @targets = {}
+      end
+
+      private
+
+      def serialize_params(params)
+        return [] unless params
+
+        params.map { |p| serialize_param(p) }
+      end
+
+      def serialize_param(param)
+        {
+          name: param.name,
+          type: param.type,
+          required: param.required,
+          label: param.label,
+          default: param.default,
+          collection: param.collection&.call
+        }.compact
       end
     end
   end
