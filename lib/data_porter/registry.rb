@@ -17,7 +17,12 @@ module DataPorter
 
       def available
         @targets.map do |key, klass|
-          { key: key, label: klass._label, icon: klass._icon }
+          {
+            key: key,
+            label: klass._label,
+            icon: klass._icon,
+            sources: klass._sources || DataPorter.configuration.enabled_sources
+          }
         end
       end
 

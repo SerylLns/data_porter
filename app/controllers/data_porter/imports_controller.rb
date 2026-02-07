@@ -18,7 +18,7 @@ module DataPorter
     def create
       build_import
 
-      if valid_file_presence? && @import.save
+      if valid_source_for_target? && valid_file_presence? && @import.save
         enqueue_after_create
         redirect_to import_path(@import)
       else
@@ -79,6 +79,15 @@ module DataPorter
 
     def import_params
       params.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+    end
+
+    def valid_source_for_target?
+      target = DataPorter::Registry.find(@import.target_key)
+      allowed = target._sources || DataPorter.configuration.enabled_sources
+      return true if allowed.map(&:to_s).include?(@import.source_type.to_s)
+
+      @import.errors.add(:source_type, "#{@import.source_type} is not available for this target")
+      false
     end
 
     def valid_file_presence?

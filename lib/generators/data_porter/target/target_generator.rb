@@ -8,6 +8,7 @@ module DataPorter
       source_root File.expand_path("templates", __dir__)
 
       argument :columns, type: :array, default: [], banner: "name:type[:required]"
+      class_option :sources, type: :array, default: %w[csv], desc: "Enabled source types"
 
       def create_target_file
         template("target.rb.tt", "app/importers/#{file_name}_target.rb")
@@ -38,6 +39,10 @@ module DataPorter
           type: parts[1] || "string",
           required: parts[2] == "required"
         }
+      end
+
+      def target_sources
+        options[:sources].map { |s| ":#{s}" }.join(", ")
       end
     end
   end

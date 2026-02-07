@@ -57,6 +57,10 @@ RSpec.describe DataPorter::ImportsController do
     it "defines valid_file_presence?" do
       expect(described_class.private_instance_methods).to include(:valid_file_presence?)
     end
+
+    it "defines valid_source_for_target?" do
+      expect(described_class.private_instance_methods).to include(:valid_source_for_target?)
+    end
   end
 
   describe "#valid_file_presence?" do
@@ -98,6 +102,67 @@ RSpec.describe DataPorter::ImportsController do
 
       it "returns true" do
         expect(controller.send(:valid_file_presence?)).to be true
+      end
+    end
+  end
+
+  describe "#valid_source_for_target?" do
+    let(:controller) { described_class.new }
+    let(:csv_only_target) do
+      Class.new(DataPorter::Target) do
+        label "CsvOnly"
+        model_name "CsvOnly"
+        sources :csv
+      end
+    end
+
+    before do
+      DataPorter::Registry.clear
+      DataPorter::Registry.register(:csv_only, csv_only_target)
+    end
+
+    context "when source is allowed by target" do
+      let(:import) { DataPorter::DataImport.new(target_key: "csv_only", source_type: "csv") }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns true" do
+        expect(controller.send(:valid_source_for_target?)).to be true
+      end
+    end
+
+    context "when source is not allowed by target" do
+      let(:import) { DataPorter::DataImport.new(target_key: "csv_only", source_type: "xlsx") }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns false" do
+        expect(controller.send(:valid_source_for_target?)).to be false
+      end
+
+      it "adds an error message" do
+        controller.send(:valid_source_for_target?)
+
+        expect(import.errors[:source_type]).to include("xlsx is not available for this target")
+      end
+    end
+
+    context "when target has no sources declared" do
+      let(:no_sources_target) do
+        Class.new(DataPorter::Target) do
+          label "NoSources"
+          model_name "NoSources"
+        end
+      end
+      let(:import) { DataPorter::DataImport.new(target_key: "no_sources", source_type: "xlsx") }
+
+      before do
+        DataPorter::Registry.register(:no_sources, no_sources_target)
+        controller.instance_variable_set(:@import, import)
+      end
+
+      it "allows any enabled source" do
+        expect(controller.send(:valid_source_for_target?)).to be true
       end
     end
   end

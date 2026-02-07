@@ -59,7 +59,9 @@
         <%= f.select :target_key,
               @targets.map { |t| [t[:label], t[:key]] },
               { prompt: "Select a target..." },
-              class: "dp-select" %>
+              id: "dp-target-select",
+              class: "dp-select",
+              data: { sources: @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json } %>
       </div>
 
       <div class="dp-field">
@@ -94,11 +96,30 @@
 
 <script>
   (function() {
+    var targetSelect = document.getElementById("dp-target-select");
     var sourceSelect = document.getElementById("dp-source-select");
     var fileField = document.getElementById("dp-file-field");
     var fileInput = document.getElementById("dp-file-input");
     var dropzone = document.getElementById("dp-dropzone");
     var fileName = document.getElementById("dp-file-name");
+
+    function filterSources() {
+      if (!targetSelect || !sourceSelect) return;
+      var sourcesMap = JSON.parse(targetSelect.dataset.sources || "{}");
+      var allowed = sourcesMap[targetSelect.value];
+      var options = sourceSelect.options;
+      for (var i = 1; i < options.length; i++) {
+        options[i].style.display = allowed && allowed.indexOf(options[i].value) === -1 ? "none" : "";
+      }
+      if (allowed && sourceSelect.selectedIndex > 0 && allowed.indexOf(sourceSelect.value) === -1) {
+        sourceSelect.selectedIndex = 0;
+        fileField.style.display = "";
+      }
+    }
+
+    if (targetSelect) {
+      targetSelect.addEventListener("change", filterSources);
+    }
 
     if (sourceSelect) {
       sourceSelect.addEventListener("change", function() {

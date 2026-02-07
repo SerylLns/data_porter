@@ -4,7 +4,7 @@ class <%= target_class_name %> < DataPorter::Target
   label "<%= target_label %>"
   model_name "<%= model_name %>"
   icon "fas fa-file-import"
-  sources :csv
+  sources <%= target_sources %>
 <% if parsed_columns.any? %>
 
   columns do

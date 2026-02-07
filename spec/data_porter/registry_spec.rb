@@ -53,13 +53,44 @@ RSpec.describe DataPorter::Registry do
       result = described_class.available
 
       expect(result).to contain_exactly(
-        { key: :guests, label: "Guests", icon: "fas fa-users" },
-        { key: :products, label: "Products", icon: "fas fa-box" }
+        { key: :guests, label: "Guests", icon: "fas fa-users",
+          sources: DataPorter.configuration.enabled_sources },
+        { key: :products, label: "Products", icon: "fas fa-box",
+          sources: DataPorter.configuration.enabled_sources }
       )
     end
 
     it "returns empty array when no targets registered" do
       expect(described_class.available).to eq([])
+    end
+
+    context "when target declares sources" do
+      let(:csv_only_target) do
+        Class.new(DataPorter::Target) do
+          label "CsvOnly"
+          model_name "CsvOnly"
+          icon "fas fa-file"
+          sources :csv
+        end
+      end
+
+      it "includes the target-specific sources" do
+        described_class.register(:csv_only, csv_only_target)
+
+        result = described_class.available.find { |t| t[:key] == :csv_only }
+
+        expect(result[:sources]).to eq(%i[csv])
+      end
+    end
+
+    context "when target does not declare sources" do
+      it "falls back to global enabled_sources" do
+        described_class.register(:guests, target_class)
+
+        result = described_class.available.find { |t| t[:key] == :guests }
+
+        expect(result[:sources]).to eq(DataPorter.configuration.enabled_sources)
+      end
     end
   end
 
