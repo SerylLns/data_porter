@@ -12,7 +12,8 @@ module DataPorter
 
       def headers
         first_line = csv_content.lines.first
-        ::CSV.parse_line(first_line, **extra_options).map(&:to_s)
+        raw = ::CSV.parse_line(first_line, **extra_options).map(&:to_s)
+        fallback_headers(raw)
       end
 
       def fetch

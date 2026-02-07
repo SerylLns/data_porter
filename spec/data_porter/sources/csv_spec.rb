@@ -45,6 +45,13 @@ RSpec.describe DataPorter::Sources::Csv do
 
       expect(source.headers).to eq(%w[Prenom Nom Email])
     end
+
+    it "generates fallback headers when header row is empty" do
+      csv_content = ",,,\nAlice,Smith,alice@example.com,extra\n"
+      source = described_class.new(data_import, content: csv_content)
+
+      expect(source.headers).to eq(%w[col_1 col_2 col_3 col_4])
+    end
   end
 
   describe "#fetch" do

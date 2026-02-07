@@ -14,7 +14,8 @@ module DataPorter
       def headers
         sheet = target_sheet
         first_row = sheet.simple_rows.first
-        first_row&.values&.map(&:to_s) || []
+        raw = first_row&.values&.map(&:to_s) || []
+        fallback_headers(raw)
       ensure
         cleanup
       end

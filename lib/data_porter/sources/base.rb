@@ -45,6 +45,12 @@ module DataPorter
       def auto_map(row)
         row.to_h.transform_keys { |k| k.parameterize(separator: "_").to_sym }
       end
+
+      def fallback_headers(raw_headers)
+        return raw_headers if raw_headers.any?(&:present?)
+
+        raw_headers.each_with_index.map { |_, i| "col_#{i + 1}" }
+      end
     end
   end
 end
