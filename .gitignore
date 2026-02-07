@@ -37,3 +37,7 @@ node_modules/
 
 # Taskmaster
 /.taskmaster/
+
+# Claude
+CLAUDE.md
+/.claude/
