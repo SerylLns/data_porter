@@ -33,15 +33,18 @@ module DataPorter
           select(
             name: "column_mapping[#{@file_header}]",
             class: "dp-select dp-mapping-row__select",
-            data_data_porter__mapping_target: "columnSelect"
+            data_data_porter__mapping_target: "columnSelect",
+            data_action: "change->data-porter--mapping#onChange"
           ) do
             option(value: "") { "Skip this column" }
-            @target_fields.each { |label, value| render_field_option(label, value) }
+            @target_fields.each { |label, value, required| render_field_option(label, value, required) }
           end
         end
 
-        def render_field_option(label, value)
-          option(value: value, selected: value == @selected) { label }
+        def render_field_option(label, value, required)
+          attrs = { value: value, selected: value == @selected }
+          attrs[:data_required] = "true" if required
+          option(**attrs) { required ? "#{label} *" : label }
         end
       end
     end
