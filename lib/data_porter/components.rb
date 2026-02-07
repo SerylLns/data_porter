@@ -7,6 +7,9 @@ require_relative "components/preview/table"
 require_relative "components/preview/summary_cards"
 require_relative "components/preview/results_summary"
 require_relative "components/progress/bar"
+require_relative "components/mapping/template_select"
+require_relative "components/mapping/column_row"
+require_relative "components/mapping/form"
 
 module DataPorter
   module Components
