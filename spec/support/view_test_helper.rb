@@ -7,6 +7,7 @@ module ViewTestHelper
   VIEW_CLASS = ActionView::Base.with_empty_template_cache
   VIEW_CLASS.include DataPorter::Engine.routes.url_helpers
   VIEW_CLASS.include Rails.application.routes.url_helpers
+  VIEW_CLASS.define_method(:form_authenticity_token) { "test-csrf-token" }
 
   def build_view(assigns = {})
     lookup = ActionView::LookupContext.new(view_paths)

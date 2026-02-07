@@ -10,6 +10,7 @@ module DataPorter
           super()
           @import = import
           @action_url = action_url
+          @csrf_token = options[:csrf_token]
           @file_headers = options.fetch(:file_headers)
           @target_columns = options.fetch(:target_columns)
           @templates = options.fetch(:templates)
@@ -28,11 +29,18 @@ module DataPorter
         private
 
         def render_form_body
+          render_csrf_token
           render_method_override
           render_template_section
           render_column_rows
           render_save_template
           render_actions
+        end
+
+        def render_csrf_token
+          return unless @csrf_token
+
+          input(type: "hidden", name: "authenticity_token", value: @csrf_token)
         end
 
         def render_method_override
