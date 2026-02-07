@@ -76,6 +76,9 @@
     <% end %>
     <div class="dp-actions">
       <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--primary" %>
+      <%= button_to "Delete", import_path(@import),
+            method: :delete, class: "dp-btn dp-btn--danger",
+            data: { turbo_confirm: "Delete this import?" } %>
     </div>
   <% end %>
 
@@ -84,6 +87,9 @@
     <div class="dp-actions">
       <%= button_to "Retry", parse_import_path(@import),
             method: :post, class: "dp-btn dp-btn--primary" %>
+      <%= button_to "Delete", import_path(@import),
+            method: :delete, class: "dp-btn dp-btn--danger",
+            data: { turbo_confirm: "Delete this import?" } %>
     </div>
   <% end %>
 </div>

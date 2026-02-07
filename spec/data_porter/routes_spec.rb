@@ -3,7 +3,7 @@
 RSpec.describe "DataPorter routes" do
   before(:all) do
     DataPorter::Engine.routes.draw do
-      resources :imports, only: %i[index new create show] do
+      resources :imports, only: %i[index new create show destroy] do
         member do
           post :parse
           post :confirm
@@ -28,7 +28,7 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["show", "/imports/:id(.:format)"])
   end
 
-  it "defines member routes for parse, confirm, cancel, dry_run, and status" do
+  it "defines member routes for parse, confirm, cancel, dry_run, status, and destroy" do
     routes = DataPorter::Engine.routes
     route_set = routes.routes.map { |r| [r.defaults[:action], r.path.spec.to_s] }
 
@@ -38,6 +38,7 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["dry_run", "/imports/:id/dry_run(.:format)"])
     expect(route_set).to include(["update_mapping", "/imports/:id/update_mapping(.:format)"])
     expect(route_set).to include(["status", "/imports/:id/status(.:format)"])
+    expect(route_set).to include(["destroy", "/imports/:id(.:format)"])
   end
 
   it "defines mapping_templates CRUD routes" do

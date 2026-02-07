@@ -9,7 +9,8 @@ module DataPorter
                   :context_builder,
                   :preview_limit,
                   :enabled_sources,
-                  :scope
+                  :scope,
+                  :purge_after
 
     def initialize
       @parent_controller = "ApplicationController"
@@ -20,6 +21,7 @@ module DataPorter
       @preview_limit = 500
       @enabled_sources = %i[csv json api xlsx]
       @scope = nil
+      @purge_after = 60.days
     end
   end
 end

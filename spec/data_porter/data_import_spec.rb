@@ -158,6 +158,43 @@ RSpec.describe DataPorter::DataImport, type: :model do
     end
   end
 
+  describe ".purgeable" do
+    it "returns imports older than purge_after with terminal status" do
+      old_completed = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :completed,
+        created_at: 61.days.ago
+      )
+      old_failed = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :failed,
+        created_at: 90.days.ago
+      )
+      recent_completed = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :completed,
+        created_at: 10.days.ago
+      )
+      old_pending = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :pending,
+        created_at: 90.days.ago
+      )
+
+      result = described_class.purgeable
+
+      expect(result).to include(old_completed, old_failed)
+      expect(result).not_to include(recent_completed, old_pending)
+    end
+
+    it "respects custom purge_after configuration" do
+      allow(DataPorter.configuration).to receive(:purge_after).and_return(30.days)
+
+      old = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :completed,
+        created_at: 31.days.ago
+      )
+
+      expect(described_class.purgeable).to include(old)
+    end
+  end
+
   describe "persistence" do
     it "saves and reloads with records" do
       import = described_class.create!(

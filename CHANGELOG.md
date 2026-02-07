@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-07
+
+### Added
+
+- **JSON polling progress** -- Lightweight `GET /imports/:id/status` endpoint replaces ActionCable dependency for zero-config real-time progress tracking
+- **Progress persistence** -- Orchestrator persists progress to `config["progress"]` via `update_column` for reliable status reporting
+- **Dynamic progress labels** -- Progress bar shows contextual labels (Waiting, Parsing, Importing, Dry run) with animated gradient and shimmer effect
+- **Results summary redesign** -- Completed imports show icon, stat cards (imported/errors), and duration
+- **Imported records table** -- Completed import page displays the full records table
+- **Submit button spinners** -- Confirm/Dry Run buttons disable and show spinner on click to prevent double submission
+- **Import deletion** -- Delete button on completed/failed imports (index and show pages) with confirmation dialog
+- **Automatic purge** -- `rake data_porter:purge` task removes completed/failed imports older than `purge_after` (default: 60 days)
+- **`purge_after` configuration** -- Customizable retention period via `config.purge_after = 60.days` in initializer
+- **Per-target source filtering** -- Source type dropdown filters to only show sources allowed by the selected target's `sources` DSL
+- **Server-side source validation** -- Controller rejects source types not allowed by the target
+- **Generator `--sources` option** -- `rails g data_porter:target Foo name:string --sources csv xlsx` generates target with specific sources
+
+### Changed
+
+- Confirm and dry_run actions set status to `pending` before enqueuing jobs to prevent race conditions
+- Progress controller rewritten as JSON poller (1s interval) with auto-redirect via `Turbo.visit` on completion
+- ResultsSummary component uses Unicode escapes for Phlex-safe icons
+- 296 RSpec examples (up from 280), 0 failures
+
 ## [0.4.0] - 2026-02-07
 
 ### Added

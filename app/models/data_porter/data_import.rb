@@ -25,6 +25,11 @@ module DataPorter
 
     attribute :config, :json, default: -> { {} }
 
+    scope :purgeable, lambda {
+      where(status: %i[completed failed])
+        .where(created_at: ...DataPorter.configuration.purge_after.ago)
+    }
+
     validates :target_key, presence: true
     validates :source_type, presence: true, inclusion: { in: %w[csv json api xlsx] }
 

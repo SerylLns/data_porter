@@ -34,6 +34,10 @@ RSpec.describe DataPorter::Configuration do
   it "has nil scope by default" do
     expect(config.scope).to be_nil
   end
+
+  it "has default purge_after of 60 days" do
+    expect(config.purge_after).to eq(60.days)
+  end
 end
 
 RSpec.describe DataPorter do

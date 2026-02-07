@@ -101,6 +101,8 @@
 .dp-btn--danger { background: var(--dp-danger); color: white; box-shadow: var(--dp-shadow-sm); }
 .dp-btn--danger:hover { background: var(--dp-danger-hover); box-shadow: var(--dp-shadow-md); }
 
+.dp-btn--sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+
 .dp-link { color: var(--dp-primary); text-decoration: none; font-weight: 500; transition: color 0.15s ease; }
 .dp-link:hover { color: var(--dp-primary-hover); text-decoration: underline; }
 

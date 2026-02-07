@@ -4,7 +4,7 @@ module DataPorter
   class ImportsController < DataPorter.configuration.parent_controller.constantize
     layout "data_porter/application"
 
-    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status]
+    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status destroy]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -66,6 +66,12 @@ module DataPorter
     def status
       progress = @import.config["progress"] || {}
       render json: { status: @import.status, progress: progress }
+    end
+
+    def destroy
+      @import.file.purge if @import.file.attached?
+      @import.destroy!
+      redirect_to imports_path
     end
 
     private

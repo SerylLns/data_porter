@@ -29,7 +29,14 @@
             <td><%= import.source_type %></td>
             <td><%= raw DataPorter::Components::Shared::StatusBadge.new(status: import.status).call %></td>
             <td><%= import.created_at&.strftime("%Y-%m-%d %H:%M") %></td>
-            <td><%= link_to "View", import_path(import), class: "dp-link" %></td>
+            <td class="dp-table__actions">
+              <%= link_to "View", import_path(import), class: "dp-btn dp-btn--sm dp-btn--secondary" %>
+              <% if import.completed? || import.failed? %>
+                <%= button_to "Delete", import_path(import),
+                      method: :delete, class: "dp-btn dp-btn--sm dp-btn--danger",
+                      data: { turbo_confirm: "Delete this import?" } %>
+              <% end %>
+            </td>
           </tr>
         <% end %>
       </tbody>
