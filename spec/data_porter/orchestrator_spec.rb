@@ -335,4 +335,43 @@ RSpec.describe DataPorter::Orchestrator do
       expect(target.import_params).to eq({})
     end
   end
+
+  describe "max_records guard" do
+    it "fails when record count exceeds max_records" do
+      original = DataPorter.configuration.max_records
+      DataPorter.configuration.max_records = 1
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.parse!
+
+      expect(data_import.reload.status).to eq("failed")
+      expect(data_import.report.error_reports.first.message).to include("exceeds maximum")
+    ensure
+      DataPorter.configuration.max_records = original
+    end
+
+    it "passes when record count is within max_records" do
+      original = DataPorter.configuration.max_records
+      DataPorter.configuration.max_records = 10
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.parse!
+
+      expect(data_import.reload.status).to eq("previewing")
+    ensure
+      DataPorter.configuration.max_records = original
+    end
+
+    it "skips guard when max_records is nil" do
+      original = DataPorter.configuration.max_records
+      DataPorter.configuration.max_records = nil
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.parse!
+
+      expect(data_import.reload.status).to eq("previewing")
+    ensure
+      DataPorter.configuration.max_records = original
+    end
+  end
 end

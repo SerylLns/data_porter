@@ -42,6 +42,10 @@ RSpec.describe DataPorter::Configuration do
   it "has default max_file_size of 10 megabytes" do
     expect(config.max_file_size).to eq(10.megabytes)
   end
+
+  it "has default max_records of 10_000" do
+    expect(config.max_records).to eq(10_000)
+  end
 end
 
 RSpec.describe DataPorter do
