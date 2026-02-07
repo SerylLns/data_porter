@@ -2,6 +2,8 @@
 
 module DataPorter
   class ImportsController < DataPorter.configuration.parent_controller.constantize
+    layout "data_porter/application"
+
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping]
 
     def index

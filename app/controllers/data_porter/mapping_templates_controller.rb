@@ -2,6 +2,8 @@
 
 module DataPorter
   class MappingTemplatesController < DataPorter.configuration.parent_controller.constantize
+    layout "data_porter/application"
+
     before_action :set_template, only: %i[edit update destroy]
 
     def index
