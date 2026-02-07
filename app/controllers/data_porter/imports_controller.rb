@@ -8,7 +8,7 @@ module DataPorter
 
     layout "data_porter/application"
 
-    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status destroy]
+    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status export_rejects destroy]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -71,6 +71,12 @@ module DataPorter
     def status
       progress = @import.config["progress"] || {}
       render json: { status: @import.status, progress: progress }
+    end
+
+    def export_rejects
+      columns = @import.target_class._columns || []
+      csv = RejectsCsvBuilder.new(columns, @import.records).generate
+      send_data csv, filename: "rejects_import_#{@import.id}.csv", type: "text/csv"
     end
 
     def destroy

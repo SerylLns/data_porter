@@ -18,6 +18,7 @@ require_relative "data_porter/sources"
 require_relative "data_porter/record_validator"
 require_relative "data_porter/broadcaster"
 require_relative "data_porter/orchestrator"
+require_relative "data_porter/rejects_csv_builder"
 require_relative "data_porter/components"
 require_relative "data_porter/engine"
 

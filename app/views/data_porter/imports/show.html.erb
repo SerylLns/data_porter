@@ -86,6 +86,9 @@
     <% end %>
     <div class="dp-actions">
       <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--primary" %>
+      <% if @import.report.errored_count.to_i.positive? %>
+        <%= link_to "Download rejects CSV", export_rejects_import_path(@import), class: "dp-btn dp-btn--secondary" %>
+      <% end %>
       <%= button_to "Delete", import_path(@import),
             method: :delete, class: "dp-btn dp-btn--danger",
             data: { turbo_confirm: "Delete this import?" } %>

@@ -11,6 +11,7 @@ RSpec.describe "DataPorter routes" do
           post :dry_run
           patch :update_mapping
           get :status
+          get :export_rejects
         end
       end
 
@@ -28,7 +29,7 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["show", "/imports/:id(.:format)"])
   end
 
-  it "defines member routes for parse, confirm, cancel, dry_run, status, and destroy" do
+  it "defines member routes for parse, confirm, cancel, dry_run, status, export_rejects, and destroy" do
     routes = DataPorter::Engine.routes
     route_set = routes.routes.map { |r| [r.defaults[:action], r.path.spec.to_s] }
 
@@ -38,6 +39,7 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["dry_run", "/imports/:id/dry_run(.:format)"])
     expect(route_set).to include(["update_mapping", "/imports/:id/update_mapping(.:format)"])
     expect(route_set).to include(["status", "/imports/:id/status(.:format)"])
+    expect(route_set).to include(["export_rejects", "/imports/:id/export_rejects(.:format)"])
     expect(route_set).to include(["destroy", "/imports/:id(.:format)"])
   end
 
