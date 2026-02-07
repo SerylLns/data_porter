@@ -4,13 +4,15 @@ require_relative "sources/base"
 require_relative "sources/csv"
 require_relative "sources/json"
 require_relative "sources/api"
+require_relative "sources/xlsx"
 
 module DataPorter
   module Sources
     REGISTRY = {
       api: Api,
       csv: Csv,
-      json: Json
+      json: Json,
+      xlsx: Xlsx
     }.freeze
 
     def self.resolve(type)

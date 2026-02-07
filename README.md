@@ -2,7 +2,7 @@
 
 A mountable Rails engine for 3-step data import workflows: **Upload**, **Preview**, **Import**.
 
-Supports CSV, JSON, and API sources with a declarative DSL for defining import targets. Business-agnostic by design -- all domain logic lives in your host app.
+Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining import targets. Business-agnostic by design -- all domain logic lives in your host app.
 
 ![Import list with status badges](docs/screenshots/index-with-previewing.jpg)
 
@@ -105,7 +105,7 @@ DataPorter.configure do |config|
   config.preview_limit = 500
 
   # Enabled source types.
-  config.enabled_sources = %i[csv json api]
+  config.enabled_sources = %i[csv json api xlsx]
 end
 ```
 
@@ -117,7 +117,7 @@ end
 | `cable_channel_prefix` | `"data_porter"` | ActionCable stream prefix |
 | `context_builder` | `nil` | Lambda receiving the controller, returns context passed to target methods |
 | `preview_limit` | `500` | Max records shown in the preview step |
-| `enabled_sources` | `%i[csv json api]` | Source types available in the UI |
+| `enabled_sources` | `%i[csv json api xlsx]` | Source types available in the UI |
 
 ## Defining Targets
 
@@ -130,7 +130,7 @@ class OrderTarget < DataPorter::Target
   label "Orders"
   model_name "Order"
   icon "fas fa-shopping-cart"
-  sources :csv, :json, :api
+  sources :csv, :json, :api, :xlsx
 
   columns do
     column :order_number, type: :string, required: true
@@ -175,7 +175,7 @@ CSS icon class (e.g. FontAwesome) shown in the UI.
 
 #### `sources(*types)`
 
-Accepted source types: `:csv`, `:json`, `:api`.
+Accepted source types: `:csv`, `:json`, `:api`, `:xlsx`.
 
 #### `columns { ... }`
 
@@ -294,6 +294,16 @@ end
 ### CSV
 
 Upload a CSV file. Configure header mappings with `csv_mapping` when headers don't match your column names.
+
+### XLSX
+
+Upload an Excel `.xlsx` file. Uses the same `csv_mapping` for header-to-column mapping. By default the first sheet is parsed; select a different sheet via config:
+
+```ruby
+import.config = { "sheet_index" => 1 }
+```
+
+Powered by [creek](https://github.com/pythonicrubyist/creek) for streaming, memory-efficient parsing.
 
 ### JSON
 

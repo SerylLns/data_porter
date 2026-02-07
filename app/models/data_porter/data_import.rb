@@ -24,7 +24,7 @@ module DataPorter
     attribute :config, :json, default: -> { {} }
 
     validates :target_key, presence: true
-    validates :source_type, presence: true, inclusion: { in: %w[csv json api] }
+    validates :source_type, presence: true, inclusion: { in: %w[csv json api xlsx] }
 
     def target_class
       Registry.find(target_key)

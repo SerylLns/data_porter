@@ -18,7 +18,7 @@ module DataPorter
       @cable_channel_prefix = "data_porter"
       @context_builder = nil
       @preview_limit = 500
-      @enabled_sources = %i[csv json api]
+      @enabled_sources = %i[csv json api xlsx]
       @scope = nil
     end
   end

@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Rails engine for multi-step data imports with preview"
   spec.description = "A mountable Rails engine providing a complete data import workflow: " \
                      "upload/configure, preview with validation, and import. " \
-                     "Supports CSV, JSON, and API sources with a simple DSL for defining import targets."
+                     "Supports CSV, JSON, XLSX, and API sources with a simple DSL for defining import targets."
   spec.homepage = "https://github.com/SerylLns/data_porter"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"

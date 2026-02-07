@@ -28,7 +28,7 @@ RSpec.describe DataPorter::Configuration do
   end
 
   it "has default enabled_sources" do
-    expect(config.enabled_sources).to eq(%i[csv json api])
+    expect(config.enabled_sources).to eq(%i[csv json api xlsx])
   end
 
   it "has nil scope by default" do
