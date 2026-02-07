@@ -28,8 +28,8 @@
     </dl>
   </div>
 
-  <% if @import.parsing? || @import.importing? || @import.dry_running? || @import.extracting_headers? %>
-    <%= raw DataPorter::Components::Progress::Bar.new(import_id: @import.id).call %>
+  <% if @import.pending? || @import.parsing? || @import.importing? || @import.dry_running? || @import.extracting_headers? %>
+    <%= raw DataPorter::Components::Progress::Bar.new(import_id: @import.id, status_url: status_import_path(@import)).call %>
   <% end %>
 
   <% if @import.mapping? %>
@@ -52,11 +52,13 @@
         ).call %>
 
     <div class="dp-actions">
-      <%= button_to "Confirm", confirm_import_path(@import),
-            method: :post, class: "dp-btn dp-btn--primary" %>
+      <%= button_to confirm_import_path(@import), method: :post, class: "dp-btn dp-btn--primary", data: { dp_submit: true } do %>
+        Confirm Import
+      <% end %>
       <% if @target._dry_run_enabled %>
-        <%= button_to "Dry Run", dry_run_import_path(@import),
-              method: :post, class: "dp-btn dp-btn--secondary" %>
+        <%= button_to dry_run_import_path(@import), method: :post, class: "dp-btn dp-btn--secondary", data: { dp_submit: true } do %>
+          Dry Run
+        <% end %>
       <% end %>
       <%= button_to "Cancel", cancel_import_path(@import),
             method: :post, class: "dp-btn dp-btn--danger" %>
@@ -64,7 +66,17 @@
   <% end %>
 
   <% if @import.completed? %>
-    <%= raw DataPorter::Components::Preview::ResultsSummary.new(report: @import.report).call %>
+    <% duration = @import.updated_at && @import.created_at ? distance_of_time_in_words(@import.created_at, @import.updated_at) : nil %>
+    <%= raw DataPorter::Components::Preview::ResultsSummary.new(report: @import.report, duration: duration).call %>
+    <% if @records.any? %>
+      <%= raw DataPorter::Components::Preview::Table.new(
+            columns: @target._columns,
+            records: @records
+          ).call %>
+    <% end %>
+    <div class="dp-actions">
+      <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--primary" %>
+    </div>
   <% end %>
 
   <% if @import.failed? %>
@@ -75,3 +87,14 @@
     </div>
   <% end %>
 </div>
+
+<script>
+  (function() {
+    document.querySelectorAll("[data-dp-submit]").forEach(function(btn) {
+      btn.closest("form").addEventListener("submit", function() {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="dp-spinner"></span>Processing...';
+      });
+    });
+  })();
+</script>
