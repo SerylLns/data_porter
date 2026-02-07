@@ -32,7 +32,7 @@ bin/rails generate data_porter:install
 ```
 
 This will:
-- Create the migration for `data_porter_imports`
+- Create the migrations for `data_porter_imports` and `data_porter_mapping_templates`
 - Add an initializer at `config/initializers/data_porter.rb`
 - Create the `app/importers/` directory
 - Mount the engine at `/imports`
@@ -370,19 +370,60 @@ end
 
 When a user creates an import with source type **API**, the engine skips file upload entirely, calls the configured endpoint, parses the JSON response, and feeds the records through the same preview/validate/import pipeline as CSV and JSON sources.
 
+## Column Mapping
+
+For file-based sources (CSV/XLSX), DataPorter adds an interactive mapping step between upload and parsing. Users see their file's actual column headers and map each one to a target field via a dropdown.
+
+```
+File Header          Target Field
+┌──────────┐        ┌──────────────┐
+│ Prenom   │   →    │ First Name ▾ │
+└──────────┘        └──────────────┘
+┌──────────┐        ┌──────────────┐
+│ Nom      │   →    │ Last Name  ▾ │
+└──────────┘        └──────────────┘
+```
+
+Dropdowns are pre-filled from the Target's `csv_mapping` when headers match. Users can adjust any mapping before continuing to the preview step.
+
+### Mapping Templates
+
+Mappings can be saved as reusable templates. When starting a new import, users select a saved template to auto-fill all dropdowns. Templates are stored per-target, so each import type has its own template library.
+
+Manage templates via the "Mapping Templates" link on the imports index page, or save them inline from the mapping form.
+
+### Mapping Priority
+
+When parsing, mappings are resolved in priority order:
+
+1. **User mapping** -- from the mapping UI (`config["column_mapping"]`)
+2. **Code mapping** -- from the Target DSL (`csv_mapping`)
+3. **Auto-map** -- parameterize headers to match column names
+
+Non-file sources (JSON, API) skip the mapping step entirely.
+
 ## Import Workflow
 
 Each import progresses through these statuses:
 
 ```
+File-based (CSV/XLSX):
+pending -> extracting_headers -> mapping -> parsing -> previewing -> importing -> completed
+                                                                              \-> failed
+
+Non-file (JSON/API):
 pending -> parsing -> previewing -> importing -> completed
                                              \-> failed
-         pending -> parsing -> dry_running -> previewing
+
+Dry run:
+previewing -> dry_running -> previewing
 ```
 
 | Status | Description |
 |---|---|
-| `pending` | Import created, waiting for file/source |
+| `pending` | Import created, waiting for processing |
+| `extracting_headers` | Reading file headers for column mapping |
+| `mapping` | Waiting for user to map columns to target fields |
 | `parsing` | Source is being read and records extracted |
 | `previewing` | Records parsed and ready for review |
 | `importing` | Records are being persisted |
@@ -400,10 +441,17 @@ The engine provides these routes (mounted at your chosen path):
 | GET | `/imports/new` | New import form |
 | POST | `/imports` | Create import |
 | GET | `/imports/:id` | Show import |
+| PATCH | `/imports/:id/update_mapping` | Save column mapping and continue |
 | POST | `/imports/:id/parse` | Parse uploaded source |
 | POST | `/imports/:id/confirm` | Confirm and run import |
 | POST | `/imports/:id/cancel` | Cancel import |
 | POST | `/imports/:id/dry_run` | Run dry validation |
+| GET | `/mapping_templates` | List mapping templates |
+| GET | `/mapping_templates/new` | New template form |
+| POST | `/mapping_templates` | Create template |
+| GET | `/mapping_templates/:id/edit` | Edit template |
+| PATCH | `/mapping_templates/:id` | Update template |
+| DELETE | `/mapping_templates/:id` | Delete template |
 
 ## Dry Run
 

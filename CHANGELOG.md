@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-07
+
+### Added
+
+- **Interactive column mapping** -- File-based imports (CSV/XLSX) now pause on a mapping step where users match file headers to target fields via dropdowns
+- **Header extraction** -- New `ExtractHeadersJob` reads the first row of a file without parsing all data, with `extracting_headers` and `mapping` statuses
+- **Dynamic mapping priority** -- User mapping (from UI) > code mapping (from Target DSL) > auto-map (parameterized headers)
+- **`#headers` method** on `Sources::Csv` and `Sources::Xlsx` for lightweight first-row extraction
+- **`#file_based?` helper** on `DataImport` to distinguish file sources from structured sources
+- **MappingTemplate model** -- Persist reusable column mappings per target (`data_porter_mapping_templates` table)
+- **MappingTemplatesController** -- Full CRUD for managing saved mapping templates
+- **Mapping Phlex components** -- `Mapping::Form`, `Mapping::ColumnRow`, `Mapping::TemplateSelect` for the mapping UI
+- **Stimulus mapping controller** -- Client-side template loading with zero network requests (reads `data-mapping` JSON attributes)
+- **Save-as-template** -- Checkbox in the mapping form to save the current mapping for future imports
+- **Badge styles** for `extracting_headers` and `mapping` statuses
+- **Install generator** now creates `data_porter_mapping_templates` migration
+
+### Changed
+
+- CSS split from monolithic `application.css` into 10 domain-specific stylesheets (base, layout, table, badges, cards, preview, progress, alerts, modal, mapping)
+- Phlex components reorganized into subdirectories: `Shared::`, `Preview::`, `Progress::`, `Mapping::`
+- File-based imports route through `ExtractHeadersJob` instead of `ParseJob` on create
+- `Orchestrator` gains `extract_headers!` method and `build_source` / `store_headers` helpers
+- `Sources::Base#apply_csv_mapping` now checks three mapping sources in priority order
+- 265 RSpec examples (up from 225), 0 failures
+
 ## [0.2.0] - 2026-02-07
 
 ### Added

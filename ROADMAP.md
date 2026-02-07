@@ -1,20 +1,25 @@
 # Roadmap
 
-## v2.0 - Planned
+## Completed
+
+### v0.2.0 -- XLSX Source
+- ~~Parse `.xlsx` files natively via `creek` gem~~
+- ~~Sheet selector via `config["sheet_index"]`~~
+- ~~Same parsing pipeline as CSV~~
+
+### v0.3.0 -- Interactive Column Mapping & Templates
+- ~~Mapping UI: each CSV/XLSX column header gets a dropdown to select the target field~~
+- ~~Save mapping as a reusable template (name + column-to-field pairs)~~
+- ~~Template selector that pre-fills all dropdowns at once~~
+- ~~Stored per-target so each import type has its own template library~~
+- ~~Header extraction step before parsing for file-based sources~~
+- ~~Dynamic mapping priority: user mapping > code mapping > auto-map~~
+
+---
+
+## Planned
 
 ### High Priority
-
-#### XLSX Source
-- Parse `.xlsx` files natively (via `creek` or `roo` gem)
-- Sheet selector when the file contains multiple sheets
-- Same parsing pipeline as CSV (prerequisite for column mapping)
-
-#### Interactive Column Mapping & Templates
-- Mapping UI on the preview step: each CSV/XLSX column header gets a dropdown to select the target field
-- Auto-suggest based on column name similarity
-- Save mapping as a reusable template (name + column-to-field pairs)
-- Template selector that pre-fills all dropdowns at once
-- Stored per-target so each import type has its own template library
 
 #### Export (reverse workflow)
 - `ExportTarget` DSL mirroring the import Target
@@ -42,6 +47,11 @@
 ```ruby
 column :email, type: :email, transform: ->(v) { v.downcase.strip }
 ```
+
+#### Auto-suggest Mapping
+- Fuzzy matching between file headers and target columns
+- Suggest mappings based on Levenshtein distance or string similarity
+- Pre-fill dropdowns with best guesses, user confirms
 
 #### Diff Mode
 - Compare incoming records with existing database data
