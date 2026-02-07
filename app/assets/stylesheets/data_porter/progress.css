@@ -1,24 +1,44 @@
-.dp-progress {
+.dp-progress-container {
   margin: 2rem 0;
-  background: var(--dp-gray-200);
-  border-radius: var(--dp-radius-xl);
+  padding: 2rem;
+  background: white;
+  border: 1px solid var(--dp-gray-200);
+  border-radius: var(--dp-radius-lg);
+  box-shadow: var(--dp-shadow-sm);
+  text-align: center;
+}
+
+.dp-progress-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--dp-gray-500);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dp-progress {
+  background: var(--dp-gray-100);
+  border-radius: 9999px;
   overflow: hidden;
-  height: 1.75rem;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  height: 1.5rem;
+  border: 1px solid var(--dp-gray-200);
 }
 
 .dp-progress-bar {
   height: 100%;
-  background: linear-gradient(135deg, var(--dp-primary), #818cf8);
-  border-radius: var(--dp-radius-xl);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, var(--dp-primary), #818cf8, var(--dp-primary));
+  background-size: 200% 100%;
+  animation: dp-gradient-flow 3s ease infinite;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  min-width: 2.5rem;
+  min-width: 2.25rem;
   position: relative;
   overflow: hidden;
 }
@@ -27,8 +47,13 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  animation: dp-shimmer 1.5s infinite;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  animation: dp-shimmer 2s infinite;
+}
+
+@keyframes dp-gradient-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 @keyframes dp-shimmer {

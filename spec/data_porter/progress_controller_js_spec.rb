@@ -12,28 +12,24 @@ RSpec.describe "progress_controller.js" do
     expect(content).to include('import { Controller } from "@hotwired/stimulus"')
   end
 
-  it "imports ActionCable consumer" do
-    expect(content).to include('import { createConsumer } from "@rails/actioncable"')
+  it "defines bar, text, and label targets" do
+    expect(content).to include('static targets = ["bar", "text", "label"]')
   end
 
-  it "defines bar and text targets" do
-    expect(content).to include('static targets = ["bar", "text"]')
+  it "defines id and url values" do
+    expect(content).to include("static values = { id: Number, url: String }")
   end
 
-  it "defines id value" do
-    expect(content).to include("static values = { id: Number }")
-  end
-
-  it "subscribes to ImportChannel on connect" do
-    expect(content).to include("DataPorter::ImportChannel")
-  end
-
-  it "unsubscribes on disconnect" do
-    expect(content).to include("this.subscription?.unsubscribe()")
+  it "polls for status via fetch" do
+    expect(content).to include("fetch(this.urlValue)")
   end
 
   it "updates progress bar width and text" do
     expect(content).to include("this.barTarget.style.width")
     expect(content).to include("this.textTarget.textContent")
+  end
+
+  it "clears timer on disconnect" do
+    expect(content).to include("clearInterval(this.timer)")
   end
 end

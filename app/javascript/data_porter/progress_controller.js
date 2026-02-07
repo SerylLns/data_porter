@@ -1,33 +1,42 @@
 import { Controller } from "@hotwired/stimulus"
-import { createConsumer } from "@rails/actioncable"
 
 export default class extends Controller {
-  static targets = ["bar", "text"]
-  static values = { id: Number }
+  static targets = ["bar", "text", "label"]
+  static values = { id: Number, url: String }
 
   connect() {
-    this.subscription = createConsumer().subscriptions.create(
-      { channel: "DataPorter::ImportChannel", id: this.idValue },
-      {
-        received: (data) => {
-          if (data.status === "processing") {
-            this.updateProgress(data.percentage)
-          } else {
-            Turbo.visit(window.location.href)
-          }
-        }
-      }
-    )
+    this.poll()
   }
 
-  updateProgress(percentage) {
-    if (this.hasBarTarget) {
-      this.barTarget.style.width = `${percentage}%`
-      this.textTarget.textContent = `${percentage}%`
-    }
+  poll() {
+    this.timer = setInterval(() => this.fetchStatus(), 1000)
+  }
+
+  async fetchStatus() {
+    try {
+      const response = await fetch(this.urlValue)
+      const data = await response.json()
+      this.updateLabel(data.status)
+      if (data.progress && data.progress.percentage !== undefined) {
+        this.barTarget.style.width = data.progress.percentage + "%"
+        this.textTarget.textContent = data.progress.percentage + "%"
+      }
+      if (!["pending", "importing", "parsing", "dry_running", "extracting_headers"].includes(data.status)) {
+        clearInterval(this.timer)
+        this.barTarget.style.width = "100%"
+        this.textTarget.textContent = "100%"
+        setTimeout(() => Turbo.visit(window.location.href, { action: "replace" }), 500)
+      }
+    } catch (e) {}
+  }
+
+  updateLabel(status) {
+    if (!this.hasLabelTarget) return
+    var labels = { pending: "Waiting...", extracting_headers: "Extracting headers...", parsing: "Parsing records...", importing: "Importing...", dry_running: "Dry run..." }
+    this.labelTarget.textContent = labels[status] || "Processing..."
   }
 
   disconnect() {
-    this.subscription?.unsubscribe()
+    if (this.timer) clearInterval(this.timer)
   }
 }
