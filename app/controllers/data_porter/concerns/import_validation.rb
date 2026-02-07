@@ -23,6 +23,25 @@ module DataPorter
         @import.errors.add(:file, "must be attached for #{@import.source_type.upcase} imports")
         false
       end
+
+      def valid_import_params?
+        missing = missing_required_params
+        return true if missing.empty?
+
+        missing.each { |p| @import.errors.add(:base, "#{p.label} is required") }
+        false
+      end
+
+      def missing_required_params
+        target = DataPorter::Registry.find(@import.target_key)
+        required = (target._params || []).select(&:required)
+        values = import_param_values
+        required.reject { |p| values[p.name.to_s].present? }
+      end
+
+      def import_param_values
+        (@import.config || {}).fetch("import_params", {})
+      end
     end
   end
 end

@@ -22,7 +22,7 @@ module DataPorter
     def create
       build_import
 
-      if valid_source_for_target? && valid_file_presence? && @import.save
+      if valid_source_for_target? && valid_file_presence? && valid_import_params? && @import.save
         enqueue_after_create
         redirect_to import_path(@import)
       else
@@ -96,7 +96,17 @@ module DataPorter
     end
 
     def import_params
-      params.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+      permitted = params.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+      merge_import_params(permitted)
+    end
+
+    def merge_import_params(permitted)
+      nested = params.dig(:data_import, :config, :import_params)
+      return permitted unless nested
+
+      config = permitted[:config] || {}
+      config["import_params"] = nested.permit!.to_h
+      permitted.merge(config: config)
     end
 
     def enqueue_after_create

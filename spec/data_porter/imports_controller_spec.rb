@@ -61,6 +61,10 @@ RSpec.describe DataPorter::ImportsController do
     it "defines valid_source_for_target?" do
       expect(described_class.private_instance_methods).to include(:valid_source_for_target?)
     end
+
+    it "defines valid_import_params?" do
+      expect(described_class.private_instance_methods).to include(:valid_import_params?)
+    end
   end
 
   describe "#paginate_records" do
@@ -202,6 +206,89 @@ RSpec.describe DataPorter::ImportsController do
 
       it "allows any enabled source" do
         expect(controller.send(:valid_source_for_target?)).to be true
+      end
+    end
+  end
+
+  describe "#valid_import_params?" do
+    let(:controller) { described_class.new }
+
+    context "when target has required params" do
+      let(:params_target) do
+        Class.new(DataPorter::Target) do
+          label "WithParams"
+          model_name "WithParams"
+
+          params do
+            param :hotel_id, type: :select, required: true
+            param :currency, type: :text
+          end
+        end
+      end
+
+      before do
+        DataPorter::Registry.register(:with_params, params_target)
+      end
+
+      context "when required param is present" do
+        let(:import) do
+          DataPorter::DataImport.new(
+            target_key: "with_params",
+            config: { "import_params" => { "hotel_id" => "42" } }
+          )
+        end
+
+        before { controller.instance_variable_set(:@import, import) }
+
+        it "returns true" do
+          expect(controller.send(:valid_import_params?)).to be true
+        end
+      end
+
+      context "when required param is missing" do
+        let(:import) do
+          DataPorter::DataImport.new(
+            target_key: "with_params",
+            config: { "import_params" => {} }
+          )
+        end
+
+        before { controller.instance_variable_set(:@import, import) }
+
+        it "returns false" do
+          expect(controller.send(:valid_import_params?)).to be false
+        end
+
+        it "adds an error" do
+          controller.send(:valid_import_params?)
+
+          expect(import.errors[:base]).to include("Hotel is required")
+        end
+      end
+
+      context "when required param is blank" do
+        let(:import) do
+          DataPorter::DataImport.new(
+            target_key: "with_params",
+            config: { "import_params" => { "hotel_id" => "" } }
+          )
+        end
+
+        before { controller.instance_variable_set(:@import, import) }
+
+        it "returns false" do
+          expect(controller.send(:valid_import_params?)).to be false
+        end
+      end
+    end
+
+    context "when target has no params" do
+      let(:import) { DataPorter::DataImport.new(target_key: "test_import") }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns true" do
+        expect(controller.send(:valid_import_params?)).to be true
       end
     end
   end
