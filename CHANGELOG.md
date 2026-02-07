@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-07
+
+### Added
+
+- **Records pagination** -- Preview and completed pages paginate records at 50 per page with Previous/Next navigation
+- **Pagination component** -- Phlex `Shared::Pagination` with disabled states on first/last page and anchor scrolling to keep viewport on the table
+
+### Changed
+
+- 313 RSpec examples (up from 300), 0 failures
+
 ## [0.5.0] - 2026-02-07
 
 ### Added
