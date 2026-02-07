@@ -20,7 +20,7 @@ DataPorter.configure do |config|
   # Context builder: inject business data into targets.
   # Receives the DataImport record.
   config.context_builder = ->(data_import) {
-    OpenStruct.new(user: data_import.user)
+    { user: data_import.user }
   }
 
   # Maximum number of records displayed in preview.
@@ -79,10 +79,7 @@ The `context_builder` lambda lets you inject business data (current user, tenant
 
 ```ruby
 config.context_builder = ->(data_import) {
-  OpenStruct.new(
-    user: data_import.user,
-    import_id: data_import.id
-  )
+  { user: data_import.user, import_id: data_import.id }
 }
 ```
 

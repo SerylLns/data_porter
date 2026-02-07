@@ -15,11 +15,9 @@ DataPorter.configure do |config|
   # config.cable_channel_prefix = "data_porter"
 
   # Context builder: inject business data into targets.
-  # Receives the current controller instance.
-  # config.context_builder = ->(controller) {
-  #   OpenStruct.new(
-  #     user: controller.current_user
-  #   )
+  # Receives the DataImport record.
+  # config.context_builder = ->(data_import) {
+  #   { user: data_import.user }
   # }
 
   # Maximum number of records displayed in preview.
