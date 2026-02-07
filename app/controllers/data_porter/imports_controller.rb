@@ -104,9 +104,17 @@ module DataPorter
       nested = params.dig(:data_import, :config, :import_params)
       return permitted unless nested
 
-      config = permitted[:config] || {}
-      config["import_params"] = nested.permit!.to_h
+      config = permitted[:config]&.to_unsafe_h || {}
+      config["import_params"] = nested.permit(*allowed_param_keys).to_h
       permitted.merge(config: config)
+    end
+
+    def allowed_param_keys
+      target_key = params.dig(:data_import, :target_key)
+      return [] unless target_key
+
+      target = DataPorter::Registry.find(target_key)
+      (target._params || []).map { |p| p.name.to_s }
     end
 
     def enqueue_after_create

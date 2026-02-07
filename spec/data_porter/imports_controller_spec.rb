@@ -292,4 +292,67 @@ RSpec.describe DataPorter::ImportsController do
       end
     end
   end
+
+  describe "#merge_import_params" do
+    let(:controller) { described_class.new }
+    let(:params_target) do
+      Class.new(DataPorter::Target) do
+        label "WithParams"
+        model_name "WithParams"
+
+        params do
+          param :hotel_id, type: :select, required: true
+          param :currency, type: :text
+        end
+      end
+    end
+
+    before do
+      DataPorter::Registry.register(:with_params, params_target)
+    end
+
+    it "permits declared param names" do
+      raw = ActionController::Parameters.new(
+        data_import: {
+          target_key: "with_params",
+          source_type: "csv",
+          config: { import_params: { hotel_id: "42", currency: "EUR" } }
+        }
+      )
+      controller.params = raw
+      permitted = raw.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+      result = controller.send(:merge_import_params, permitted)
+
+      expect(result[:config]["import_params"].keys).to contain_exactly("hotel_id", "currency")
+      expect(result[:config]["import_params"]["hotel_id"]).to eq("42")
+      expect(result[:config]["import_params"]["currency"]).to eq("EUR")
+    end
+
+    it "strips undeclared param names" do
+      raw = ActionController::Parameters.new(
+        data_import: {
+          target_key: "with_params",
+          source_type: "csv",
+          config: { import_params: { hotel_id: "42", injected: "malicious" } }
+        }
+      )
+      controller.params = raw
+      permitted = raw.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+      result = controller.send(:merge_import_params, permitted)
+
+      expect(result[:config]["import_params"].keys).to eq(["hotel_id"])
+      expect(result[:config]["import_params"]).not_to have_key("injected")
+    end
+
+    it "returns permitted unchanged when no import_params present" do
+      raw = ActionController::Parameters.new(
+        data_import: { target_key: "with_params", source_type: "csv" }
+      )
+      controller.params = raw
+      permitted = raw.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+      result = controller.send(:merge_import_params, permitted)
+
+      expect(result[:config]).to be_nil
+    end
+  end
 end
