@@ -67,12 +67,12 @@ mapping without restarting the import. Currently the flow is one-way:
 mapping → parse → preview. Adding a "Back to mapping" button on the preview
 page would let users correct mapping mistakes after seeing the parsed data.
 
-### CSV auto-detect: delimiter & encoding
+### ~~CSV auto-detect: delimiter & encoding~~ DONE
 
-Auto-detect CSV delimiter (`,` `;` `\t`) and file encoding (UTF-8, Latin-1,
-Windows-1252). European Excel exports default to `;` as separator and
-Windows-1252 encoding — guaranteed first bug report without this. Detect via
-byte-order mark and frequency analysis on the first 10 lines.
+Implemented in v1.0.1. Auto-detect CSV delimiter (`,` `;` `\t`) via frequency
+analysis on the first line. Auto-detect file encoding: strip UTF-8 BOM, validate
+UTF-8, fallback to ISO-8859-1 transcoding. Explicit `col_sep` config takes
+precedence.
 
 ### Column mapping for JSON and API sources
 

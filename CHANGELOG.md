@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-02-07
+
+### Added
+
+- **CSV delimiter auto-detection** -- Automatically detect `,` `;` `\t` separators via frequency analysis on the first line; explicit `col_sep` config still takes precedence
+- **CSV encoding auto-detection** -- Detect and transcode Latin-1 / ISO-8859-1 content to UTF-8; strip UTF-8 BOM when present
+
+### Fixed
+
+- **`param.collection` accepts arrays** -- `Registry.serialize_param` now duck-types with `respond_to?(:call)` so both lambdas and plain arrays work
+- **`dp-input` styling** -- Text inputs now share the same CSS rules as `dp-select` and `dp-file-input`
+- **Migration template nullable user** -- Removed `null: false` from polymorphic `user` reference so the engine works without authentication
+- **Skipped records visible in results** -- Added "Skipped" stat card for missing + partial records; title reflects errors; export rejects button includes all rejected rows
+- **Hidden param label removed** -- `type: :hidden` params no longer render a label or wrapper div
+
+### Changed
+
+- 402 RSpec examples (up from 391), 0 failures
+
 ## [1.0.0] - 2026-02-07
 
 ### Added
