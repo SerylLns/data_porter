@@ -10,6 +10,11 @@ module DataPorter
         @content = content
       end
 
+      def headers
+        first_line = csv_content.lines.first
+        ::CSV.parse_line(first_line, **extra_options).map(&:to_s)
+      end
+
       def fetch
         rows = []
         ::CSV.parse(csv_content, **csv_options) do |row|

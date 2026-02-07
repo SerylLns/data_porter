@@ -29,6 +29,24 @@ RSpec.describe DataPorter::Sources::Csv do
     DataPorter::DataImport.new(target_key: "guests", source_type: "csv")
   end
 
+  describe "#headers" do
+    it "returns the first row as header strings" do
+      csv_content = "Prenom,Nom,Email\nAlice,Smith,alice@example.com\n"
+      source = described_class.new(data_import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+
+    it "handles custom separators via config" do
+      import = data_import
+      import.config = { "col_sep" => ";" }
+      csv_content = "Prenom;Nom;Email\nAlice;Smith;alice@example.com\n"
+      source = described_class.new(import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+  end
+
   describe "#fetch" do
     it "parses CSV content and applies mapping" do
       csv_content = "Prenom,Nom,Email\nAlice,Smith,alice@example.com\nBob,Jones,bob@example.com\n"

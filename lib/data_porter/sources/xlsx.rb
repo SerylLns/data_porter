@@ -11,6 +11,14 @@ module DataPorter
         @file_path = file_path
       end
 
+      def headers
+        sheet = target_sheet
+        first_row = sheet.simple_rows.first
+        first_row&.values&.map(&:to_s) || []
+      ensure
+        cleanup
+      end
+
       def fetch
         rows = parse_sheet(target_sheet)
         rows.map { |row| apply_csv_mapping(row) }

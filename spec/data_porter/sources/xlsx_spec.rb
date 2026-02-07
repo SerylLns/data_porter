@@ -28,6 +28,14 @@ RSpec.describe DataPorter::Sources::Xlsx do
 
   let(:fixture_path) { File.expand_path("../../fixtures/contacts.xlsx", __dir__) }
 
+  describe "#headers" do
+    it "returns the first row as header strings" do
+      source = described_class.new(data_import, file_path: fixture_path)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+  end
+
   describe "#fetch" do
     it "parses XLSX content and applies mapping" do
       source = described_class.new(data_import, file_path: fixture_path)
