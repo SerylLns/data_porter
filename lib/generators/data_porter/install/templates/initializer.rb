@@ -26,5 +26,5 @@ DataPorter.configure do |config|
   # config.preview_limit = 500
 
   # Enabled source types.
-  # config.enabled_sources = %i[csv json api]
+  # config.enabled_sources = %i[csv json xlsx api]
 end

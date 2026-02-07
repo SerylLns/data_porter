@@ -8,6 +8,8 @@
   border-bottom: 1px solid var(--dp-gray-200);
 }
 
+.dp-header__actions { display: flex; align-items: center; gap: 0.75rem; }
+
 .dp-form {
   max-width: 520px;
   background: white;

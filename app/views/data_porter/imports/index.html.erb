@@ -3,9 +3,12 @@
 <div class="data-porter">
   <div class="dp-header">
     <h1 class="dp-title">Imports</h1>
-    <button type="button" class="dp-btn dp-btn--primary" onclick="document.getElementById('dp-modal').classList.add('dp-modal--open')">
-      New Import
-    </button>
+    <div class="dp-header__actions">
+      <%= link_to "Mapping Templates", mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
+      <button type="button" class="dp-btn dp-btn--primary" onclick="document.getElementById('dp-modal').classList.add('dp-modal--open')">
+        New Import
+      </button>
+    </div>
   </div>
 
   <% if @imports.any? %>

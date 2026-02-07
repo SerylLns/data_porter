@@ -63,6 +63,10 @@ RSpec.describe "data_porter/imports/index.html.erb" do
     expect(html).to include("New Import")
   end
 
+  it "includes a mapping templates link" do
+    expect(html).to include("Mapping Templates")
+  end
+
   it "includes the modal form" do
     expect(html).to include("dp-modal")
     expect(html).to include("<form")
