@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-02-07
+
+### Added
+
+- **XLSX source** -- Import Excel `.xlsx` files via `Sources::Xlsx`, powered by [creek](https://github.com/pythonicrubyist/creek) for streaming, memory-efficient parsing
+- Sheet selection via `config["sheet_index"]` (defaults to first sheet)
+- `creek` runtime dependency in gemspec
+
+### Changed
+
+- Default `enabled_sources` now includes `:xlsx` (`%i[csv json api xlsx]`)
+- Dropzone hints updated to mention XLSX in both index and new import views
+- 225 RSpec examples (up from 221), 0 failures
 
 ## [0.1.0] - 2026-02-06
 
