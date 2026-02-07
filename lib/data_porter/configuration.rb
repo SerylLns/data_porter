@@ -12,7 +12,8 @@ module DataPorter
                   :scope,
                   :purge_after,
                   :max_file_size,
-                  :max_records
+                  :max_records,
+                  :transaction_mode
 
     def initialize
       @parent_controller = "ApplicationController"
@@ -26,6 +27,7 @@ module DataPorter
       @purge_after = 60.days
       @max_file_size = 10.megabytes
       @max_records = 10_000
+      @transaction_mode = :per_record
     end
   end
 end

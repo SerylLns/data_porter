@@ -46,6 +46,10 @@ RSpec.describe DataPorter::Configuration do
   it "has default max_records of 10_000" do
     expect(config.max_records).to eq(10_000)
   end
+
+  it "has default transaction_mode of :per_record" do
+    expect(config.transaction_mode).to eq(:per_record)
+  end
 end
 
 RSpec.describe DataPorter do

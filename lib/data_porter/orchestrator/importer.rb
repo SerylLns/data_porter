@@ -6,6 +6,14 @@ module DataPorter
       private
 
       def import_records
+        if DataPorter.configuration.transaction_mode == :all
+          import_all_or_nothing
+        else
+          import_per_record
+        end
+      end
+
+      def import_per_record
         importable = @data_import.importable_records
         context = build_context
         results = { created: 0, errored: 0 }
@@ -16,6 +24,25 @@ module DataPorter
           broadcast_progress(index + 1, total)
         end
 
+        finalize_import(results)
+      end
+
+      def import_all_or_nothing
+        importable = @data_import.importable_records
+        context = build_context
+        total = importable.size
+
+        ActiveRecord::Base.transaction do
+          importable.each_with_index do |record, index|
+            @target.persist(record, context: context)
+            broadcast_progress(index + 1, total)
+          end
+        end
+
+        finalize_import(created: total, errored: 0)
+      end
+
+      def finalize_import(results)
         @data_import.update!(status: :completed)
         @broadcaster.success
         results

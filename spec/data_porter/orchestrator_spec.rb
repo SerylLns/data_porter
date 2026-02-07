@@ -374,4 +374,68 @@ RSpec.describe DataPorter::Orchestrator do
       DataPorter.configuration.max_records = original
     end
   end
+
+  describe "transaction_mode :all" do
+    let(:persisted_names) { [] }
+
+    let(:all_or_nothing_target) do
+      names = persisted_names
+      Class.new(DataPorter::Target) do
+        label "AllOrNothing"
+        model_name "AllOrNothing"
+        sources :csv
+
+        columns do
+          column :name, type: :string
+        end
+
+        define_method(:persist) do |record, **|
+          raise "fail on Bob" if record.data["name"] == "Bob"
+
+          names << record.data["name"]
+        end
+      end
+    end
+
+    let(:all_import) do
+      DataPorter::Registry.register(:all_or_nothing, all_or_nothing_target)
+      DataPorter::DataImport.create!(
+        target_key: "all_or_nothing",
+        source_type: "csv",
+        user_type: "User",
+        user_id: 1
+      )
+    end
+
+    before do
+      orchestrator = described_class.new(all_import, content: "name\nAlice\nBob\n")
+      orchestrator.parse!
+    end
+
+    it "transitions to failed when any record fails in :all mode" do
+      original = DataPorter.configuration.transaction_mode
+      DataPorter.configuration.transaction_mode = :all
+      orchestrator = described_class.new(all_import)
+
+      orchestrator.import!
+
+      expect(all_import.reload.status).to eq("failed")
+      expect(all_import.report.error_reports.first.message).to include("fail on Bob")
+    ensure
+      DataPorter.configuration.transaction_mode = original
+    end
+
+    it "persists successful records in :per_record mode despite errors" do
+      original = DataPorter.configuration.transaction_mode
+      DataPorter.configuration.transaction_mode = :per_record
+      orchestrator = described_class.new(all_import)
+
+      orchestrator.import!
+
+      expect(all_import.reload.status).to eq("completed")
+      expect(persisted_names).to eq(["Alice"])
+    ensure
+      DataPorter.configuration.transaction_mode = original
+    end
+  end
 end
