@@ -46,6 +46,20 @@ RSpec.describe DataPorter::Sources::Csv do
       expect(source.headers).to eq(%w[Prenom Nom Email])
     end
 
+    it "auto-detects semicolon separator" do
+      csv_content = "Prenom;Nom;Email\nAlice;Smith;alice@example.com\n"
+      source = described_class.new(data_import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+
+    it "auto-detects tab separator" do
+      csv_content = "Prenom\tNom\tEmail\nAlice\tSmith\talice@example.com\n"
+      source = described_class.new(data_import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+
     it "generates fallback headers when header row is empty" do
       csv_content = ",,,\nAlice,Smith,alice@example.com,extra\n"
       source = described_class.new(data_import, content: csv_content)
@@ -92,6 +106,24 @@ RSpec.describe DataPorter::Sources::Csv do
       import.config = { "col_sep" => ";" }
       csv_content = "Prenom;Nom;Email\nAlice;Smith;alice@example.com\n"
       source = described_class.new(import, content: csv_content)
+
+      rows = source.fetch
+
+      expect(rows.first[:first_name]).to eq("Alice")
+    end
+
+    it "auto-detects semicolon separator for fetch" do
+      csv_content = "Prenom;Nom;Email\nAlice;Smith;alice@example.com\n"
+      source = described_class.new(data_import, content: csv_content)
+
+      rows = source.fetch
+
+      expect(rows.first[:first_name]).to eq("Alice")
+    end
+
+    it "auto-detects tab separator for fetch" do
+      csv_content = "Prenom\tNom\tEmail\nAlice\tSmith\talice@example.com\n"
+      source = described_class.new(data_import, content: csv_content)
 
       rows = source.fetch
 

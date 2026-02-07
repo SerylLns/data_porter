@@ -5,6 +5,8 @@ require "csv"
 module DataPorter
   module Sources
     class Csv < Base
+      SEPARATORS = [",", ";", "\t"].freeze
+
       def initialize(data_import, content: nil)
         super(data_import)
         @content = content
@@ -40,9 +42,16 @@ module DataPorter
 
       def extra_options
         config = @data_import.config
-        return {} unless config.is_a?(Hash)
+        return { col_sep: detect_separator } unless config.is_a?(Hash)
 
-        config.symbolize_keys.slice(:col_sep, :encoding)
+        opts = config.symbolize_keys.slice(:col_sep, :encoding)
+        opts[:col_sep] ||= detect_separator
+        opts
+      end
+
+      def detect_separator
+        first_line = csv_content.lines.first.to_s
+        SEPARATORS.max_by { |sep| first_line.count(sep) }
       end
     end
   end
