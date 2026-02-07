@@ -24,8 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **E2E specs** -- 6 end-to-end integration tests covering all source types (CSV, XLSX, JSON, API), import params, and reject rows export
 - Validation chain refactored to `all_validations_pass?` using `.all?` to collect all errors at once instead of short-circuiting
-- 385 RSpec examples (up from 354), 0 failures
+- 391 RSpec examples (up from 354), 0 failures
 
 ## [0.9.0] - 2026-02-07
 
