@@ -16,7 +16,6 @@ Gem::Specification.new do |spec|
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
 
-  spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/SerylLns/data_porter"
   spec.metadata["changelog_uri"] = "https://github.com/SerylLns/data_porter/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mcp_server_uri"] = "https://rubygems.org/gems/data_porter"
@@ -33,9 +32,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "creek"
-  spec.add_dependency "csv"
-  spec.add_dependency "phlex", ">= 1.0"
-  spec.add_dependency "rails", ">= 7.0"
-  spec.add_dependency "store_model", ">= 2.0"
+  spec.add_dependency "creek", "~> 2.6"
+  spec.add_dependency "csv", "~> 3.0"
+  spec.add_dependency "phlex", "~> 2.0"
+  spec.add_dependency "rails", ">= 7.0", "< 9.0"
+  spec.add_dependency "store_model", "~> 4.0"
 end

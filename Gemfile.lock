@@ -2,11 +2,11 @@ PATH
   remote: .
   specs:
     data_porter (0.4.0)
-      creek
-      csv
-      phlex (>= 1.0)
-      rails (>= 7.0)
-      store_model (>= 2.0)
+      creek (~> 2.6)
+      csv (~> 3.0)
+      phlex (~> 2.0)
+      rails (>= 7.0, < 9.0)
+      store_model (~> 4.0)
 
 GEM
   remote: https://rubygems.org/
