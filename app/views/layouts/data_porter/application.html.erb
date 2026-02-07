@@ -9,6 +9,7 @@
   <script type="importmap">
     {
       "imports": {
+        "@hotwired/turbo": "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-esm.js",
         "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"
       }
     }
@@ -18,6 +19,7 @@
   <%= yield %>
 
   <script type="module">
+    import "@hotwired/turbo"
     import { Application, Controller } from "@hotwired/stimulus"
 
     const application = Application.start()
@@ -136,7 +138,7 @@
                   this.barTarget.style.width = data.percentage + "%"
                   this.textTarget.textContent = data.percentage + "%"
                 } else {
-                  window.location.reload()
+                  Turbo.visit(window.location.href)
                 }
               }
             }
@@ -147,7 +149,7 @@
       }
 
       pollForChanges() {
-        this.timer = setInterval(() => window.location.reload(), 3000)
+        this.timer = setInterval(() => Turbo.visit(window.location.href), 3000)
       }
 
       disconnect() {

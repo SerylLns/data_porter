@@ -53,7 +53,7 @@
       <button type="button" class="dp-modal__close" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')">&times;</button>
     </div>
 
-    <%= form_with model: DataPorter::DataImport.new, url: imports_path, class: "dp-modal__body", multipart: true do |f| %>
+    <%= form_with model: DataPorter::DataImport.new, url: imports_path, class: "dp-modal__body", multipart: true, data: { turbo: false } do |f| %>
       <div class="dp-field">
         <%= f.label :target_key, "Target", class: "dp-label" %>
         <%= f.select :target_key,

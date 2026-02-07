@@ -23,7 +23,7 @@ module DataPorter
         redirect_to mapping_templates_path
       else
         load_form_data
-        render :new
+        render :new, status: :unprocessable_entity
       end
     end
 
@@ -36,7 +36,7 @@ module DataPorter
         redirect_to mapping_templates_path
       else
         load_form_data
-        render :edit
+        render :edit, status: :unprocessable_entity
       end
     end
 

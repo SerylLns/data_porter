@@ -13,7 +13,7 @@ export default class extends Controller {
           if (data.status === "processing") {
             this.updateProgress(data.percentage)
           } else {
-            window.location.reload()
+            Turbo.visit(window.location.href)
           }
         }
       }

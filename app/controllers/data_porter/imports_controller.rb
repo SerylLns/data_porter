@@ -22,7 +22,7 @@ module DataPorter
         enqueue_after_create
         redirect_to import_path(@import)
       else
-        render :new
+        render :new, status: :unprocessable_entity
       end
     end
 
