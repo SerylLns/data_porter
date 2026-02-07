@@ -1,9 +1,31 @@
 <div class="data-porter">
   <div class="dp-header">
+    <div class="dp-header__actions">
+      <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--secondary" %>
+    </div>
     <h1 class="dp-title">
       <%= @target._label %> Import #<%= @import.id %>
     </h1>
     <%= raw DataPorter::Components::Shared::StatusBadge.new(status: @import.status).call %>
+  </div>
+
+  <div class="dp-import-details">
+    <dl class="dp-details-grid">
+      <dt>Target</dt>
+      <dd><%= @target._label %></dd>
+      <dt>Source</dt>
+      <dd><%= @import.source_type.upcase %></dd>
+      <% if @import.file.attached? %>
+        <dt>File</dt>
+        <dd><%= @import.file.filename %></dd>
+      <% end %>
+      <dt>Created</dt>
+      <dd><%= @import.created_at&.strftime("%Y-%m-%d %H:%M") %></dd>
+      <% if @import.report.records_count.positive? %>
+        <dt>Records</dt>
+        <dd><%= @import.report.records_count %></dd>
+      <% end %>
+    </dl>
   </div>
 
   <% if @import.parsing? || @import.importing? || @import.dry_running? || @import.extracting_headers? %>
@@ -52,8 +74,4 @@
             method: :post, class: "dp-btn dp-btn--primary" %>
     </div>
   <% end %>
-
-  <div class="dp-nav">
-    <%= link_to "Back to imports", imports_path, class: "dp-link" %>
-  </div>
 </div>

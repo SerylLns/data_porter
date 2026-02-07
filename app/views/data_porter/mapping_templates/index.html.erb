@@ -1,5 +1,8 @@
 <div class="data-porter">
   <div class="dp-header">
+    <div class="dp-header__actions">
+      <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--secondary" %>
+    </div>
     <h1 class="dp-title">Mapping Templates</h1>
     <%= link_to "New Template", new_mapping_template_path, class: "dp-btn dp-btn--primary" %>
   </div>
@@ -20,9 +23,9 @@
             <tr>
               <td><%= template.name %></td>
               <td><%= template.mapping.size %> columns</td>
-              <td>
-                <%= link_to "Edit", edit_mapping_template_path(template), class: "dp-link" %>
-                <%= button_to "Delete", mapping_template_path(template), method: :delete, class: "dp-link", style: "color: var(--dp-danger);" %>
+              <td style="display: flex; gap: 0.5rem; align-items: center;">
+                <%= link_to "Edit", edit_mapping_template_path(template), class: "dp-btn dp-btn--secondary" %>
+                <%= button_to "Delete", mapping_template_path(template), method: :delete, class: "dp-btn dp-btn--danger" %>
               </td>
             </tr>
           <% end %>
@@ -36,8 +39,4 @@
       <%= link_to "Create your first template", new_mapping_template_path, class: "dp-btn dp-btn--primary" %>
     </div>
   <% end %>
-
-  <div class="dp-nav">
-    <%= link_to "Back to imports", imports_path, class: "dp-link" %>
-  </div>
 </div>

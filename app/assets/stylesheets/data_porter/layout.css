@@ -100,3 +100,29 @@
 
 .dp-empty-state__icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.6; }
 .dp-empty-state__text { font-size: 1.125rem; color: var(--dp-gray-500); margin: 0 0 1.5rem; }
+
+.dp-import-details {
+  background: white;
+  padding: 1.5rem;
+  border: 1px solid var(--dp-gray-200);
+  border-radius: var(--dp-radius-lg);
+  margin-bottom: 2rem;
+}
+
+.dp-details-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.dp-details-grid dt {
+  font-weight: 600;
+  color: var(--dp-gray-500);
+}
+
+.dp-details-grid dd {
+  margin: 0;
+  color: var(--dp-gray-800);
+}
