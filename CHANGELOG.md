@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-02-07
+
+### Added
+
+- **Standalone engine layout** -- Self-contained HTML layout with importmap, loading Stimulus and Turbo from CDN. The engine no longer depends on the host app's layout or asset pipeline
+- **Turbo Drive** -- All navigation within the engine is now handled by Turbo Drive for instant page transitions
+- **Required field indication** -- Mapping form marks required target fields with `*` and shows a warning listing unmapped required fields
+- **Duplicate mapping detection** -- Visual warning (orange border + message) when two file headers are mapped to the same target field
+- **File validation on create** -- Controller-level validation rejects CSV/JSON/XLSX imports without a file attached, with error message displayed on the form
+- **Hide save-as-template** -- The save-as-template checkbox is hidden when a mapping template is loaded
+- **Import details card** -- Show page displays target, source type, file name, date, and record count
+
+### Changed
+
+- Mapping templates form rewritten with `<select>` elements for target fields instead of plain text inputs
+- Templates index buttons styled as proper `dp-btn--secondary` / `dp-btn--danger`
+- "Back to imports" moved to header as a button across all pages
+- Progress controller uses `Turbo.visit` instead of `window.location.reload`
+- ActionCable loaded via dynamic import with polling fallback (avoids CDN MIME type issues)
+- Controllers return `422 Unprocessable Entity` on form validation errors for Turbo compatibility
+- Rubocop limits relaxed: ClassLength 150, MethodLength 15
+- 280 RSpec examples (up from 265), 0 failures
+
 ## [0.3.0] - 2026-02-07
 
 ### Added

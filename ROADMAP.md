@@ -15,6 +15,14 @@
 - ~~Header extraction step before parsing for file-based sources~~
 - ~~Dynamic mapping priority: user mapping > code mapping > auto-map~~
 
+### v0.4.0 -- Standalone Engine UX
+- ~~Self-contained layout with Stimulus + Turbo Drive via CDN importmap~~
+- ~~Required field indication and duplicate mapping detection~~
+- ~~File validation on create for file-based sources~~
+- ~~Turbo Drive for instant page navigation~~
+- ~~Import details card on show page~~
+- ~~Improved template management UI~~
+
 ---
 
 ## Planned
