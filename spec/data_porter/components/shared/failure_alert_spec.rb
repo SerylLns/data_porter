@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe DataPorter::Components::FailureAlert do
+RSpec.describe DataPorter::Components::Shared::FailureAlert do
   def render(component)
     component.call
   end

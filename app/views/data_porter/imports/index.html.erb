@@ -26,7 +26,7 @@
             <td><%= import.id %></td>
             <td><%= import.target_key %></td>
             <td><%= import.source_type %></td>
-            <td><%= raw DataPorter::Components::StatusBadge.new(status: import.status).call %></td>
+            <td><%= raw DataPorter::Components::Shared::StatusBadge.new(status: import.status).call %></td>
             <td><%= import.created_at&.strftime("%Y-%m-%d %H:%M") %></td>
             <td><%= link_to "View", import_path(import), class: "dp-link" %></td>
           </tr>

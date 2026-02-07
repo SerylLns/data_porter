@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe DataPorter::Components::StatusBadge do
+RSpec.describe DataPorter::Components::Shared::StatusBadge do
   def render(component)
     component.call
   end

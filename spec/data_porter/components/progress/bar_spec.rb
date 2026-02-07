@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe DataPorter::Components::ProgressBar do
+RSpec.describe DataPorter::Components::Progress::Bar do
   def render(component)
     component.call
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe DataPorter::Components::SummaryCards do
+RSpec.describe DataPorter::Components::Preview::SummaryCards do
   def render(component)
     component.call
   end
