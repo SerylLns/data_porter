@@ -10,7 +10,7 @@ class CreateDataPorterImports < ActiveRecord::Migration[<%= ActiveRecord::Migrat
       t.jsonb   :report,      null: false, default: {}
       t.jsonb   :config,      null: false, default: {}
 
-      t.references :user, polymorphic: true, null: false
+      t.references :user, polymorphic: true
 
       t.timestamps
     end
