@@ -27,6 +27,7 @@ Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining im
 - **Real-time progress** -- JSON polling with animated progress bar, no ActionCable required
 - **Dry run mode** -- Validate against the database without persisting
 - **Standalone UI** -- Self-contained layout with Turbo Drive and Stimulus, no host app dependencies
+- **Import params** -- Declare extra form fields (select, text, number, hidden) per target for scoped imports ([docs](docs/TARGETS.md#params--))
 - **Per-target source filtering** -- Each target declares its allowed sources, the UI filters accordingly
 - **Import deletion & auto-purge** -- Delete imports from the UI, or schedule `rake data_porter:purge` for automatic cleanup
 - **Declarative Target DSL** -- One class per import type, zero boilerplate ([docs](docs/TARGETS.md))
@@ -112,7 +113,7 @@ pending -> parsing -> previewing -> importing -> completed
 | [Targets](docs/TARGETS.md) | DSL reference, columns, hooks, generator |
 | [Sources](docs/SOURCES.md) | CSV, JSON, XLSX, API setup and examples |
 | [Column Mapping](docs/MAPPING.md) | Interactive mapping, templates, priority order |
-| [Roadmap](docs/ROADMAP.md) | v1.0 plan: pagination, import params |
+| [Roadmap](docs/ROADMAP.md) | v1.0 plan and progress |
 
 ## Routes
 
@@ -136,7 +137,7 @@ pending -> parsing -> previewing -> importing -> completed
 git clone https://github.com/SerylLns/data_porter.git
 cd data_porter
 bin/setup
-bundle exec rspec     # 300 specs
+bundle exec rspec     # 354 specs
 bundle exec rubocop   # 0 offenses
 ```
 

@@ -18,32 +18,11 @@ records to avoid loading everything in memory.
 - Limit records loaded in controller (not all at once)
 - Consider moving records to a separate table for large imports
 
-### 2. Import params (additionable params)
+### ~~2. Import params~~ DONE
 
-**Problem:** Scoped imports (e.g., importing guests for a specific hotel) require
-adding a parent ID column to every CSV row. This is tedious and error-prone.
-
-**Solution:** A `params` DSL on Target that declares extra fields shown in the
-new import form. Values are stored in `config["params"]` and available via
-`import_params` in target instance methods.
-
-**API design:**
-```ruby
-class GuestTarget < DataPorter::Target
-  params do
-    param :hotel_id, type: :select, label: "Hotel", required: true,
-          collection: -> { Hotel.pluck(:name, :id) }
-  end
-
-  def persist(record, context:)
-    Guest.create!(record.attributes.merge(hotel_id: import_params[:hotel_id]))
-  end
-end
-```
-
-**Supported types:** `:select`, `:text`, `:number`, `:hidden`
-
-**Blog article:** Planned (Part 2 series)
+Implemented in v0.7.0. Targets declare `params` with a DSL (`:select`, `:text`,
+`:number`, `:hidden`). Values stored in `config["import_params"]`, accessible
+via `import_params` in all target instance methods. See [Targets docs](TARGETS.md#params--).
 
 ---
 

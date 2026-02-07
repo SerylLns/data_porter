@@ -55,6 +55,12 @@ class OrderTarget < DataPorter::Target
   deduplicate_by :order_number
 
   dry_run_enabled
+
+  params do
+    param :warehouse_id, type: :select, label: "Warehouse", required: true,
+          collection: -> { Warehouse.pluck(:name, :id) }
+    param :currency, type: :text, default: "USD"
+  end
 end
 ```
 
@@ -123,7 +129,49 @@ deduplicate_by :first_name, :last_name
 
 Enables dry run mode for this target. A "Dry Run" button appears in the preview step. Dry run executes the full import pipeline (transform, validate, persist) inside a rolled-back transaction, giving a validation report without modifying the database.
 
+### `params { ... }`
+
+Declares extra form fields shown when this target is selected in the import form. Values are stored in `config["import_params"]` and accessible via `import_params` in all instance methods.
+
+```ruby
+params do
+  param :hotel_id, type: :select, label: "Hotel", required: true,
+        collection: -> { Hotel.pluck(:name, :id) }
+  param :currency, type: :text, label: "Currency", default: "EUR"
+  param :batch_size, type: :number, label: "Batch Size", default: "100"
+  param :tenant_id, type: :hidden, default: "abc123"
+end
+```
+
+Each param accepts:
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `name` | Symbol | (required) | Param identifier |
+| `type` | Symbol | `:text` | One of `:select`, `:text`, `:number`, `:hidden` |
+| `required` | Boolean | `false` | Validated on import creation, shown with `*` in the form |
+| `label` | String | Humanized name | Display label in the form |
+| `default` | String | `nil` | Pre-filled value in the form |
+| `collection` | Lambda | `nil` | For `:select` type -- returns `[[label, value], ...]` |
+
+Collection lambdas are evaluated when the form loads, not at boot time. This ensures fresh data (e.g., newly created hotels appear immediately).
+
 ## Instance Methods
+
+### `import_params`
+
+Returns a hash of the import params values set by the user in the form. Available in all instance methods (`persist`, `transform`, `validate`, `after_import`, `on_error`). Defaults to `{}` when no params are declared.
+
+```ruby
+def persist(record, context:)
+  Guest.create!(
+    record.attributes.merge(
+      hotel_id: import_params["hotel_id"],
+      currency: import_params["currency"]
+    )
+  )
+end
+```
 
 Override these in your target to customize behavior.
 
