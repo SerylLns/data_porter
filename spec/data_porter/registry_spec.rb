@@ -137,6 +137,23 @@ RSpec.describe DataPorter::Registry do
         expect(region[:collection]).to eq([%w[EU eu], %w[US us]])
       end
 
+      it "accepts collection as a plain array" do
+        array_target = Class.new(DataPorter::Target) do
+          label "ArrayParams"
+          model_name "ArrayParam"
+          icon "fas fa-list"
+
+          params do
+            param :status, type: :select, collection: [%w[Active active], %w[Archived archived]]
+          end
+        end
+        described_class.register(:array_params, array_target)
+
+        result = described_class.available.find { |t| t[:key] == :array_params }
+
+        expect(result[:params].first[:collection]).to eq([%w[Active active], %w[Archived archived]])
+      end
+
       it "includes default values" do
         described_class.register(:hotels, params_target)
 

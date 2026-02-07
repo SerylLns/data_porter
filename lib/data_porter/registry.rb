@@ -37,6 +37,12 @@ module DataPorter
 
       private
 
+      def resolve_collection(collection)
+        return unless collection
+
+        collection.respond_to?(:call) ? collection.call : collection
+      end
+
       def serialize_params(params)
         return [] unless params
 
@@ -50,7 +56,7 @@ module DataPorter
           required: param.required,
           label: param.label,
           default: param.default,
-          collection: param.collection&.call
+          collection: resolve_collection(param.collection)
         }.compact
       end
     end

@@ -152,9 +152,14 @@ Each param accepts:
 | `required` | Boolean | `false` | Validated on import creation, shown with `*` in the form |
 | `label` | String | Humanized name | Display label in the form |
 | `default` | String | `nil` | Pre-filled value in the form |
-| `collection` | Lambda | `nil` | For `:select` type -- returns `[[label, value], ...]` |
+| `collection` | Lambda or Array | `nil` | For `:select` type -- `[[label, value], ...]` |
 
-Collection lambdas are evaluated when the form loads, not at boot time. This ensures fresh data (e.g., newly created hotels appear immediately).
+Collection accepts both a lambda and a plain array. Use a lambda for dynamic data (evaluated when the form loads, not at boot time):
+
+```ruby
+param :hotel_id, type: :select, collection: -> { Hotel.pluck(:name, :id) }
+param :status,   type: :select, collection: [%w[Active active], %w[Archived archived]]
+```
 
 ## Instance Methods
 
