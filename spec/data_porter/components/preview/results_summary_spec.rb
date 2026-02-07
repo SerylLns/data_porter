@@ -46,4 +46,30 @@ RSpec.describe DataPorter::Components::Preview::ResultsSummary do
 
     expect(html).to include("Duration: about 2 minutes")
   end
+
+  it "renders skipped count when records were skipped" do
+    skip_report = DataPorter::StoreModels::Report.new(
+      imported_count: 5, errored_count: 0, missing_count: 1, partial_count: 1
+    )
+    html = render(described_class.new(report: skip_report))
+
+    expect(html).to include("2")
+    expect(html).to include("Skipped")
+  end
+
+  it "does not render skipped card when no records were skipped" do
+    clean_report = DataPorter::StoreModels::Report.new(imported_count: 5, errored_count: 0)
+    html = render(described_class.new(report: clean_report))
+
+    expect(html).not_to include("Skipped")
+  end
+
+  it "shows partial state when records were skipped" do
+    skip_report = DataPorter::StoreModels::Report.new(
+      imported_count: 5, errored_count: 0, missing_count: 1, partial_count: 0
+    )
+    html = render(described_class.new(report: skip_report))
+
+    expect(html).to include("dp-results--partial")
+  end
 end

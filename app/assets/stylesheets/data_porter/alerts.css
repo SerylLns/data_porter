@@ -32,7 +32,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1rem;
-  max-width: 400px;
+  max-width: 500px;
   margin: 0 auto;
 }
 
@@ -60,6 +60,7 @@
 
 .dp-results__stat--success strong { color: var(--dp-success); }
 .dp-results__stat--error strong { color: var(--dp-danger); }
+.dp-results__stat--warning strong { color: var(--dp-warning); }
 
 .dp-results__duration {
   margin-top: 1rem;

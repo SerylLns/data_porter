@@ -86,7 +86,8 @@
     <% end %>
     <div class="dp-actions">
       <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--primary" %>
-      <% if @import.report.errored_count.to_i.positive? %>
+      <% rejected = @import.report.errored_count.to_i + @import.report.missing_count.to_i + @import.report.partial_count.to_i %>
+      <% if rejected.positive? %>
         <%= link_to "Download rejects CSV", export_rejects_import_path(@import), class: "dp-btn dp-btn--secondary" %>
       <% end %>
       <%= button_to "Delete", import_path(@import),

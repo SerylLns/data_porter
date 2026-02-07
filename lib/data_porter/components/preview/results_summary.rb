@@ -33,6 +33,7 @@ module DataPorter
           div(class: "dp-results__cards") do
             stat("dp-results__stat--success", @report.imported_count, "Imported")
             stat("dp-results__stat--error", @report.errored_count, "Errors")
+            stat("dp-results__stat--warning", skipped_count, "Skipped") if skipped_count.positive?
           end
         end
 
@@ -52,7 +53,11 @@ module DataPorter
         end
 
         def success?
-          @report.errored_count.zero?
+          @report.errored_count.zero? && skipped_count.zero?
+        end
+
+        def skipped_count
+          @report.missing_count.to_i + @report.partial_count.to_i
         end
       end
     end
