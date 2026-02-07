@@ -8,6 +8,7 @@ DataPorter::Engine.routes.draw do
       post :cancel
       post :dry_run
       patch :update_mapping
+      get :status
     end
   end
 

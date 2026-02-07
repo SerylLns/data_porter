@@ -4,7 +4,7 @@ module DataPorter
   class ImportsController < DataPorter.configuration.parent_controller.constantize
     layout "data_porter/application"
 
-    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping]
+    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -47,6 +47,7 @@ module DataPorter
     end
 
     def confirm
+      @import.update!(status: :pending)
       DataPorter::ImportJob.perform_later(@import.id)
       redirect_to import_path(@import)
     end
@@ -57,8 +58,14 @@ module DataPorter
     end
 
     def dry_run
+      @import.update!(status: :pending)
       DataPorter::DryRunJob.perform_later(@import.id)
       redirect_to import_path(@import)
+    end
+
+    def status
+      progress = @import.config["progress"] || {}
+      render json: { status: @import.status, progress: progress }
     end
 
     private

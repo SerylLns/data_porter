@@ -5,6 +5,7 @@ module DataPorter
     def initialize(data_import, content: nil)
       @data_import = data_import
       @target = data_import.target_class.new
+      @broadcaster = Broadcaster.new(data_import.id)
       @source_options = { content: content }.compact
     end
 
@@ -111,12 +112,15 @@ module DataPorter
       importable = @data_import.importable_records
       context = build_context
       results = { created: 0, errored: 0 }
+      total = importable.size
 
-      importable.each do |record|
+      importable.each_with_index do |record, index|
         persist_record(record, context, results)
+        broadcast_progress(index + 1, total)
       end
 
       @data_import.update!(status: :completed)
+      @broadcaster.success
       results
     end
 
@@ -151,11 +155,20 @@ module DataPorter
       DataPorter.configuration.context_builder&.call(@data_import)
     end
 
+    def broadcast_progress(current, total)
+      percentage = ((current.to_f / total) * 100).round
+      config = @data_import.config || {}
+      config["progress"] = { "current" => current, "total" => total, "percentage" => percentage }
+      @data_import.update_column(:config, config)
+      @broadcaster.progress(current, total)
+    end
+
     def handle_failure(error)
       report = StoreModels::Report.new(
         error_reports: [StoreModels::Error.new(message: error.message)]
       )
       @data_import.update!(status: :failed, report: report)
+      @broadcaster.failure(error.message)
     end
   end
 end

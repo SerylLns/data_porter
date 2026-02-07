@@ -40,6 +40,10 @@ RSpec.describe DataPorter::Orchestrator do
     )
   end
 
+  before do
+    allow(ActionCable.server).to receive(:broadcast)
+  end
+
   let(:csv_content) do
     "First Name,Last Name,Email\nAlice,Smith,alice@example.com\nBob,Jones,bob@example.com\n"
   end
@@ -224,6 +228,53 @@ RSpec.describe DataPorter::Orchestrator do
       orchestrator.import!
 
       expect(data_import.reload.status).to eq("failed")
+    end
+
+    it "stores progress in config" do
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      progress = data_import.reload.config["progress"]
+      expect(progress).to include("current" => 2, "total" => 2, "percentage" => 100)
+    end
+
+    it "broadcasts progress for each record" do
+      broadcaster = instance_double(DataPorter::Broadcaster)
+      allow(DataPorter::Broadcaster).to receive(:new).and_return(broadcaster)
+      allow(broadcaster).to receive(:progress)
+      allow(broadcaster).to receive(:success)
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(broadcaster).to have_received(:progress).with(1, 2)
+      expect(broadcaster).to have_received(:progress).with(2, 2)
+    end
+
+    it "broadcasts success on completion" do
+      broadcaster = instance_double(DataPorter::Broadcaster)
+      allow(DataPorter::Broadcaster).to receive(:new).and_return(broadcaster)
+      allow(broadcaster).to receive(:progress)
+      allow(broadcaster).to receive(:success)
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(broadcaster).to have_received(:success).once
+    end
+
+    it "broadcasts failure on catastrophic error" do
+      data_import.update!(records: [])
+      allow(data_import).to receive(:importable_records).and_raise("fatal")
+      broadcaster = instance_double(DataPorter::Broadcaster)
+      allow(DataPorter::Broadcaster).to receive(:new).and_return(broadcaster)
+      allow(broadcaster).to receive(:failure)
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(broadcaster).to have_received(:failure).with("fatal")
     end
   end
 end
