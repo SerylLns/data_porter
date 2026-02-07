@@ -10,6 +10,9 @@
 # rspec failure tracking
 .rspec_status
 
+# Built gems
+*.gem
+
 # Logs
 logs
 *.log
