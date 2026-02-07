@@ -116,6 +116,7 @@ class ApplicationController < ActionController::Base; end unless defined?(Applic
 
 $LOAD_PATH.unshift File.expand_path("../app/controllers", __dir__)
 require "data_porter/imports_controller"
+require "data_porter/mapping_templates_controller"
 
 $LOAD_PATH.unshift File.expand_path("../app/channels", __dir__)
 require "data_porter/import_channel"

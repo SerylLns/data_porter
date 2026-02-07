@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+class CreateDataPorterMappingTemplates < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  def change
+    create_table :data_porter_mapping_templates do |t|
+      t.string :target_key, null: false
+      t.string :name,       null: false
+      t.jsonb  :mapping,    null: false, default: {}
+
+      t.timestamps
+    end
+
+    add_index :data_porter_mapping_templates, :target_key
+    add_index :data_porter_mapping_templates, %i[target_key name], unique: true
+  end
+end

@@ -15,6 +15,10 @@ module DataPorter
           "create_data_porter_imports.rb.erb",
           "db/migrate/create_data_porter_imports.rb"
         )
+        migration_template(
+          "create_data_porter_mapping_templates.rb.erb",
+          "db/migrate/create_data_porter_mapping_templates.rb"
+        )
       end
 
       def copy_initializer

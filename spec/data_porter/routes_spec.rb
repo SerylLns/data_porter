@@ -12,6 +12,8 @@ RSpec.describe "DataPorter routes" do
           patch :update_mapping
         end
       end
+
+      resources :mapping_templates, except: :show
     end
   end
 
@@ -34,5 +36,17 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["cancel", "/imports/:id/cancel(.:format)"])
     expect(route_set).to include(["dry_run", "/imports/:id/dry_run(.:format)"])
     expect(route_set).to include(["update_mapping", "/imports/:id/update_mapping(.:format)"])
+  end
+
+  it "defines mapping_templates CRUD routes" do
+    routes = DataPorter::Engine.routes
+    route_set = routes.routes.map { |r| [r.defaults[:action], r.path.spec.to_s] }
+
+    expect(route_set).to include(["index", "/mapping_templates(.:format)"])
+    expect(route_set).to include(["new", "/mapping_templates/new(.:format)"])
+    expect(route_set).to include(["create", "/mapping_templates(.:format)"])
+    expect(route_set).to include(["edit", "/mapping_templates/:id/edit(.:format)"])
+    expect(route_set).to include(["update", "/mapping_templates/:id(.:format)"])
+    expect(route_set).to include(["destroy", "/mapping_templates/:id(.:format)"])
   end
 end

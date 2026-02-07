@@ -1,0 +1,31 @@
+<%= form_with model: template, url: template.persisted? ? mapping_template_path(template) : mapping_templates_path, class: "dp-form", method: template.persisted? ? :patch : :post do |f| %>
+  <div class="dp-field">
+    <%= f.label :target_key, "Target", class: "dp-label" %>
+    <%= f.select :target_key,
+          targets.map { |t| [t[:label], t[:key]] },
+          { prompt: "Select a target..." },
+          class: "dp-select" %>
+  </div>
+
+  <div class="dp-field">
+    <%= f.label :name, "Template Name", class: "dp-label" %>
+    <%= f.text_field :name, class: "dp-select", placeholder: "e.g. French Headers" %>
+  </div>
+
+  <div class="dp-field">
+    <label class="dp-label">Column Mappings</label>
+    <div id="dp-mapping-pairs">
+      <% (template.mapping.presence || { "" => "" }).each do |header, field| %>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input type="text" name="mapping_template[mapping][<%= header %>]" value="" placeholder="File header" class="dp-select" style="flex: 1;" data-header="<%= header %>" />
+          <input type="text" name="" value="<%= field %>" placeholder="Target field" class="dp-select" style="flex: 1;" data-field="<%= field %>" />
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="dp-actions">
+    <%= f.submit template.persisted? ? "Update Template" : "Create Template", class: "dp-btn dp-btn--primary" %>
+    <%= link_to "Cancel", mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
+  </div>
+<% end %>

@@ -10,4 +10,6 @@ DataPorter::Engine.routes.draw do
       patch :update_mapping
     end
   end
+
+  resources :mapping_templates, except: :show
 end

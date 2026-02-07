@@ -1,0 +1,13 @@
+<%= stylesheet_link_tag "data_porter/application" %>
+
+<div class="data-porter">
+  <div class="dp-header">
+    <h1 class="dp-title">Edit Mapping Template</h1>
+  </div>
+
+  <%= render "form", template: @template, targets: @targets %>
+
+  <div class="dp-nav">
+    <%= link_to "Back to templates", mapping_templates_path, class: "dp-link" %>
+  </div>
+</div>

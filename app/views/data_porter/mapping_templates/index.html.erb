@@ -1,0 +1,45 @@
+<%= stylesheet_link_tag "data_porter/application" %>
+
+<div class="data-porter">
+  <div class="dp-header">
+    <h1 class="dp-title">Mapping Templates</h1>
+    <%= link_to "New Template", new_mapping_template_path, class: "dp-btn dp-btn--primary" %>
+  </div>
+
+  <% if @grouped.any? %>
+    <% @grouped.each do |target_key, templates| %>
+      <h2 style="font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--dp-gray-700);"><%= target_key.titleize %></h2>
+      <table class="dp-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mappings</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% templates.each do |template| %>
+            <tr>
+              <td><%= template.name %></td>
+              <td><%= template.mapping.size %> columns</td>
+              <td>
+                <%= link_to "Edit", edit_mapping_template_path(template), class: "dp-link" %>
+                <%= button_to "Delete", mapping_template_path(template), method: :delete, class: "dp-link", style: "color: var(--dp-danger);" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  <% else %>
+    <div class="dp-empty-state">
+      <div class="dp-empty-state__icon">&#128203;</div>
+      <p class="dp-empty-state__text">No mapping templates yet</p>
+      <%= link_to "Create your first template", new_mapping_template_path, class: "dp-btn dp-btn--primary" %>
+    </div>
+  <% end %>
+
+  <div class="dp-nav">
+    <%= link_to "Back to imports", imports_path, class: "dp-link" %>
+  </div>
+</div>
