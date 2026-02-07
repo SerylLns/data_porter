@@ -1,6 +1,7 @@
 # DataPorter
 
-> **Work in progress** -- This gem is under active development and not yet production-ready. APIs and features may change without notice.
+> [!WARNING]
+> This gem is under active development and not yet production-ready. APIs and features may change without notice.
 
 A mountable Rails engine for data import workflows: **Upload**, **Map**, **Preview**, **Import**.
 
