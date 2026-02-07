@@ -1,6 +1,6 @@
 # Roadmap
 
-## v1.0 — Production-ready
+## v1.0 — Production-ready DONE
 
 The goal is a gem that handles real-world imports reliably at scale.
 
@@ -36,11 +36,18 @@ Zero-dependency streaming via `send_data`.
 ### ~~6. E2E integration tests~~ DONE
 
 6 end-to-end specs covering all source types (CSV, XLSX, JSON, API),
-import params flow, and reject rows CSV export. 391 specs total.
+import params flow, and reject rows CSV export. 395 specs total.
 
 ---
 
-## v1.1 — Quality of life
+## v1.1 — UX & Workflow
+
+### Preview ↔ Mapping navigation
+
+Allow users to go back from preview to the mapping step and adjust column
+mapping without restarting the import. Currently the flow is one-way:
+mapping → parse → preview. Adding a "Back to mapping" button on the preview
+page would let users correct mapping mistakes after seeing the parsed data.
 
 ### Column mapping for JSON and API sources
 
@@ -48,7 +55,13 @@ The interactive column mapping step currently only works for file-based sources
 (CSV, XLSX). JSON and API sources have stable, predictable keys that rarely need
 remapping, but supporting mapping for all sources would provide a consistent UX.
 
-### Bug fixes from manual testing
+### Dry-run performance estimate
+
+After a dry run, display an estimated import time based on average record
+processing speed: "Estimated import time: ~2m30s". Helps users decide whether
+to launch the import now or schedule it for off-peak hours.
+
+### Bug fixes from v1.0 manual testing
 
 - `dp-input` CSS styling (text inputs matched select appearance)
 - `param.collection` accepts both lambdas and plain arrays
@@ -58,14 +71,107 @@ remapping, but supporting mapping for all sources would provide a consistent UX.
 
 ---
 
-## v2+ (future)
+## v1.2 — Permissions & Multi-tenancy
 
-- Dry-run performance estimate ("Estimated import time: ~2m30s")
-- Auto-map heuristics: tokenized header match + synonyms (email → email_address)
-- Scoped imports (filter index by user/tenant)
-- Webhooks / callbacks on import completion
-- Batch persist (`insert_all` support)
-- Resume / partial retry
-- Scheduled imports (recurring API source)
-- i18n
-- Dashboard stats
+### Scoped imports
+
+Wire up `config.scope` so each user only sees their own imports. The
+configuration hook already exists but isn't connected to the controller query:
+
+```ruby
+DataPorter.configure do |config|
+  config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+end
+```
+
+The controller `index` and `show` actions apply the scope automatically.
+Combined with `parent_controller` inheriting from an authenticated controller,
+this enables full multi-tenant isolation — suitable for both B2B (tenant per
+organization) and B2C (user-level) scenarios.
+
+### Permissions / RBAC
+
+Role-based access control for import operations. Allow host apps to restrict
+who can create imports, confirm imports, or access specific targets. Integrate
+with existing authorization frameworks (Pundit, CanCanCan) via a configurable
+policy hook.
+
+---
+
+## v2.0 — Scale & Automation
+
+### Bulk import
+
+High-volume import support using `insert_all` / `upsert_all` for batch
+persistence. Bypass per-record `persist` calls when the target opts in,
+enabling 10-100x throughput for simple create/upsert scenarios. Configurable
+batch size, with fallback to per-record mode on conflict.
+
+### Column transformers
+
+Built-in transformation pipeline applied per-column before the target's
+`transform` method. Declarative DSL in the target:
+
+```ruby
+columns do
+  column :email, type: :email, transform: [:strip, :downcase]
+  column :phone, type: :string, transform: [:strip, :normalize_phone]
+  column :born_on, type: :date, transform: [:parse_date]
+end
+```
+
+Ships with common transformers (`strip`, `downcase`, `titleize`,
+`normalize_phone`, `parse_date`). Custom transformers via a registry.
+
+### Auto-map heuristics
+
+Smart column mapping suggestions using tokenized header matching and synonym
+dictionaries. When a CSV has "E-mail Address", auto-suggest mapping to `:email`.
+Built-in synonyms for common patterns (phone → phone_number,
+first name → first_name). Configurable synonym lists per target.
+
+### Update & diff mode
+
+Support update (upsert) imports alongside create-only. Given a
+`deduplicate_by` key, detect existing records and show a diff preview:
+new records, changed fields (highlighted), unchanged rows. User confirms
+which changes to apply. Enables recurring data sync workflows.
+
+### Scheduled imports
+
+Recurring imports from API or remote sources on a cron schedule. A target
+declares a schedule, and DataPorter automatically fetches and imports at
+the configured interval. Built on ActiveJob with configurable queue.
+
+---
+
+## v3.0 — Platform
+
+### Webhooks
+
+HTTP callbacks on import lifecycle events (started, completed, failed).
+Configurable per-target with URL, headers, and payload template. Enables
+integration with Slack notifications, CI pipelines, or external dashboards.
+
+### External connectors
+
+Source plugins beyond local files and HTTP APIs:
+
+- **Google Sheets** — OAuth2 + Sheets API, treat a spreadsheet as a source
+- **SFTP** — Poll a remote directory for new files
+- **AWS S3** — Watch a bucket/prefix for uploads
+- **Remote HTTP polling** — Periodically fetch from a paginated API
+
+Each connector implements the `Sources::Base` interface. Installed as
+optional companion gems (`data_porter-google_sheets`, `data_porter-s3`).
+
+### i18n
+
+Full internationalization of all UI strings, error messages, and status
+labels. Ship with English and French translations. Host apps can override
+or add languages via standard Rails I18n.
+
+### Dashboard & analytics
+
+Import statistics dashboard: success rates, average duration, records per
+import, most-used targets, failure trends. Mountable as an admin-only route.
