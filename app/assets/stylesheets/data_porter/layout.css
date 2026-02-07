@@ -29,7 +29,7 @@
   color: var(--dp-gray-700);
 }
 
-.dp-select, .dp-file-input {
+.dp-select, .dp-input, .dp-file-input {
   display: block;
   width: 100%;
   padding: 0.625rem 0.875rem;
@@ -50,7 +50,7 @@
   padding-right: 2.5rem;
 }
 
-.dp-select:focus, .dp-file-input:focus {
+.dp-select:focus, .dp-input:focus, .dp-file-input:focus {
   outline: none;
   border-color: var(--dp-primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
