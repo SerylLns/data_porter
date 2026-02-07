@@ -1,9 +1,11 @@
-<div class="data-porter">
+<div class="data-porter" data-controller="data-porter--import-form"
+     data-data-porter--import-form-sources-value="<%= @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json %>"
+     data-action="keydown@document->data-porter--import-form#closeModal">
   <div class="dp-header">
     <h1 class="dp-title">Imports</h1>
     <div class="dp-header__actions">
       <%= link_to "Mapping Templates", mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
-      <button type="button" class="dp-btn dp-btn--primary" onclick="document.getElementById('dp-modal').classList.add('dp-modal--open')">
+      <button type="button" class="dp-btn dp-btn--primary" data-action="data-porter--import-form#openModal">
         New Import
       </button>
     </div>
@@ -45,127 +47,66 @@
     <div class="dp-empty-state">
       <div class="dp-empty-state__icon">&#128230;</div>
       <p class="dp-empty-state__text">No imports yet</p>
-      <button type="button" class="dp-btn dp-btn--primary" onclick="document.getElementById('dp-modal').classList.add('dp-modal--open')">
+      <button type="button" class="dp-btn dp-btn--primary" data-action="data-porter--import-form#openModal">
         Create your first import
       </button>
     </div>
   <% end %>
-</div>
 
-<div id="dp-modal" class="dp-modal">
-  <div class="dp-modal__backdrop" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')"></div>
-  <div class="dp-modal__content">
-    <div class="dp-modal__header">
-      <h2 class="dp-modal__title">New Import</h2>
-      <button type="button" class="dp-modal__close" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')">&times;</button>
+  <div id="dp-modal" class="dp-modal" data-data-porter--import-form-target="modal">
+    <div class="dp-modal__backdrop" data-action="click->data-porter--import-form#closeModalClick"></div>
+    <div class="dp-modal__content">
+      <div class="dp-modal__header">
+        <h2 class="dp-modal__title">New Import</h2>
+        <button type="button" class="dp-modal__close" data-action="data-porter--import-form#closeModalClick">&times;</button>
+      </div>
+
+      <%= form_with model: DataPorter::DataImport.new, url: imports_path, class: "dp-modal__body", multipart: true, data: { turbo: false } do |f| %>
+        <div class="dp-field">
+          <%= f.label :target_key, "Target", class: "dp-label" %>
+          <%= f.select :target_key,
+                @targets.map { |t| [t[:label], t[:key]] },
+                { prompt: "Select a target..." },
+                class: "dp-select",
+                data: {
+                  data_porter__import_form_target: "targetSelect",
+                  action: "data-porter--import-form#filterSources"
+                } %>
+        </div>
+
+        <div class="dp-field">
+          <%= f.label :source_type, "Source Type", class: "dp-label" %>
+          <%= f.select :source_type,
+                DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
+                { prompt: "Select source type..." },
+                class: "dp-select",
+                data: {
+                  data_porter__import_form_target: "sourceSelect",
+                  action: "data-porter--import-form#toggleFileField"
+                } %>
+        </div>
+
+        <div class="dp-field" data-data-porter--import-form-target="fileField">
+          <%= f.label :file, "File", class: "dp-label" %>
+          <label class="dp-dropzone" data-data-porter--import-form-target="dropzone"
+                 data-action="dragover->data-porter--import-form#dragover dragleave->data-porter--import-form#dragleave drop->data-porter--import-form#drop">
+            <input type="file" name="data_import[file]" class="dp-dropzone__input"
+                   data-data-porter--import-form-target="fileInput"
+                   data-action="data-porter--import-form#handleFile" />
+            <div class="dp-dropzone__content">
+              <div class="dp-dropzone__icon">&#128196;</div>
+              <span class="dp-dropzone__text">Drop your file here or <strong>browse</strong></span>
+              <span class="dp-dropzone__hint">CSV, JSON, or XLSX files accepted</span>
+            </div>
+            <div class="dp-dropzone__selected" data-data-porter--import-form-target="fileName" style="display: none;"></div>
+          </label>
+        </div>
+
+        <div class="dp-modal__footer">
+          <%= f.submit "Start Import", class: "dp-btn dp-btn--primary" %>
+          <button type="button" class="dp-btn dp-btn--secondary" data-action="data-porter--import-form#closeModalClick">Cancel</button>
+        </div>
+      <% end %>
     </div>
-
-    <%= form_with model: DataPorter::DataImport.new, url: imports_path, class: "dp-modal__body", multipart: true, data: { turbo: false } do |f| %>
-      <div class="dp-field">
-        <%= f.label :target_key, "Target", class: "dp-label" %>
-        <%= f.select :target_key,
-              @targets.map { |t| [t[:label], t[:key]] },
-              { prompt: "Select a target..." },
-              id: "dp-target-select",
-              class: "dp-select",
-              data: { sources: @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json } %>
-      </div>
-
-      <div class="dp-field">
-        <%= f.label :source_type, "Source Type", class: "dp-label" %>
-        <%= f.select :source_type,
-              DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
-              { prompt: "Select source type..." },
-              id: "dp-source-select",
-              class: "dp-select" %>
-      </div>
-
-      <div id="dp-file-field" class="dp-field">
-        <%= f.label :file, "File", class: "dp-label" %>
-        <label class="dp-dropzone" id="dp-dropzone">
-          <input type="file" name="data_import[file]" id="dp-file-input" class="dp-dropzone__input" />
-          <div class="dp-dropzone__content">
-            <div class="dp-dropzone__icon">&#128196;</div>
-            <span class="dp-dropzone__text">Drop your file here or <strong>browse</strong></span>
-            <span class="dp-dropzone__hint">CSV, JSON, or XLSX files accepted</span>
-          </div>
-          <div class="dp-dropzone__selected" id="dp-file-name" style="display: none;"></div>
-        </label>
-      </div>
-
-      <div class="dp-modal__footer">
-        <%= f.submit "Start Import", class: "dp-btn dp-btn--primary" %>
-        <button type="button" class="dp-btn dp-btn--secondary" onclick="document.getElementById('dp-modal').classList.remove('dp-modal--open')">Cancel</button>
-      </div>
-    <% end %>
   </div>
 </div>
-
-<script>
-  (function() {
-    var targetSelect = document.getElementById("dp-target-select");
-    var sourceSelect = document.getElementById("dp-source-select");
-    var fileField = document.getElementById("dp-file-field");
-    var fileInput = document.getElementById("dp-file-input");
-    var dropzone = document.getElementById("dp-dropzone");
-    var fileName = document.getElementById("dp-file-name");
-
-    function filterSources() {
-      if (!targetSelect || !sourceSelect) return;
-      var sourcesMap = JSON.parse(targetSelect.dataset.sources || "{}");
-      var allowed = sourcesMap[targetSelect.value];
-      var options = sourceSelect.options;
-      for (var i = 1; i < options.length; i++) {
-        options[i].style.display = allowed && allowed.indexOf(options[i].value) === -1 ? "none" : "";
-      }
-      if (allowed && sourceSelect.selectedIndex > 0 && allowed.indexOf(sourceSelect.value) === -1) {
-        sourceSelect.selectedIndex = 0;
-        fileField.style.display = "";
-      }
-    }
-
-    if (targetSelect) {
-      targetSelect.addEventListener("change", filterSources);
-    }
-
-    if (sourceSelect) {
-      sourceSelect.addEventListener("change", function() {
-        fileField.style.display = this.value === "api" ? "none" : "";
-      });
-    }
-
-    if (fileInput) {
-      fileInput.addEventListener("change", function() {
-        if (this.files.length > 0) {
-          fileName.textContent = this.files[0].name;
-          fileName.style.display = "";
-          dropzone.classList.add("dp-dropzone--has-file");
-        }
-      });
-    }
-
-    if (dropzone) {
-      dropzone.addEventListener("dragover", function(e) {
-        e.preventDefault();
-        this.classList.add("dp-dropzone--dragover");
-      });
-      dropzone.addEventListener("dragleave", function() {
-        this.classList.remove("dp-dropzone--dragover");
-      });
-      dropzone.addEventListener("drop", function(e) {
-        e.preventDefault();
-        this.classList.remove("dp-dropzone--dragover");
-        if (e.dataTransfer.files.length > 0) {
-          fileInput.files = e.dataTransfer.files;
-          fileInput.dispatchEvent(new Event("change"));
-        }
-      });
-    }
-
-    document.addEventListener("keydown", function(e) {
-      if (e.key === "Escape") {
-        document.getElementById("dp-modal").classList.remove("dp-modal--open");
-      }
-    });
-  })();
-</script>

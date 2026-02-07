@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 
+require_relative "orchestrator/record_builder"
+require_relative "orchestrator/importer"
+require_relative "orchestrator/dry_runner"
+
 module DataPorter
   class Orchestrator
+    include RecordBuilder
+    include Importer
+    include DryRunner
+
     def initialize(data_import, content: nil)
       @data_import = data_import
       @target = data_import.target_class.new
@@ -56,88 +64,6 @@ module DataPorter
       config = @data_import.config || {}
       config["file_headers"] = headers
       @data_import.update!(config: config)
-    end
-
-    def build_records
-      source = build_source
-      raw_rows = source.fetch
-      columns = @target.class._columns || []
-      validator = RecordValidator.new(columns)
-
-      raw_rows.each_with_index.map do |row, index|
-        build_record(row, index, columns, validator)
-      end
-    end
-
-    def build_record(row, index, columns, validator)
-      record = StoreModels::ImportRecord.new(
-        line_number: index + 1,
-        data: extract_data(row, columns)
-      )
-      record = @target.transform(record)
-      @target.validate(record)
-      validator.validate(record)
-      record.determine_status!
-      record
-    end
-
-    def extract_data(row, columns)
-      columns.each_with_object({}) do |col, hash|
-        hash[col.name] = row[col.name] || row[col.name.to_s]
-      end
-    end
-
-    def run_dry_run_records
-      records = @data_import.records
-      importable = records.select(&:importable?)
-      context = build_context
-
-      importable.each do |record|
-        dry_run_record(record, context)
-      end
-
-      @data_import.records_will_change!
-      @data_import.update!(records: records)
-    end
-
-    def dry_run_record(record, context)
-      @target.persist(record, context: context)
-      record.dry_run_passed = true
-    rescue StandardError => e
-      record.dry_run_passed = false
-      record.add_error(e.message)
-    end
-
-    def import_records
-      importable = @data_import.importable_records
-      context = build_context
-      results = { created: 0, errored: 0 }
-      total = importable.size
-
-      importable.each_with_index do |record, index|
-        persist_record(record, context, results)
-        broadcast_progress(index + 1, total)
-      end
-
-      @data_import.update!(status: :completed)
-      @broadcaster.success
-      results
-    end
-
-    def persist_record(record, context, results)
-      @target.persist(record, context: context)
-      results[:created] += 1
-    rescue StandardError => e
-      record.add_error(e.message)
-      @target.on_error(record, e, context: context)
-      results[:errored] += 1
-    end
-
-    def update_import_report(results)
-      report = @data_import.report || StoreModels::Report.new
-      report.imported_count = results[:created]
-      report.errored_count = results[:errored]
-      @data_import.update!(report: report)
     end
 
     def build_report

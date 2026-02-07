@@ -10,6 +10,10 @@ module DataPorter
           data_porter/application.css
           data_porter/turbo.min.js
           data_porter/stimulus.min.js
+          data_porter/mapping_controller.js
+          data_porter/template_form_controller.js
+          data_porter/progress_controller.js
+          data_porter/import_form_controller.js
         ]
       end
     end

@@ -2,6 +2,10 @@
 
 module DataPorter
   class ImportsController < DataPorter.configuration.parent_controller.constantize
+    include Concerns::ImportValidation
+    include Concerns::MappingManagement
+    include Concerns::RecordPagination
+
     layout "data_porter/application"
 
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status destroy]
@@ -95,69 +99,12 @@ module DataPorter
       params.require(:data_import).permit(:target_key, :source_type, :file, config: {})
     end
 
-    def valid_source_for_target?
-      target = DataPorter::Registry.find(@import.target_key)
-      allowed = target._sources || DataPorter.configuration.enabled_sources
-      return true if allowed.map(&:to_s).include?(@import.source_type.to_s)
-
-      @import.errors.add(:source_type, "#{@import.source_type} is not available for this target")
-      false
-    end
-
-    def valid_file_presence?
-      return true unless %w[csv json xlsx].include?(@import.source_type)
-      return true if @import.file.attached?
-
-      @import.errors.add(:file, "must be attached for #{@import.source_type.upcase} imports")
-      false
-    end
-
     def enqueue_after_create
       if @import.file_based?
         DataPorter::ExtractHeadersJob.perform_later(@import.id)
       else
         DataPorter::ParseJob.perform_later(@import.id)
       end
-    end
-
-    def load_mapping_data
-      target = @import.target_class
-      columns = target._columns || []
-      @file_headers = @import.config["file_headers"] || []
-      @target_columns = columns.map { |c| [c.label, c.name.to_s, c.required] }
-      @default_mapping = (target._csv_mappings || {}).transform_values(&:to_s)
-      @templates = load_templates
-    end
-
-    def load_templates
-      return [] unless defined?(DataPorter::MappingTemplate)
-
-      DataPorter::MappingTemplate.for_target(@import.target_key)
-    end
-
-    def paginate_records
-      per_page = 50
-      @total_pages = (@records.size.to_f / per_page).ceil
-      @total_pages = 1 if @total_pages.zero?
-      @page = (params[:page] || 1).to_i.clamp(1, @total_pages)
-      @records = @records.slice((@page - 1) * per_page, per_page) || []
-    end
-
-    def save_column_mapping
-      mapping = params.require(:column_mapping).permit!.to_h
-      merged = (@import.config || {}).merge("column_mapping" => mapping)
-      @import.update!(config: merged, status: :pending)
-    end
-
-    def save_template_if_requested
-      return unless params[:save_template] == "1"
-      return unless defined?(DataPorter::MappingTemplate)
-
-      mapping = params.require(:column_mapping).permit!.to_h
-      DataPorter::MappingTemplate.find_or_initialize_by(
-        target_key: @import.target_key,
-        name: params[:template_name].presence || "Default"
-      ).update!(mapping: mapping)
     end
   end
 end

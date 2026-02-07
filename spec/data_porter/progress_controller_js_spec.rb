@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "progress_controller.js" do
-  let(:js_path) { File.expand_path("../../app/javascript/data_porter/progress_controller.js", __dir__) }
+  let(:js_path) { File.expand_path("../../app/assets/javascripts/data_porter/progress_controller.js", __dir__) }
   let(:content) { File.read(js_path) }
 
   it "exists" do
