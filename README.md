@@ -112,6 +112,7 @@ pending -> parsing -> previewing -> importing -> completed
 | [Targets](docs/TARGETS.md) | DSL reference, columns, hooks, generator |
 | [Sources](docs/SOURCES.md) | CSV, JSON, XLSX, API setup and examples |
 | [Column Mapping](docs/MAPPING.md) | Interactive mapping, templates, priority order |
+| [Roadmap](docs/ROADMAP.md) | v1.0 plan: pagination, import params |
 
 ## Routes
 
