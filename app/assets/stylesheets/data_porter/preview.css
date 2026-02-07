@@ -1,0 +1,24 @@
+.dp-preview-table {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+  border-radius: var(--dp-radius-lg);
+  border: 1px solid var(--dp-gray-200);
+  box-shadow: var(--dp-shadow-sm);
+}
+
+.dp-preview-table .dp-table {
+  margin-bottom: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dp-row--complete { background: var(--dp-success-light); }
+.dp-row--partial { background: var(--dp-warning-light); }
+.dp-row--missing { background: var(--dp-danger-light); }
+
+.dp-errors {
+  color: var(--dp-danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+}

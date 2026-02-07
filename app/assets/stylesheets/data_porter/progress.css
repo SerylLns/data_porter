@@ -1,0 +1,37 @@
+.dp-progress {
+  margin: 2rem 0;
+  background: var(--dp-gray-200);
+  border-radius: var(--dp-radius-xl);
+  overflow: hidden;
+  height: 1.75rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.dp-progress-bar {
+  height: 100%;
+  background: linear-gradient(135deg, var(--dp-primary), #818cf8);
+  border-radius: var(--dp-radius-xl);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.dp-progress-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: dp-shimmer 1.5s infinite;
+}
+
+@keyframes dp-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

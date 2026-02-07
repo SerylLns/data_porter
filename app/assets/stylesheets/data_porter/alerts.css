@@ -1,0 +1,25 @@
+.dp-results {
+  padding: 1.5rem;
+  background: var(--dp-success-light);
+  border: 1px solid var(--dp-success-border);
+  border-radius: var(--dp-radius-lg);
+  margin-bottom: 2rem;
+  box-shadow: var(--dp-shadow-sm);
+}
+
+.dp-results p { margin: 0.35rem 0; font-size: 0.9375rem; }
+
+.dp-alert {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--dp-radius-lg);
+  margin-bottom: 2rem;
+  box-shadow: var(--dp-shadow-sm);
+}
+
+.dp-alert--danger {
+  background: var(--dp-danger-light);
+  border: 1px solid var(--dp-danger-border);
+  color: var(--dp-danger);
+}
+
+.dp-alert p { margin: 0.35rem 0; font-size: 0.9375rem; }
