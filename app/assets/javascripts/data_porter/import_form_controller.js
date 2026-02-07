@@ -1,11 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["targetSelect", "sourceSelect", "fileField", "fileInput", "dropzone", "fileName", "modal"]
-  static values = { sources: Object }
+  static targets = ["targetSelect", "sourceSelect", "fileField", "fileInput", "dropzone", "fileName", "modal", "paramsContainer"]
+  static values = { sources: Object, params: Object }
 
   connect() {
     this.filterSources()
+    this.renderParams()
   }
 
   filterSources() {
@@ -19,6 +20,64 @@ export default class extends Controller {
       this.sourceSelectTarget.selectedIndex = 0
       this.fileFieldTarget.style.display = ""
     }
+    this.renderParams()
+  }
+
+  renderParams() {
+    if (!this.hasParamsContainerTarget || !this.hasTargetSelectTarget) return
+    this.paramsContainerTarget.innerHTML = ""
+    var defs = this.paramsValue[this.targetSelectTarget.value] || []
+    var self = this
+    defs.forEach(function(p) { self.paramsContainerTarget.appendChild(self.buildParamField(p)) })
+  }
+
+  buildParamField(p) {
+    var div = document.createElement("div")
+    div.className = "dp-field"
+    div.appendChild(this.buildLabel(p))
+    div.appendChild(this.buildInput(p))
+    return div
+  }
+
+  buildLabel(p) {
+    var label = document.createElement("label")
+    label.className = "dp-label"
+    label.textContent = p.label + (p.required ? " *" : "")
+    return label
+  }
+
+  buildInput(p) {
+    if (p.type === "select" && p.collection) return this.buildSelect(p)
+    return this.buildTextField(p)
+  }
+
+  buildSelect(p) {
+    var select = document.createElement("select")
+    select.className = "dp-select"
+    select.name = "data_import[config][import_params][" + p.name + "]"
+    if (p.required) select.required = true
+    var blank = document.createElement("option")
+    blank.value = ""
+    blank.textContent = "Select..."
+    select.appendChild(blank)
+    p.collection.forEach(function(opt) {
+      var o = document.createElement("option")
+      o.textContent = opt[0]
+      o.value = opt[1]
+      if (p["default"] && String(opt[1]) === String(p["default"])) o.selected = true
+      select.appendChild(o)
+    })
+    return select
+  }
+
+  buildTextField(p) {
+    var input = document.createElement("input")
+    input.className = "dp-input"
+    input.type = p.type === "number" ? "number" : (p.type === "hidden" ? "hidden" : "text")
+    input.name = "data_import[config][import_params][" + p.name + "]"
+    if (p["default"]) input.value = p["default"]
+    if (p.required) input.required = true
+    return input
   }
 
   toggleFileField() {
