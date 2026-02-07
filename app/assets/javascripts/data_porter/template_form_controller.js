@@ -18,7 +18,8 @@ export default class extends Controller {
     const pair = document.createElement("div")
     pair.className = "dp-mapping-pair"
     pair.style.cssText = "display: flex; gap: 0.5rem; margin-bottom: 0.5rem;"
-    pair.innerHTML = this.pairHTML(columns)
+    pair.appendChild(this.buildKeyInput())
+    pair.appendChild(this.buildValueSelect(columns))
     container.appendChild(pair)
   }
 
@@ -34,13 +35,35 @@ export default class extends Controller {
     })
   }
 
-  pairHTML(columns) {
-    const options = columns.map(([label, name]) =>
-      `<option value="${name}">${label}</option>`
-    ).join("")
+  buildKeyInput() {
+    const input = document.createElement("input")
+    input.type = "text"
+    input.name = "mapping_template[mapping_keys][]"
+    input.placeholder = "File header"
+    input.className = "dp-select"
+    input.style.flex = "1"
+    return input
+  }
 
-    return `<input type="text" name="mapping_template[mapping_keys][]" placeholder="File header" class="dp-select" style="flex: 1;" />` +
-      `<select name="mapping_template[mapping_values][]" class="dp-select" style="flex: 1;" data-data-porter--template-form-target="fieldSelect">` +
-      `<option value="">Select a field...</option>${options}</select>`
+  buildValueSelect(columns) {
+    const select = document.createElement("select")
+    select.name = "mapping_template[mapping_values][]"
+    select.className = "dp-select"
+    select.style.flex = "1"
+    select.dataset.dataPorterTemplateFormTarget = "fieldSelect"
+
+    const blank = document.createElement("option")
+    blank.value = ""
+    blank.textContent = "Select a field..."
+    select.appendChild(blank)
+
+    columns.forEach(([label, name]) => {
+      const opt = document.createElement("option")
+      opt.value = name
+      opt.textContent = label
+      select.appendChild(opt)
+    })
+
+    return select
   }
 }
