@@ -35,10 +35,14 @@ RSpec.describe "data_porter/imports/show.html.erb" do
   let(:grouped) { records.group_by(&:status) }
   let(:status) { :pending }
 
+  let(:page) { 1 }
+  let(:total_pages) { 1 }
+
   subject(:html) do
     view = build_view(
       import: import, target: target,
-      records: records, grouped: grouped
+      records: records, grouped: grouped,
+      page: page, total_pages: total_pages
     )
     view.render(template: "data_porter/imports/show")
   end
@@ -107,6 +111,7 @@ RSpec.describe "data_porter/imports/show.html.erb" do
       view = build_view(
         import: import, target: target,
         records: records, grouped: grouped,
+        page: page, total_pages: total_pages,
         file_headers: file_headers,
         target_columns: target_columns,
         default_mapping: default_mapping,

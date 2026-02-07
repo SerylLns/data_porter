@@ -63,6 +63,45 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
+  describe "#paginate_records" do
+    let(:controller) { described_class.new }
+    let(:records) { (1..75).map { |i| DataPorter::StoreModels::ImportRecord.new(line_number: i) } }
+
+    before { controller.instance_variable_set(:@records, records) }
+
+    it "defaults to page 1 with 50 per page" do
+      controller.params = ActionController::Parameters.new({})
+      controller.send(:paginate_records)
+
+      expect(controller.instance_variable_get(:@records).size).to eq(50)
+      expect(controller.instance_variable_get(:@page)).to eq(1)
+      expect(controller.instance_variable_get(:@total_pages)).to eq(2)
+    end
+
+    it "returns second page records" do
+      controller.params = ActionController::Parameters.new(page: "2")
+      controller.send(:paginate_records)
+
+      expect(controller.instance_variable_get(:@records).size).to eq(25)
+      expect(controller.instance_variable_get(:@page)).to eq(2)
+    end
+
+    it "clamps page to valid range" do
+      controller.params = ActionController::Parameters.new(page: "999")
+      controller.send(:paginate_records)
+
+      expect(controller.instance_variable_get(:@page)).to eq(2)
+    end
+
+    it "skips pagination when records fit in one page" do
+      controller.instance_variable_set(:@records, records.first(10))
+      controller.params = ActionController::Parameters.new({})
+      controller.send(:paginate_records)
+
+      expect(controller.instance_variable_get(:@total_pages)).to eq(1)
+    end
+  end
+
   describe "#valid_file_presence?" do
     let(:controller) { described_class.new }
 

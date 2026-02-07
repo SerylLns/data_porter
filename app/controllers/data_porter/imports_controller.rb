@@ -30,6 +30,7 @@ module DataPorter
       @target = @import.target_class
       @records = @import.records
       @grouped = @records.group_by(&:status)
+      paginate_records
       load_mapping_data if @import.mapping?
     end
 
@@ -132,6 +133,14 @@ module DataPorter
       return [] unless defined?(DataPorter::MappingTemplate)
 
       DataPorter::MappingTemplate.for_target(@import.target_key)
+    end
+
+    def paginate_records
+      per_page = 50
+      @total_pages = (@records.size.to_f / per_page).ceil
+      @total_pages = 1 if @total_pages.zero?
+      @page = (params[:page] || 1).to_i.clamp(1, @total_pages)
+      @records = @records.slice((@page - 1) * per_page, per_page) || []
     end
 
     def save_column_mapping

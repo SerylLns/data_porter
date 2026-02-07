@@ -45,10 +45,15 @@
   <% end %>
 
   <% if @import.previewing? %>
+    <div id="records">
     <%= raw DataPorter::Components::Preview::SummaryCards.new(report: @import.report).call %>
     <%= raw DataPorter::Components::Preview::Table.new(
           columns: @target._columns,
           records: @records
+        ).call %>
+    </div>
+    <%= raw DataPorter::Components::Shared::Pagination.new(
+          page: @page, total_pages: @total_pages, base_url: import_path(@import)
         ).call %>
 
     <div class="dp-actions">
@@ -69,9 +74,14 @@
     <% duration = @import.updated_at && @import.created_at ? distance_of_time_in_words(@import.created_at, @import.updated_at) : nil %>
     <%= raw DataPorter::Components::Preview::ResultsSummary.new(report: @import.report, duration: duration).call %>
     <% if @records.any? %>
+      <div id="records">
       <%= raw DataPorter::Components::Preview::Table.new(
             columns: @target._columns,
             records: @records
+          ).call %>
+      </div>
+      <%= raw DataPorter::Components::Shared::Pagination.new(
+            page: @page, total_pages: @total_pages, base_url: import_path(@import)
           ).call %>
     <% end %>
     <div class="dp-actions">
