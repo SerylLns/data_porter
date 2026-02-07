@@ -11,7 +11,7 @@ module DataPorter
 
     def new
       @template = MappingTemplate.new
-      @targets = Registry.available
+      load_form_data
     end
 
     def create
@@ -20,20 +20,20 @@ module DataPorter
       if @template.save
         redirect_to mapping_templates_path
       else
-        @targets = Registry.available
+        load_form_data
         render :new
       end
     end
 
     def edit
-      @targets = Registry.available
+      load_form_data
     end
 
     def update
       if @template.update(template_params)
         redirect_to mapping_templates_path
       else
-        @targets = Registry.available
+        load_form_data
         render :edit
       end
     end
@@ -50,7 +50,34 @@ module DataPorter
     end
 
     def template_params
-      params.require(:mapping_template).permit(:target_key, :name, mapping: {})
+      permitted = params.require(:mapping_template).permit(
+        :target_key, :name, mapping: {}, mapping_keys: [], mapping_values: []
+      )
+      build_mapping_from_arrays(permitted)
+    end
+
+    def build_mapping_from_arrays(raw)
+      keys = raw.delete(:mapping_keys)
+      values = raw.delete(:mapping_values)
+      return raw unless keys && values
+
+      mapping = keys.zip(values).reject { |k, _| k.blank? }.to_h
+      raw.merge(mapping: mapping)
+    end
+
+    def load_form_data
+      @targets = Registry.available
+      @target_columns_map = build_target_columns_map
+    end
+
+    def build_target_columns_map
+      columns = {}
+      @targets.each do |t|
+        target = Registry.find(t[:key])
+        cols = target._columns || []
+        columns[t[:key].to_s] = cols.map { |c| [c.label, c.name.to_s] }
+      end
+      columns
     end
   end
 end

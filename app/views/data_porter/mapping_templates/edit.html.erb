@@ -5,7 +5,7 @@
     <h1 class="dp-title">Edit Mapping Template</h1>
   </div>
 
-  <%= render "form", template: @template, targets: @targets %>
+  <%= render "form", template: @template, targets: @targets, target_columns_map: @target_columns_map %>
 
   <div class="dp-nav">
     <%= link_to "Back to templates", mapping_templates_path, class: "dp-link" %>

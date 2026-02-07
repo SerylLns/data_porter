@@ -1,10 +1,11 @@
-<%= form_with model: template, url: template.persisted? ? mapping_template_path(template) : mapping_templates_path, class: "dp-form", method: template.persisted? ? :patch : :post do |f| %>
+<%= form_with model: template, url: template.persisted? ? mapping_template_path(template) : mapping_templates_path, class: "dp-form", method: template.persisted? ? :patch : :post, data: { controller: "data-porter--template-form", "data-porter--template-form-columns-value": target_columns_map.to_json } do |f| %>
   <div class="dp-field">
     <%= f.label :target_key, "Target", class: "dp-label" %>
     <%= f.select :target_key,
           targets.map { |t| [t[:label], t[:key]] },
           { prompt: "Select a target..." },
-          class: "dp-select" %>
+          class: "dp-select",
+          data: { action: "change->data-porter--template-form#targetChanged" } %>
   </div>
 
   <div class="dp-field">
@@ -14,14 +15,22 @@
 
   <div class="dp-field">
     <label class="dp-label">Column Mappings</label>
-    <div id="dp-mapping-pairs">
+    <div id="dp-mapping-pairs" data-data-porter--template-form-target="pairsContainer">
       <% (template.mapping.presence || { "" => "" }).each do |header, field| %>
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-          <input type="text" name="mapping_template[mapping][<%= header %>]" value="" placeholder="File header" class="dp-select" style="flex: 1;" data-header="<%= header %>" />
-          <input type="text" name="" value="<%= field %>" placeholder="Target field" class="dp-select" style="flex: 1;" data-field="<%= field %>" />
+        <div class="dp-mapping-pair" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input type="text" name="mapping_template[mapping_keys][]" value="<%= header %>" placeholder="File header" class="dp-select" style="flex: 1;" />
+          <select name="mapping_template[mapping_values][]" class="dp-select" style="flex: 1;" data-data-porter--template-form-target="fieldSelect">
+            <option value="">Select a field...</option>
+            <% if template.target_key.present? && target_columns_map[template.target_key.to_s].present? %>
+              <% target_columns_map[template.target_key.to_s].each do |label, name| %>
+                <option value="<%= name %>" <%= "selected" if name == field.to_s %>><%= label %></option>
+              <% end %>
+            <% end %>
+          </select>
         </div>
       <% end %>
     </div>
+    <button type="button" class="dp-btn dp-btn--secondary" style="margin-top: 0.5rem;" data-action="data-porter--template-form#addPair">+ Add Mapping</button>
   </div>
 
   <div class="dp-actions">
