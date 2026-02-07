@@ -42,6 +42,16 @@ module DataPorter
       def import_param_values
         (@import.config || {}).fetch("import_params", {})
       end
+
+      def valid_file_size?
+        return true unless @import.file.attached?
+
+        max = DataPorter.configuration.max_file_size
+        return true if @import.file.blob.byte_size <= max
+
+        @import.errors.add(:file, "is too large (max #{max / 1.megabyte} MB)")
+        false
+      end
     end
   end
 end

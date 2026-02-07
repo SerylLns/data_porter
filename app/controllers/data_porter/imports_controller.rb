@@ -22,7 +22,7 @@ module DataPorter
     def create
       build_import
 
-      if valid_source_for_target? && valid_file_presence? && valid_import_params? && @import.save
+      if valid_source_for_target? && valid_file_presence? && valid_file_size? && valid_import_params? && @import.save
         enqueue_after_create
         redirect_to import_path(@import)
       else

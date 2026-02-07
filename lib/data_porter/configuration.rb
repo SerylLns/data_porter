@@ -10,7 +10,8 @@ module DataPorter
                   :preview_limit,
                   :enabled_sources,
                   :scope,
-                  :purge_after
+                  :purge_after,
+                  :max_file_size
 
     def initialize
       @parent_controller = "ApplicationController"
@@ -22,6 +23,7 @@ module DataPorter
       @enabled_sources = %i[csv json api xlsx]
       @scope = nil
       @purge_after = 60.days
+      @max_file_size = 10.megabytes
     end
   end
 end

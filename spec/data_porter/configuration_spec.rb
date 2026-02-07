@@ -38,6 +38,10 @@ RSpec.describe DataPorter::Configuration do
   it "has default purge_after of 60 days" do
     expect(config.purge_after).to eq(60.days)
   end
+
+  it "has default max_file_size of 10 megabytes" do
+    expect(config.max_file_size).to eq(10.megabytes)
+  end
 end
 
 RSpec.describe DataPorter do

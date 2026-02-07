@@ -382,4 +382,54 @@ RSpec.describe DataPorter::ImportsController do
       expect(result).to eq("Name" => "name", "Injected" => "")
     end
   end
+
+  describe "#valid_file_size?" do
+    let(:controller) { described_class.new }
+
+    context "when file exceeds max_file_size" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+      let(:blob) { double("blob", byte_size: 20.megabytes) }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns false" do
+        expect(controller.send(:valid_file_size?)).to be false
+      end
+
+      it "adds an error" do
+        controller.send(:valid_file_size?)
+
+        expect(import.errors[:file]).to include("is too large (max 10 MB)")
+      end
+    end
+
+    context "when file is within max_file_size" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+      let(:blob) { double("blob", byte_size: 5.megabytes) }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns true" do
+        expect(controller.send(:valid_file_size?)).to be true
+      end
+    end
+
+    context "when no file is attached" do
+      let(:import) { DataPorter::DataImport.new(source_type: "api") }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns true" do
+        expect(controller.send(:valid_file_size?)).to be true
+      end
+    end
+  end
 end
