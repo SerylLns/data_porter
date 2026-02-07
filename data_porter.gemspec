@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/SerylLns/data_porter"
-  spec.metadata["changelog_uri"] = "https://github.com/SerylLns/data_porter/blob/master/CHANGELOG.md"
+  spec.metadata["changelog_uri"] = "https://github.com/SerylLns/data_porter/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mcp_server_uri"] = "https://rubygems.org/gems/data_porter"
   spec.metadata["rubygems_mfa_required"] = "true"
 
@@ -38,5 +38,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency "phlex", ">= 1.0"
   spec.add_dependency "rails", ">= 7.0"
   spec.add_dependency "store_model", ">= 2.0"
-  spec.add_dependency "turbo-rails", ">= 1.0"
 end

@@ -5,7 +5,13 @@ module DataPorter
     isolate_namespace DataPorter
 
     initializer "data_porter.assets.precompile" do |app|
-      app.config.assets.precompile += %w[data_porter/application.css] if app.config.respond_to?(:assets)
+      if app.config.respond_to?(:assets)
+        app.config.assets.precompile += %w[
+          data_porter/application.css
+          data_porter/turbo.min.js
+          data_porter/stimulus.min.js
+        ]
+      end
     end
 
     config.to_prepare do
