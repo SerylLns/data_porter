@@ -8,6 +8,16 @@ module DataPorter
       @source_options = { content: content }.compact
     end
 
+    def extract_headers!
+      @data_import.extracting_headers!
+      source = build_source
+      headers = source.headers
+      store_headers(headers)
+      @data_import.update!(status: :mapping)
+    rescue StandardError => e
+      handle_failure(e)
+    end
+
     def parse!
       @data_import.parsing!
       records = build_records
@@ -37,8 +47,18 @@ module DataPorter
 
     private
 
+    def build_source
+      @data_import.source_class.new(@data_import, **@source_options)
+    end
+
+    def store_headers(headers)
+      config = @data_import.config || {}
+      config["file_headers"] = headers
+      @data_import.update!(config: config)
+    end
+
     def build_records
-      source = @data_import.source_class.new(@data_import, **@source_options)
+      source = build_source
       raw_rows = source.fetch
       columns = @target.class._columns || []
       validator = RecordValidator.new(columns)

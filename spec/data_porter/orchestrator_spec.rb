@@ -120,6 +120,33 @@ RSpec.describe DataPorter::Orchestrator do
     end
   end
 
+  describe "#extract_headers!" do
+    it "transitions to mapping" do
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.extract_headers!
+
+      expect(data_import.reload.status).to eq("mapping")
+    end
+
+    it "stores file_headers in config" do
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.extract_headers!
+
+      expect(data_import.reload.config["file_headers"]).to eq(%w[First\ Name Last\ Name Email])
+    end
+
+    it "transitions to failed on error" do
+      allow_any_instance_of(DataPorter::Sources::Csv).to receive(:headers).and_raise("read error")
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.extract_headers!
+
+      expect(data_import.reload.status).to eq("failed")
+    end
+  end
+
   describe "#import!" do
     before do
       orchestrator = described_class.new(data_import, content: csv_content)
