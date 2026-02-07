@@ -9,7 +9,7 @@ module DataPorter
     class << self
       attr_reader :_label, :_model_name, :_icon, :_sources,
                   :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
-                  :_api_config, :_dry_run_enabled
+                  :_api_config, :_dry_run_enabled, :_params
 
       def label(value)
         @_label = value
@@ -63,6 +63,15 @@ module DataPorter
         @_dry_run_enabled = true
       end
 
+      def params(&)
+        @_params = []
+        instance_eval(&)
+      end
+
+      def param(name, **)
+        @_params << DSL::Param.new(name: name, **)
+      end
+
       private
 
       def auto_register
@@ -71,6 +80,12 @@ module DataPorter
         key = name.demodulize.delete_suffix("Target").underscore
         Registry.register(key, self)
       end
+    end
+
+    attr_accessor :import_params
+
+    def initialize
+      @import_params = {}
     end
 
     def transform(record)

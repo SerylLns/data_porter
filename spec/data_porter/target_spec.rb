@@ -99,6 +99,61 @@ RSpec.describe DataPorter::Target do
     end
   end
 
+  describe "params DSL" do
+    let(:params_target) do
+      Class.new(described_class) do
+        params do
+          param :hotel_id, type: :select, label: "Hotel", required: true,
+                           collection: -> { [%w[Hilton 1], %w[Marriott 2]] }
+          param :currency, type: :text, default: "EUR"
+        end
+      end
+    end
+
+    it "stores param definitions" do
+      expect(params_target._params.size).to eq(2)
+    end
+
+    it "stores param attributes" do
+      p = params_target._params.first
+
+      expect(p.name).to eq(:hotel_id)
+      expect(p.type).to eq(:select)
+      expect(p.required).to be true
+      expect(p.label).to eq("Hotel")
+    end
+
+    it "stores collection callable" do
+      p = params_target._params.first
+
+      expect(p.collection.call).to eq([%w[Hilton 1], %w[Marriott 2]])
+    end
+
+    it "stores default values" do
+      p = params_target._params.last
+
+      expect(p.default).to eq("EUR")
+    end
+
+    it "defaults _params to nil when not declared" do
+      expect(target_class._params).to be_nil
+    end
+  end
+
+  describe "import_params accessor" do
+    let(:target) { target_class.new }
+
+    it "defaults to empty hash" do
+      expect(target.import_params).to eq({})
+    end
+
+    it "can be set via writer" do
+      target.import_params = { "hotel_id" => "1" }
+
+      expect(target.import_params).to eq("hotel_id" => "1")
+    end
+  end
+
   describe "default hooks" do
     let(:target) { target_class.new }
     let(:record) { DataPorter::StoreModels::ImportRecord.new }
