@@ -47,6 +47,19 @@
   border-color: var(--dp-danger-border);
 }
 
+.dp-badge--extracting_headers {
+  background: var(--dp-info-light);
+  color: var(--dp-info);
+  border-color: var(--dp-info-border);
+  animation: dp-pulse 2s ease-in-out infinite;
+}
+
+.dp-badge--mapping {
+  background: var(--dp-purple-light);
+  color: var(--dp-purple);
+  border-color: var(--dp-purple-border);
+}
+
 .dp-badge--dry_running {
   background: var(--dp-purple-light);
   color: var(--dp-purple);

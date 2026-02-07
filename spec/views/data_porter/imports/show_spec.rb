@@ -75,6 +75,55 @@ RSpec.describe "data_porter/imports/show.html.erb" do
     end
   end
 
+  context "when extracting_headers" do
+    let(:status) { :extracting_headers }
+
+    it "renders the progress bar" do
+      expect(html).to include("dp-progress")
+    end
+  end
+
+  context "when mapping" do
+    let(:status) { :mapping }
+
+    let(:import) do
+      DataPorter::Registry.clear
+      DataPorter::Registry.register(:guests, target_class)
+
+      DataPorter::DataImport.create!(
+        target_key: "guests",
+        source_type: "csv",
+        status: :mapping,
+        config: { "file_headers" => %w[Name Email] }
+      )
+    end
+
+    let(:file_headers) { %w[Name Email] }
+    let(:target_columns) { [%w[Name name], %w[Email email]] }
+    let(:default_mapping) { {} }
+    let(:templates) { [] }
+
+    subject(:html) do
+      view = build_view(
+        import: import, target: target,
+        records: records, grouped: grouped,
+        file_headers: file_headers,
+        target_columns: target_columns,
+        default_mapping: default_mapping,
+        templates: templates
+      )
+      view.render(template: "data_porter/imports/show")
+    end
+
+    it "renders the mapping form" do
+      expect(html).to include("dp-mapping-form")
+    end
+
+    it "renders column rows" do
+      expect(html).to include("dp-mapping-rows")
+    end
+  end
+
   context "when previewing" do
     let(:status) { :previewing }
 

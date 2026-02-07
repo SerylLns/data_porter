@@ -33,41 +33,36 @@ RSpec.describe DataPorter::Components::Mapping::Form do
   let(:default_mapping) { { "Prenom" => "first_name", "Nom" => "last_name" } }
   let(:templates) { [] }
 
+  let(:component) do
+    described_class.new(
+      import: import,
+      action_url: "/test",
+      file_headers: file_headers,
+      target_columns: target_columns,
+      templates: templates,
+      default_mapping: default_mapping
+    )
+  end
+
   it "renders a form element" do
-    html = render(described_class.new(
-      import: import, file_headers: file_headers,
-      target_columns: target_columns, templates: templates,
-      default_mapping: default_mapping, action_url: "/test"
-    ))
+    html = render(component)
     expect(html).to include("<form")
     expect(html).to include("dp-mapping-form")
   end
 
   it "renders column rows for each header" do
-    html = render(described_class.new(
-      import: import, file_headers: file_headers,
-      target_columns: target_columns, templates: templates,
-      default_mapping: default_mapping, action_url: "/test"
-    ))
+    html = render(component)
     expect(html).to include("Prenom")
     expect(html).to include("Nom")
   end
 
   it "renders save as template checkbox" do
-    html = render(described_class.new(
-      import: import, file_headers: file_headers,
-      target_columns: target_columns, templates: templates,
-      default_mapping: default_mapping, action_url: "/test"
-    ))
+    html = render(component)
     expect(html).to include("save_template")
   end
 
   it "renders submit button" do
-    html = render(described_class.new(
-      import: import, file_headers: file_headers,
-      target_columns: target_columns, templates: templates,
-      default_mapping: default_mapping, action_url: "/test"
-    ))
+    html = render(component)
     expect(html).to include("Continue")
   end
 end

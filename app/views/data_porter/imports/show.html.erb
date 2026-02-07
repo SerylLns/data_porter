@@ -8,8 +8,19 @@
     <%= raw DataPorter::Components::Shared::StatusBadge.new(status: @import.status).call %>
   </div>
 
-  <% if @import.parsing? || @import.importing? || @import.dry_running? %>
+  <% if @import.parsing? || @import.importing? || @import.dry_running? || @import.extracting_headers? %>
     <%= raw DataPorter::Components::Progress::Bar.new(import_id: @import.id).call %>
+  <% end %>
+
+  <% if @import.mapping? %>
+    <%= raw DataPorter::Components::Mapping::Form.new(
+          import: @import,
+          action_url: update_mapping_import_path(@import),
+          file_headers: @file_headers,
+          target_columns: @target_columns,
+          templates: @templates,
+          default_mapping: @default_mapping
+        ).call %>
   <% end %>
 
   <% if @import.previewing? %>
