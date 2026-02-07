@@ -60,6 +60,20 @@ RSpec.describe DataPorter::Sources::Csv do
       expect(source.headers).to eq(%w[Prenom Nom Email])
     end
 
+    it "handles Latin-1 encoded content" do
+      csv_content = "Prénom,Nom\nAlice,Müller\n".encode("ISO-8859-1")
+      source = described_class.new(data_import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prénom Nom])
+    end
+
+    it "strips UTF-8 BOM" do
+      csv_content = "\xEF\xBB\xBFPrenom,Nom,Email\nAlice,Smith,a@b.com\n"
+      source = described_class.new(data_import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+
     it "generates fallback headers when header row is empty" do
       csv_content = ",,,\nAlice,Smith,alice@example.com,extra\n"
       source = described_class.new(data_import, content: csv_content)
@@ -128,6 +142,15 @@ RSpec.describe DataPorter::Sources::Csv do
       rows = source.fetch
 
       expect(rows.first[:first_name]).to eq("Alice")
+    end
+
+    it "transcodes Latin-1 content to UTF-8 for fetch" do
+      csv_content = "Prenom,Nom,Email\nRené,Müller,r@b.com\n".encode("ISO-8859-1")
+      source = described_class.new(data_import, content: csv_content)
+
+      rows = source.fetch
+
+      expect(rows.first[:first_name]).to eq("René")
     end
   end
 end

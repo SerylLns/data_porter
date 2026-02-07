@@ -29,11 +29,28 @@ module DataPorter
       private
 
       def csv_content
-        @content || download_file
+        @csv_content ||= ensure_utf8(@content || download_file)
       end
 
       def download_file
-        @data_import.file.download.force_encoding("UTF-8")
+        @data_import.file.download
+      end
+
+      def ensure_utf8(raw)
+        raw = strip_bom(raw)
+        return raw if raw.encoding == Encoding::UTF_8 && raw.valid_encoding?
+
+        raw.force_encoding("UTF-8")
+        return raw if raw.valid_encoding?
+
+        raw.encode("UTF-8", "ISO-8859-1")
+      end
+
+      def strip_bom(raw)
+        bytes = raw.b
+        return raw unless bytes.start_with?("\xEF\xBB\xBF".b)
+
+        bytes[3..].force_encoding("UTF-8")
       end
 
       def csv_options
