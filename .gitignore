@@ -35,6 +35,9 @@ node_modules/
 # OS specific
 .DS_Store
 
+# Dev plans (not committed)
+/docs/V1_PLAN.md
+
 # Blog articles (Dev.to drafts)
 /devto/
 /docs/blog/
