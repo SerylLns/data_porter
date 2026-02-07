@@ -277,4 +277,62 @@ RSpec.describe DataPorter::Orchestrator do
       expect(broadcaster).to have_received(:failure).with("fatal")
     end
   end
+
+  describe "import_params" do
+    let(:captured_params) { [] }
+
+    let(:params_target) do
+      captured = captured_params
+      Class.new(DataPorter::Target) do
+        label "ParamGuests"
+        model_name "ParamGuest"
+        icon "fas fa-users"
+        sources :csv
+
+        columns do
+          column :name, type: :string
+        end
+
+        params do
+          param :hotel_id, type: :select, required: true
+        end
+
+        define_method(:persist) do |_record, **|
+          captured << import_params
+        end
+      end
+    end
+
+    let(:params_import) do
+      DataPorter::Registry.register(:param_guests, params_target)
+      DataPorter::DataImport.create!(
+        target_key: "param_guests",
+        source_type: "csv",
+        user_type: "User",
+        user_id: 1,
+        config: { "import_params" => { "hotel_id" => "42" } }
+      )
+    end
+
+    it "sets import_params on target from config" do
+      orchestrator = described_class.new(params_import, content: "name\nAlice\n")
+      orchestrator.parse!
+
+      orchestrator = described_class.new(params_import)
+      orchestrator.import!
+
+      expect(captured_params.first).to eq("hotel_id" => "42")
+    end
+
+    it "defaults to empty hash when config has no import_params" do
+      orchestrator = described_class.new(data_import, content: csv_content)
+      orchestrator.parse!
+
+      orchestrator = described_class.new(data_import)
+      orchestrator.import!
+
+      target = orchestrator.instance_variable_get(:@target)
+      expect(target.import_params).to eq({})
+    end
+  end
 end

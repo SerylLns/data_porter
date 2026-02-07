@@ -12,7 +12,7 @@ module DataPorter
 
     def initialize(data_import, content: nil)
       @data_import = data_import
-      @target = data_import.target_class.new
+      @target = build_target(data_import)
       @broadcaster = Broadcaster.new(data_import.id)
       @source_options = { content: content }.compact
     end
@@ -55,6 +55,13 @@ module DataPorter
     end
 
     private
+
+    def build_target(data_import)
+      target = data_import.target_class.new
+      config = data_import.config || {}
+      target.import_params = config["import_params"] || {}
+      target
+    end
 
     def build_source
       @data_import.source_class.new(@data_import, **@source_options)
