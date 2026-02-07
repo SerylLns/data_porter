@@ -5,6 +5,12 @@ module DataPorter
     module ImportValidation
       extend ActiveSupport::Concern
 
+      ALLOWED_CONTENT_TYPES = {
+        "csv" => %w[text/csv text/plain],
+        "json" => %w[application/json text/plain],
+        "xlsx" => %w[application/vnd.openxmlformats-officedocument.spreadsheetml.sheet]
+      }.freeze
+
       private
 
       def valid_source_for_target?
@@ -50,6 +56,19 @@ module DataPorter
         return true if @import.file.blob.byte_size <= max
 
         @import.errors.add(:file, "is too large (max #{max / 1.megabyte} MB)")
+        false
+      end
+
+      def valid_file_content_type?
+        return true unless @import.file.attached?
+
+        allowed = ALLOWED_CONTENT_TYPES[@import.source_type]
+        return true unless allowed
+
+        content_type = @import.file.blob.content_type
+        return true if allowed.include?(content_type)
+
+        @import.errors.add(:file, "has an invalid content type (#{content_type})")
         false
       end
     end

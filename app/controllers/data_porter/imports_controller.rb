@@ -22,7 +22,7 @@ module DataPorter
     def create
       build_import
 
-      if valid_source_for_target? && valid_file_presence? && valid_file_size? && valid_import_params? && @import.save
+      if all_validations_pass? && @import.save
         enqueue_after_create
         redirect_to import_path(@import)
       else
@@ -93,6 +93,16 @@ module DataPorter
       @import = DataPorter::DataImport.new(import_params)
       @import.user = current_user if respond_to?(:current_user, true)
       @import.status = :pending
+    end
+
+    def all_validations_pass?
+      [
+        valid_source_for_target?,
+        valid_file_presence?,
+        valid_file_size?,
+        valid_file_content_type?,
+        valid_import_params?
+      ].all?
     end
 
     def import_params

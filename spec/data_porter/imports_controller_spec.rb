@@ -432,4 +432,99 @@ RSpec.describe DataPorter::ImportsController do
       end
     end
   end
+
+  describe "#valid_file_content_type?" do
+    let(:controller) { described_class.new }
+
+    context "with csv source and text/csv content type" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+      let(:blob) { double("blob", content_type: "text/csv") }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns true" do
+        expect(controller.send(:valid_file_content_type?)).to be true
+      end
+    end
+
+    context "with csv source and text/plain content type" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+      let(:blob) { double("blob", content_type: "text/plain") }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns true" do
+        expect(controller.send(:valid_file_content_type?)).to be true
+      end
+    end
+
+    context "with csv source and invalid content type" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+      let(:blob) { double("blob", content_type: "application/pdf") }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns false" do
+        expect(controller.send(:valid_file_content_type?)).to be false
+      end
+
+      it "adds an error" do
+        controller.send(:valid_file_content_type?)
+
+        expect(import.errors[:file]).to include("has an invalid content type (application/pdf)")
+      end
+    end
+
+    context "with json source and application/json content type" do
+      let(:import) { DataPorter::DataImport.new(source_type: "json") }
+      let(:blob) { double("blob", content_type: "application/json") }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns true" do
+        expect(controller.send(:valid_file_content_type?)).to be true
+      end
+    end
+
+    context "with xlsx source and valid content type" do
+      let(:import) { DataPorter::DataImport.new(source_type: "xlsx") }
+      let(:blob) { double("blob", content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") }
+      let(:attachment) { double("file", attached?: true, blob: blob) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(import).to receive(:file).and_return(attachment)
+      end
+
+      it "returns true" do
+        expect(controller.send(:valid_file_content_type?)).to be true
+      end
+    end
+
+    context "when no file is attached" do
+      let(:import) { DataPorter::DataImport.new(source_type: "api") }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns true" do
+        expect(controller.send(:valid_file_content_type?)).to be true
+      end
+    end
+  end
 end
