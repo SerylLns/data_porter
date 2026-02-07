@@ -4,11 +4,16 @@ A mountable Rails engine for data import workflows: **Upload**, **Map**, **Previ
 
 Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining import targets. Business-agnostic by design -- all domain logic lives in your host app.
 
-![Import list with status badges](docs/screenshots/index-with-previewing.jpg)
-
-![New import modal with dropzone](docs/screenshots/modal-new-import.jpg)
-
-![Preview with summary cards and data table](docs/screenshots/preview.jpg)
+<table>
+  <tr>
+    <td><img src="docs/screenshots/index-with-previewing.jpg" width="400" alt="Import list with status badges" /></td>
+    <td><img src="docs/screenshots/modal-new-import.jpg" width="400" alt="New import modal with dropzone" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/mapping.jpg" width="400" alt="Interactive column mapping with templates" /></td>
+    <td><img src="docs/screenshots/preview.jpg" width="400" alt="Preview with summary cards and data table" /></td>
+  </tr>
+</table>
 
 ## Features
 
