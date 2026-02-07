@@ -40,6 +40,24 @@ import params flow, and reject rows CSV export. 391 specs total.
 
 ---
 
+## v1.1 — Quality of life
+
+### Column mapping for JSON and API sources
+
+The interactive column mapping step currently only works for file-based sources
+(CSV, XLSX). JSON and API sources have stable, predictable keys that rarely need
+remapping, but supporting mapping for all sources would provide a consistent UX.
+
+### Bug fixes from manual testing
+
+- `dp-input` CSS styling (text inputs matched select appearance)
+- `param.collection` accepts both lambdas and plain arrays
+- Migration template: nullable user reference (allows engine without authentication)
+- Results summary: show skipped count (missing + partial) alongside imported/errored
+- Export rejects button: show when any records were rejected, not just persist errors
+
+---
+
 ## v2+ (future)
 
 - Dry-run performance estimate ("Estimated import time: ~2m30s")

@@ -230,3 +230,103 @@ def on_error(record, error, context:)
   Sentry.capture_exception(error, extra: { record: record.attributes })
 end
 ```
+
+## Full example
+
+A complete target using most DSL features: multiple sources, import params, JSON root, API config, transform, custom validation, and lifecycle hooks.
+
+```ruby
+# frozen_string_literal: true
+
+class ContactTarget < DataPorter::Target
+  label "Contacts"
+  model_name "Contact"
+  icon "fas fa-address-book"
+  sources :csv, :xlsx, :json, :api
+  dry_run_enabled
+
+  columns do
+    column :name, type: :string, required: true
+    column :email, type: :email
+    column :phone_number, type: :string
+    column :address, type: :string
+    column :room, type: :string
+  end
+
+  params do
+    param :default_room, type: :text, label: "Default room"
+    param :import_source, type: :select, label: "Import source",
+          collection: [%w[Manual manual], %w[Migration migration], ["Directory sync", "sync"]]
+  end
+
+  json_root "contacts"
+
+  api_config do
+    endpoint "http://localhost:3001/contacts"
+    headers({ "Authorization" => "Bearer token" })
+    response_root :contacts
+  end
+
+  def transform(record)
+    apply_default_room(record)
+    normalize_phone(record)
+    record
+  end
+
+  def validate(record)
+    validate_email_format(record)
+  end
+
+  def persist(record, context:)
+    Contact.create!(record.attributes)
+  end
+
+  def after_import(results, context:)
+    Rails.logger.info("[DataPorter] Contacts: #{results[:created]} created, #{results[:errored]} errors")
+  end
+
+  def on_error(record, error, context:)
+    Rails.logger.warn("[DataPorter] Line #{record.line_number}: #{error.message}")
+  end
+
+  private
+
+  def apply_default_room(record)
+    return if record.data["room"].present?
+    return unless import_params["default_room"].present?
+
+    record.data["room"] = import_params["default_room"]
+  end
+
+  def normalize_phone(record)
+    phone = record.data["phone_number"]
+    return if phone.blank?
+
+    record.data["phone_number"] = phone.gsub(/\s/, "")
+  end
+
+  def validate_email_format(record)
+    email = record.data["email"]
+    return if email.blank?
+    return if email.match?(/\A[^@\s]+@[^@\s]+\z/)
+
+    record.add_error("Invalid email format: #{email}")
+  end
+end
+```
+
+This target exercises:
+
+| Feature | DSL / Hook | Effect |
+|---|---|---|
+| 4 sources | `sources :csv, :xlsx, :json, :api` | All source types available |
+| Typed columns | `type: :string, :email` | Built-in validation |
+| Required field | `required: true` on `name` | Rows without name get "missing" status |
+| Dry run | `dry_run_enabled` | Dry run button in preview |
+| Import params | `param :default_room`, `param :import_source` | Dynamic form fields |
+| JSON root | `json_root "contacts"` | Extracts from `{"contacts": [...]}` |
+| API config | `endpoint`, `headers`, `response_root` | Authenticated API fetch |
+| Transform | `apply_default_room`, `normalize_phone` | Fill blanks, strip whitespace |
+| Validate | `validate_email_format` | Custom error on invalid email |
+| After import | Logs summary | Post-import hook |
+| On error | Logs failed line | Per-record error hook |
