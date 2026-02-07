@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "dsl/column"
+require_relative "dsl/param"
 require_relative "dsl/api_config"
 
 module DataPorter
