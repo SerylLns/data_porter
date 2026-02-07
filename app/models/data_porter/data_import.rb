@@ -15,7 +15,9 @@ module DataPorter
       importing: 3,
       completed: 4,
       failed: 5,
-      dry_running: 6
+      dry_running: 6,
+      extracting_headers: 7,
+      mapping: 8
     }
 
     attribute :records, StoreModels::ImportRecord.to_array_type, default: -> { [] }
@@ -44,6 +46,10 @@ module DataPorter
 
     def records_summary
       records.group_by(&:status).transform_values(&:count)
+    end
+
+    def file_based?
+      %w[csv xlsx].include?(source_type)
     end
   end
 end

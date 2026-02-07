@@ -56,9 +56,31 @@ RSpec.describe DataPorter::DataImport, type: :model do
     end
 
     it "defines all expected statuses" do
-      expected = %w[pending parsing previewing importing completed failed dry_running]
+      expected = %w[pending parsing previewing importing completed failed dry_running extracting_headers mapping]
 
       expect(described_class.statuses.keys).to match_array(expected)
+    end
+  end
+
+  describe "#file_based?" do
+    it "returns true for csv source type" do
+      import = described_class.new(source_type: "csv")
+      expect(import.file_based?).to be true
+    end
+
+    it "returns true for xlsx source type" do
+      import = described_class.new(source_type: "xlsx")
+      expect(import.file_based?).to be true
+    end
+
+    it "returns false for json source type" do
+      import = described_class.new(source_type: "json")
+      expect(import.file_based?).to be false
+    end
+
+    it "returns false for api source type" do
+      import = described_class.new(source_type: "api")
+      expect(import.file_based?).to be false
     end
   end
 
