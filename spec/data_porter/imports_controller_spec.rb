@@ -355,4 +355,31 @@ RSpec.describe DataPorter::ImportsController do
       expect(result[:config]).to be_nil
     end
   end
+
+  describe "#permitted_column_mapping" do
+    let(:controller) { described_class.new }
+    let(:import) do
+      DataPorter::DataImport.new(target_key: "test_import", source_type: "csv")
+    end
+
+    before { controller.instance_variable_set(:@import, import) }
+
+    it "allows valid target column names as values" do
+      controller.params = ActionController::Parameters.new(
+        column_mapping: { "Name" => "name", "Other" => "" }
+      )
+      result = controller.send(:permitted_column_mapping)
+
+      expect(result).to eq("Name" => "name", "Other" => "")
+    end
+
+    it "rejects values that are not valid target column names" do
+      controller.params = ActionController::Parameters.new(
+        column_mapping: { "Name" => "name", "Injected" => "admin_role" }
+      )
+      result = controller.send(:permitted_column_mapping)
+
+      expect(result).to eq("Name" => "name", "Injected" => "")
+    end
+  end
 end

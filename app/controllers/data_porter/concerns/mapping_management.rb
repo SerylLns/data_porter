@@ -23,8 +23,7 @@ module DataPorter
       end
 
       def save_column_mapping
-        mapping = params.require(:column_mapping).permit!.to_h
-        merged = (@import.config || {}).merge("column_mapping" => mapping)
+        merged = (@import.config || {}).merge("column_mapping" => permitted_column_mapping)
         @import.update!(config: merged, status: :pending)
       end
 
@@ -32,11 +31,21 @@ module DataPorter
         return unless params[:save_template] == "1"
         return unless defined?(DataPorter::MappingTemplate)
 
-        mapping = params.require(:column_mapping).permit!.to_h
         DataPorter::MappingTemplate.find_or_initialize_by(
           target_key: @import.target_key,
           name: params[:template_name].presence || "Default"
-        ).update!(mapping: mapping)
+        ).update!(mapping: permitted_column_mapping)
+      end
+
+      def permitted_column_mapping
+        raw = params.require(:column_mapping).permit!.to_h
+        valid_names = valid_column_names
+        raw.transform_values { |v| valid_names.include?(v) ? v : "" }
+      end
+
+      def valid_column_names
+        columns = @import.target_class._columns || []
+        columns.to_set { |c| c.name.to_s }
       end
     end
   end
