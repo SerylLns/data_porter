@@ -71,5 +71,29 @@ RSpec.describe DataPorter::Sources::Base do
 
       expect(result).to eq(first_name: "Alice", email_address: "alice@example.com")
     end
+
+    it "uses user column_mapping from config when present" do
+      DataPorter::Registry.register(:mapped, mapping_target)
+      import = DataPorter::DataImport.new(target_key: "mapped", source_type: "csv")
+      import.config = { "column_mapping" => { "Vorname" => "first_name", "Nachname" => "last_name" } }
+      source = test_source_class.new(import)
+      row = { "Vorname" => "Hans", "Nachname" => "Mueller" }
+
+      result = source.test_mapping(row)
+
+      expect(result).to eq(first_name: "Hans", last_name: "Mueller")
+    end
+
+    it "prioritizes user mapping over code mapping" do
+      DataPorter::Registry.register(:mapped, mapping_target)
+      import = DataPorter::DataImport.new(target_key: "mapped", source_type: "csv")
+      import.config = { "column_mapping" => { "Prenom" => "first_name", "Nom" => "last_name" } }
+      source = test_source_class.new(import)
+      row = { "Prenom" => "Alice", "Nom" => "Smith" }
+
+      result = source.test_mapping(row)
+
+      expect(result).to eq(first_name: "Alice", last_name: "Smith")
+    end
   end
 end

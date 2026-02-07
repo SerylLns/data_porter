@@ -15,10 +15,25 @@ module DataPorter
       private
 
       def apply_csv_mapping(row)
-        mappings = @target_class._csv_mappings
-        return auto_map(row) if mappings.nil? || mappings.empty?
+        return user_map(row) if user_mapping.any?
 
-        explicit_map(row, mappings)
+        code_mappings = @target_class._csv_mappings
+        return explicit_map(row, code_mappings) if code_mappings&.any?
+
+        auto_map(row)
+      end
+
+      def user_mapping
+        config = @data_import.config
+        return {} unless config.is_a?(Hash)
+
+        config.fetch("column_mapping", {})
+      end
+
+      def user_map(row)
+        user_mapping.each_with_object({}) do |(header, column), hash|
+          hash[column.to_sym] = row[header]
+        end
       end
 
       def explicit_map(row, mappings)
