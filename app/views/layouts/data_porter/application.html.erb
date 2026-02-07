@@ -9,8 +9,7 @@
   <script type="importmap">
     {
       "imports": {
-        "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js",
-        "@rails/actioncable": "https://cdn.jsdelivr.net/npm/@rails/actioncable@7.2.2/app/assets/javascripts/actioncable.esm.js"
+        "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"
       }
     }
   </script>
@@ -20,7 +19,6 @@
 
   <script type="module">
     import { Application, Controller } from "@hotwired/stimulus"
-    import { createConsumer } from "@rails/actioncable"
 
     const application = Application.start()
 
@@ -126,24 +124,34 @@
       static targets = ["bar", "text"]
       static values = { id: Number }
 
-      connect() {
-        this.subscription = createConsumer().subscriptions.create(
-          { channel: "DataPorter::ImportChannel", id: this.idValue },
-          {
-            received: (data) => {
-              if (data.status === "processing") {
-                this.barTarget.style.width = data.percentage + "%"
-                this.textTarget.textContent = data.percentage + "%"
-              } else {
-                window.location.reload()
+      async connect() {
+        try {
+          const { createConsumer } = await import("@rails/actioncable")
+          this.subscription = createConsumer().subscriptions.create(
+            { channel: "DataPorter::ImportChannel", id: this.idValue },
+            {
+              received: (data) => {
+                if (data.status === "processing") {
+                  this.barTarget.style.width = data.percentage + "%"
+                  this.textTarget.textContent = data.percentage + "%"
+                } else {
+                  window.location.reload()
+                }
               }
             }
-          }
-        )
+          )
+        } catch (e) {
+          this.pollForChanges()
+        }
+      }
+
+      pollForChanges() {
+        this.timer = setInterval(() => window.location.reload(), 3000)
       }
 
       disconnect() {
         if (this.subscription) this.subscription.unsubscribe()
+        if (this.timer) clearInterval(this.timer)
       }
     })
   </script>
