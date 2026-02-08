@@ -1,5 +1,7 @@
 # DataPorter
 
+[![Gem Version](https://badge.fury.io/rb/data_porter.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/data_porter)
+
 A mountable Rails engine for data import workflows: **Upload**, **Map**, **Preview**, **Import**.
 
 Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining import targets. Business-agnostic by design -- all domain logic lives in your host app.
