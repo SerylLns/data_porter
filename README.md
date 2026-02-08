@@ -31,7 +31,8 @@ Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining im
 - **Per-target source filtering** -- Each target declares its allowed sources, the UI filters accordingly
 - **Import deletion & auto-purge** -- Delete imports from the UI, or schedule `rake data_porter:purge` for automatic cleanup
 - **Reject rows export** -- Download a CSV of failed/errored records with error messages after import
-- **Security validations** -- File size limit, MIME type check, strong parameter whitelisting
+- **Scoped imports** -- `config.scope` for multi-tenant isolation; each user only sees their own imports
+- **Security validations** -- File size limit, MIME type check, strong parameter whitelisting, IDOR protection via scope
 - **Safety guards** -- Max records limit (`config.max_records`), configurable transaction mode (`:per_record` or `:all`)
 - **Declarative Target DSL** -- One class per import type, zero boilerplate ([docs](docs/TARGETS.md))
 
@@ -141,7 +142,7 @@ pending -> parsing -> previewing -> importing -> completed
 git clone https://github.com/SerylLns/data_porter.git
 cd data_porter
 bin/setup
-bundle exec rspec     # 391 specs
+bundle exec rspec     # 405 specs
 bundle exec rubocop   # 0 offenses
 ```
 

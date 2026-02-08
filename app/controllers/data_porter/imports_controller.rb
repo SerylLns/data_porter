@@ -12,7 +12,7 @@ module DataPorter
     before_action :load_targets, only: %i[index new create]
 
     def index
-      @imports = DataPorter::DataImport.order(created_at: :desc)
+      @imports = scoped_imports.order(created_at: :desc)
     end
 
     def new
@@ -88,7 +88,14 @@ module DataPorter
     private
 
     def set_import
-      @import = DataPorter::DataImport.find(params[:id])
+      @import = scoped_imports.find(params[:id])
+    end
+
+    def scoped_imports
+      scope = DataPorter.configuration.scope
+      return DataPorter::DataImport.all unless scope && respond_to?(:current_user, true)
+
+      DataPorter::DataImport.where(scope.call(current_user))
     end
 
     def load_targets

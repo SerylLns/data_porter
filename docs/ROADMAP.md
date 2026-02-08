@@ -44,21 +44,17 @@ import params flow, and reject rows CSV export. 395 specs total.
 
 Priority: features required to deploy DataPorter to real users.
 
-### Scoped imports
+### ~~Scoped imports~~ DONE
 
-Wire up `config.scope` so each user only sees their own imports. The
-configuration hook already exists but isn't connected to the controller query:
+Implemented in v1.1.0. `config.scope` lambda is applied to all controller
+queries (`index`, `show`, `set_import`). Without scope configured, all imports
+are visible (backwards-compatible). With scope, full multi-tenant isolation:
 
 ```ruby
 DataPorter.configure do |config|
   config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
 end
 ```
-
-The controller `index` and `show` actions apply the scope automatically.
-Combined with `parent_controller` inheriting from an authenticated controller,
-this enables full multi-tenant isolation — suitable for both B2B (tenant per
-organization) and B2C (user-level) scenarios.
 
 ### Preview ↔ Mapping navigation
 

@@ -356,6 +356,49 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
+  describe "#scoped_imports" do
+    let(:controller) { described_class.new }
+
+    context "when no scope is configured" do
+      it "returns all imports" do
+        expect(controller.send(:scoped_imports)).to eq(DataPorter::DataImport.all)
+      end
+    end
+
+    context "when scope is configured and current_user is available" do
+      let(:user) { User.create! }
+
+      before do
+        DataPorter.configuration.scope = ->(u) { { user_type: u.class.name, user_id: u.id } }
+        allow(controller).to receive(:current_user).and_return(user)
+      end
+
+      after { DataPorter.configuration.scope = nil }
+
+      it "filters imports by scope" do
+        owned = DataPorter::DataImport.create!(target_key: "test_import", source_type: "api", user: user)
+        other = DataPorter::DataImport.create!(target_key: "test_import", source_type: "api")
+
+        result = controller.send(:scoped_imports)
+
+        expect(result).to include(owned)
+        expect(result).not_to include(other)
+      end
+    end
+
+    context "when scope is configured but no current_user" do
+      before do
+        DataPorter.configuration.scope = ->(u) { { user_id: u.id } }
+      end
+
+      after { DataPorter.configuration.scope = nil }
+
+      it "returns all imports" do
+        expect(controller.send(:scoped_imports)).to eq(DataPorter::DataImport.all)
+      end
+    end
+  end
+
   describe "#permitted_column_mapping" do
     let(:controller) { described_class.new }
     let(:import) do

@@ -29,6 +29,10 @@ DataPorter.configure do |config|
   # Enabled source types.
   config.enabled_sources = %i[csv json api xlsx]
 
+  # Scope imports per user (multi-tenant isolation).
+  # Requires current_user in the parent controller.
+  config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+
   # Auto-purge completed/failed imports older than this duration.
   # Set to nil to disable. Run `rake data_porter:purge` manually or via cron.
   config.purge_after = 60.days
@@ -58,6 +62,7 @@ end
 | `context_builder` | `nil` | Lambda receiving the DataImport record, returns context passed to target methods |
 | `preview_limit` | `500` | Max records shown in the preview step |
 | `enabled_sources` | `%i[csv json api xlsx]` | Source types available in the UI |
+| `scope` | `nil` | Lambda receiving `current_user`, returns a hash of conditions to filter imports |
 | `purge_after` | `60.days` | Auto-purge completed/failed imports older than this duration |
 | `max_file_size` | `10.megabytes` | Maximum file size for uploads |
 | `max_records` | `10_000` | Maximum number of records per import (nil to disable) |
@@ -84,6 +89,20 @@ config.context_builder = ->(data_import) {
 ```
 
 The returned object is available as `context` in all target instance methods.
+
+## Scoped imports
+
+The `scope` option enables multi-tenant isolation. Each user only sees their own imports, and cannot access other users' imports by URL (IDOR protection).
+
+```ruby
+config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+```
+
+Requirements:
+- `parent_controller` must expose `current_user`
+- The `data_porter_imports` table has `user_id` and `user_type` columns (created by the install migration)
+
+When `scope` is `nil` (default) or `current_user` is not available, all imports are visible.
 
 ## Real-time progress
 

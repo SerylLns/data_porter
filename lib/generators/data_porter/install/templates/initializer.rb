@@ -26,6 +26,10 @@ DataPorter.configure do |config|
   # Enabled source types.
   # config.enabled_sources = %i[csv json xlsx api]
 
+  # Scope imports per user (multi-tenant isolation).
+  # Requires current_user to be available in the parent controller.
+  # config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+
   # Auto-purge completed/failed imports older than this duration.
   # Set to nil to disable auto-purge. Run `rake data_porter:purge` manually or via cron.
   # config.purge_after = 60.days
