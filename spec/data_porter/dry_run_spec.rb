@@ -138,7 +138,7 @@ RSpec.describe "Dry Run" do
 
     it "uses the configured queue name" do
       job = DataPorter::DryRunJob.new
-      expect(job.queue_name).to eq("imports")
+      expect(job.queue_name).to eq("default")
     end
   end
 end

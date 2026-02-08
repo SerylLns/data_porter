@@ -17,7 +17,7 @@ module DataPorter
 
     def initialize
       @parent_controller = "ApplicationController"
-      @queue_name = :imports
+      @queue_name = :default
       @storage_service = :local
       @cable_channel_prefix = "data_porter"
       @context_builder = nil

@@ -33,6 +33,6 @@ RSpec.describe DataPorter::ParseJob do
 
   it "uses the configured queue name" do
     job = described_class.new
-    expect(job.queue_name).to eq("imports")
+    expect(job.queue_name).to eq("default")
   end
 end

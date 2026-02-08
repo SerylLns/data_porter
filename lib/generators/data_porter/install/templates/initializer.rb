@@ -6,7 +6,7 @@ DataPorter.configure do |config|
   # config.parent_controller = "ApplicationController"
 
   # ActiveJob queue name for import jobs.
-  # config.queue_name = :imports
+  # config.queue_name = :default
 
   # ActiveStorage service for uploaded files.
   # config.storage_service = :local

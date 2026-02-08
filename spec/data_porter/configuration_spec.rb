@@ -8,7 +8,7 @@ RSpec.describe DataPorter::Configuration do
   end
 
   it "has default queue_name" do
-    expect(config.queue_name).to eq(:imports)
+    expect(config.queue_name).to eq(:default)
   end
 
   it "has default storage_service" do
