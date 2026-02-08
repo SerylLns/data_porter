@@ -1,9 +1,5 @@
 # DataPorter
 
-> [!CAUTION]
-> **This gem is under active development and not yet production-ready.**
-> APIs and features may change without notice. Use at your own risk.
-
 A mountable Rails engine for data import workflows: **Upload**, **Map**, **Preview**, **Import**.
 
 Supports CSV, JSON, XLSX, and API sources with a declarative DSL for defining import targets. Business-agnostic by design -- all domain logic lives in your host app.
