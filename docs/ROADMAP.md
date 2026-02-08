@@ -46,14 +46,12 @@ Priority: features required to deploy DataPorter to real users.
 
 ### ~~Scoped imports~~ DONE
 
-Implemented in v1.1.0. `config.scope` lambda is applied to all controller
-queries (`index`, `show`, `set_import`). Without scope configured, all imports
-are visible (backwards-compatible). With scope, full multi-tenant isolation:
+Implemented in v1.1.0. `config.scope` returns the owner object for both storage
+and filtering. Works with any polymorphic model (User, Hotel, Organization...):
 
 ```ruby
-DataPorter.configure do |config|
-  config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
-end
+config.scope = ->(user) { user }          # per-user
+config.scope = ->(user) { user.hotel }    # per-hotel
 ```
 
 ### Preview ↔ Mapping navigation

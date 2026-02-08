@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Scoped imports** -- `config.scope` lambda filters all controller queries by user; opt-in, backwards-compatible; prevents IDOR access to other users' imports
+- **Scoped imports** -- `config.scope` lambda returns the owner object (any ActiveRecord model) for multi-tenant isolation; used for both storage and filtering; IDOR-safe
 
 ## [1.0.2] - 2026-02-07
 

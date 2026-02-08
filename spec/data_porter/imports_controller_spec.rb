@@ -365,17 +365,17 @@ RSpec.describe DataPorter::ImportsController do
       end
     end
 
-    context "when scope is configured and current_user is available" do
+    context "when scope returns current_user" do
       let(:user) { User.create! }
 
       before do
-        DataPorter.configuration.scope = ->(u) { { user_type: u.class.name, user_id: u.id } }
+        DataPorter.configuration.scope = ->(u) { u }
         allow(controller).to receive(:current_user).and_return(user)
       end
 
       after { DataPorter.configuration.scope = nil }
 
-      it "filters imports by scope" do
+      it "filters imports by user" do
         owned = DataPorter::DataImport.create!(target_key: "test_import", source_type: "api", user: user)
         other = DataPorter::DataImport.create!(target_key: "test_import", source_type: "api")
 
@@ -386,15 +386,70 @@ RSpec.describe DataPorter::ImportsController do
       end
     end
 
+    context "when scope returns an associated object" do
+      let(:user) { User.create! }
+      let(:other_user) { User.create! }
+
+      before do
+        DataPorter.configuration.scope = ->(u) { u }
+        allow(controller).to receive(:current_user).and_return(user)
+      end
+
+      after { DataPorter.configuration.scope = nil }
+
+      it "isolates imports by owner" do
+        mine = DataPorter::DataImport.create!(target_key: "test_import", source_type: "api", user: user)
+        theirs = DataPorter::DataImport.create!(target_key: "test_import", source_type: "api", user: other_user)
+
+        result = controller.send(:scoped_imports)
+
+        expect(result).to include(mine)
+        expect(result).not_to include(theirs)
+      end
+    end
+
     context "when scope is configured but no current_user" do
       before do
-        DataPorter.configuration.scope = ->(u) { { user_id: u.id } }
+        DataPorter.configuration.scope = ->(u) { u }
       end
 
       after { DataPorter.configuration.scope = nil }
 
       it "returns all imports" do
         expect(controller.send(:scoped_imports)).to eq(DataPorter::DataImport.all)
+      end
+    end
+  end
+
+  describe "#resolve_owner" do
+    let(:controller) { described_class.new }
+
+    context "when no scope is configured" do
+      it "returns current_user if available" do
+        user = User.create!
+        allow(controller).to receive(:current_user).and_return(user)
+
+        expect(controller.send(:resolve_owner)).to eq(user)
+      end
+
+      it "returns nil when no current_user" do
+        expect(controller.send(:resolve_owner)).to be_nil
+      end
+    end
+
+    context "when scope is configured" do
+      let(:user) { User.create! }
+
+      before do
+        allow(controller).to receive(:current_user).and_return(user)
+      end
+
+      after { DataPorter.configuration.scope = nil }
+
+      it "returns the scope result" do
+        DataPorter.configuration.scope = ->(u) { u }
+
+        expect(controller.send(:resolve_owner)).to eq(user)
       end
     end
   end

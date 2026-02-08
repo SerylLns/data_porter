@@ -29,9 +29,10 @@ DataPorter.configure do |config|
   # Enabled source types.
   config.enabled_sources = %i[csv json api xlsx]
 
-  # Scope imports per user (multi-tenant isolation).
+  # Scope imports per owner (multi-tenant isolation).
+  # The lambda receives current_user and returns the owner object.
   # Requires current_user in the parent controller.
-  config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+  config.scope = ->(user) { user }
 
   # Auto-purge completed/failed imports older than this duration.
   # Set to nil to disable. Run `rake data_porter:purge` manually or via cron.
@@ -62,7 +63,7 @@ end
 | `context_builder` | `nil` | Lambda receiving the DataImport record, returns context passed to target methods |
 | `preview_limit` | `500` | Max records shown in the preview step |
 | `enabled_sources` | `%i[csv json api xlsx]` | Source types available in the UI |
-| `scope` | `nil` | Lambda receiving `current_user`, returns a hash of conditions to filter imports |
+| `scope` | `nil` | Lambda receiving `current_user`, returns the owner object for import isolation |
 | `purge_after` | `60.days` | Auto-purge completed/failed imports older than this duration |
 | `max_file_size` | `10.megabytes` | Maximum file size for uploads |
 | `max_records` | `10_000` | Maximum number of records per import (nil to disable) |
@@ -94,15 +95,26 @@ The returned object is available as `context` in all target instance methods.
 
 The `scope` option enables multi-tenant isolation. Each user only sees their own imports, and cannot access other users' imports by URL (IDOR protection).
 
+The lambda receives `current_user` and returns the **owner** of the import. The owner is stored in the polymorphic `user` association, so it can be any ActiveRecord model:
+
 ```ruby
-config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+# Scope by user (each user sees their own imports)
+config.scope = ->(user) { user }
+
+# Scope by hotel (all users of the same hotel share imports)
+config.scope = ->(user) { user.hotel }
+
+# Scope by organization
+config.scope = ->(member) { member.organization }
 ```
 
-Requirements:
-- `parent_controller` must expose `current_user`
-- The `data_porter_imports` table has `user_id` and `user_type` columns (created by the install migration)
+The same `scope` lambda is used for both **storing** (on create) and **filtering** (on index/show), so there's no risk of mismatch.
 
-When `scope` is `nil` (default) or `current_user` is not available, all imports are visible.
+Requirements:
+- `parent_controller` must expose `current_user` (can be any model: User, Member, Admin...)
+- The `data_porter_imports` table has polymorphic `user_id` / `user_type` columns (created by the install migration)
+
+When `scope` is `nil` (default), imports are associated with `current_user` directly (if available). When `current_user` is not available, all imports are visible.
 
 ## Real-time progress
 

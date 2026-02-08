@@ -92,10 +92,17 @@ module DataPorter
     end
 
     def scoped_imports
-      scope = DataPorter.configuration.scope
-      return DataPorter::DataImport.all unless scope && respond_to?(:current_user, true)
+      owner = resolve_owner
+      return DataPorter::DataImport.all unless owner
 
-      DataPorter::DataImport.where(scope.call(current_user))
+      DataPorter::DataImport.where(user: owner)
+    end
+
+    def resolve_owner
+      return unless respond_to?(:current_user, true)
+
+      scope = DataPorter.configuration.scope
+      scope ? scope.call(current_user) : current_user
     end
 
     def load_targets
@@ -104,7 +111,7 @@ module DataPorter
 
     def build_import
       @import = DataPorter::DataImport.new(import_params)
-      @import.user = current_user if respond_to?(:current_user, true)
+      @import.user = resolve_owner
       @import.status = :pending
     end
 

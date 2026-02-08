@@ -26,9 +26,11 @@ DataPorter.configure do |config|
   # Enabled source types.
   # config.enabled_sources = %i[csv json xlsx api]
 
-  # Scope imports per user (multi-tenant isolation).
-  # Requires current_user to be available in the parent controller.
-  # config.scope = ->(user) { { user_type: user.class.name, user_id: user.id } }
+  # Scope imports per owner (multi-tenant isolation).
+  # The lambda receives current_user and returns the owner object.
+  # Works with any model: User, Member, Hotel, Organization...
+  # config.scope = ->(user) { user }
+  # config.scope = ->(user) { user.hotel }
 
   # Auto-purge completed/failed imports older than this duration.
   # Set to nil to disable auto-purge. Run `rake data_porter:purge` manually or via cron.
