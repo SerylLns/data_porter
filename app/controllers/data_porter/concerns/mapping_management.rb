@@ -19,7 +19,8 @@ module DataPorter
       def load_templates
         return [] unless defined?(DataPorter::MappingTemplate)
 
-        DataPorter::MappingTemplate.for_target(@import.target_key)
+        scope = scoped_template_base
+        scope.for_target(@import.target_key)
       end
 
       def save_column_mapping
@@ -31,10 +32,19 @@ module DataPorter
         return unless params[:save_template] == "1"
         return unless defined?(DataPorter::MappingTemplate)
 
-        DataPorter::MappingTemplate.find_or_initialize_by(
+        template = scoped_template_base.find_or_initialize_by(
           target_key: @import.target_key,
           name: params[:template_name].presence || "Default"
-        ).update!(mapping: permitted_column_mapping)
+        )
+        template.user ||= resolve_owner
+        template.update!(mapping: permitted_column_mapping)
+      end
+
+      def scoped_template_base
+        owner = resolve_owner
+        return DataPorter::MappingTemplate unless owner
+
+        DataPorter::MappingTemplate.where(user: owner)
       end
 
       def permitted_column_mapping

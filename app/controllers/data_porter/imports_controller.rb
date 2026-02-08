@@ -5,6 +5,7 @@ module DataPorter
     include Concerns::ImportValidation
     include Concerns::MappingManagement
     include Concerns::RecordPagination
+    include Concerns::ScopeManagement
 
     layout "data_porter/application"
 
@@ -96,13 +97,6 @@ module DataPorter
       return DataPorter::DataImport.all unless owner
 
       DataPorter::DataImport.where(user: owner)
-    end
-
-    def resolve_owner
-      return unless respond_to?(:current_user, true)
-
-      scope = DataPorter.configuration.scope
-      scope ? scope.call(current_user) : current_user
     end
 
     def load_targets

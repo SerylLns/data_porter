@@ -451,6 +451,13 @@ RSpec.describe DataPorter::ImportsController do
 
         expect(controller.send(:resolve_owner)).to eq(user)
       end
+
+      it "returns nil when current_user is nil" do
+        DataPorter.configuration.scope = ->(u) { u }
+        allow(controller).to receive(:current_user).and_return(nil)
+
+        expect(controller.send(:resolve_owner)).to be_nil
+      end
     end
   end
 

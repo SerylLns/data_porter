@@ -7,6 +7,8 @@ class CreateDataPorterMappingTemplates < ActiveRecord::Migration[<%= ActiveRecor
       t.string :name,       null: false
       t.jsonb  :mapping,    null: false, default: {}
 
+      t.references :user, polymorphic: true
+
       t.timestamps
     end
 

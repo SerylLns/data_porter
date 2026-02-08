@@ -4,6 +4,8 @@ module DataPorter
   class MappingTemplate < ActiveRecord::Base
     self.table_name = "data_porter_mapping_templates"
 
+    belongs_to :user, polymorphic: true, optional: true
+
     attribute :mapping, :json, default: -> { {} }
 
     validates :target_key, presence: true

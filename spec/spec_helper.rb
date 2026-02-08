@@ -58,6 +58,10 @@ ActiveRecord::Schema.define do
     t.string :target_key, null: false
     t.string :name,       null: false
     t.text   :mapping,    null: false, default: "{}"
+
+    t.string  :user_type
+    t.integer :user_id
+
     t.timestamps
   end
 

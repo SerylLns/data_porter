@@ -2,12 +2,14 @@
 
 module DataPorter
   class MappingTemplatesController < DataPorter.configuration.parent_controller.constantize
+    include Concerns::ScopeManagement
+
     layout "data_porter/application"
 
     before_action :set_template, only: %i[edit update destroy]
 
     def index
-      @templates = MappingTemplate.order(:target_key, :name)
+      @templates = scoped_templates.order(:target_key, :name)
       @grouped = @templates.group_by(&:target_key)
     end
 
@@ -18,6 +20,7 @@ module DataPorter
 
     def create
       @template = MappingTemplate.new(template_params)
+      @template.user = resolve_owner
 
       if @template.save
         redirect_to mapping_templates_path
@@ -48,7 +51,14 @@ module DataPorter
     private
 
     def set_template
-      @template = MappingTemplate.find(params[:id])
+      @template = scoped_templates.find(params[:id])
+    end
+
+    def scoped_templates
+      owner = resolve_owner
+      return MappingTemplate.all unless owner
+
+      MappingTemplate.where(user: owner)
     end
 
     def template_params

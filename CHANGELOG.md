@@ -5,11 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - 2026-02-08
 
 ### Added
 
 - **Scoped imports** -- `config.scope` lambda returns the owner object (any ActiveRecord model) for multi-tenant isolation; used for both storage and filtering; IDOR-safe
+- **Scoped mapping templates** -- Templates are filtered and assigned by owner, consistent with import scope
+- **`ScopeManagement` concern** -- Shared `resolve_owner` logic extracted for both controllers
+- **Polymorphic user on `mapping_templates`** -- Migration template adds `user` reference for template ownership
+
+### Changed
+
+- `build_import` uses `resolve_owner` instead of raw `current_user`
+- 413 RSpec examples (up from 402), 0 failures
 
 ## [1.0.2] - 2026-02-07
 
