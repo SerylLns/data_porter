@@ -1,3 +1,8 @@
+---
+title: Column Mapping
+icon: material/swap-horizontal
+---
+
 # Column Mapping
 
 For file-based sources (CSV/XLSX), DataPorter adds an interactive mapping step between upload and parsing. Users see their file's actual column headers and map each one to a target field via dropdowns.

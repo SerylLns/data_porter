@@ -1,3 +1,8 @@
+---
+title: Configuration
+icon: material/cog
+---
+
 # Configuration
 
 All options are set in `config/initializers/data_porter.rb`:

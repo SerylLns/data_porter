@@ -1,3 +1,8 @@
+---
+title: Targets
+icon: material/bullseye-arrow
+---
+
 # Targets
 
 Targets are plain Ruby classes in `app/importers/` that inherit from `DataPorter::Target`. Each target defines one import type: its columns, sources, mappings, and persistence logic.

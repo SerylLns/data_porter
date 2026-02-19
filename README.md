@@ -1,6 +1,7 @@
 # DataPorter
 
 [![Gem Version](https://badge.fury.io/rb/data_porter.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/data_porter)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://seryllns.github.io/data_porter/)
 
 A mountable Rails engine for data import workflows: **Upload**, **Map**, **Preview**, **Import**.
 

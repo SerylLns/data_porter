@@ -54,6 +54,9 @@ node_modules/
 # Taskmaster
 /.taskmaster/
 
+# MkDocs build output
+/site/
+
 # Claude
 CLAUDE.md
 /.claude/

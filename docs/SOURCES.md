@@ -1,3 +1,8 @@
+---
+title: Sources
+icon: material/database-import
+---
+
 # Sources
 
 DataPorter supports four source types. Each source reads data from a different format and feeds it through the same parsing pipeline.

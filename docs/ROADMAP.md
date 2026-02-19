@@ -1,3 +1,8 @@
+---
+title: Roadmap
+icon: material/map-marker-path
+---
+
 # Roadmap
 
 ## v1.0 — Production-ready DONE
@@ -13,7 +18,7 @@ Controller limits records loaded via `RecordPagination` concern.
 
 Implemented in v0.9.0. Targets declare `params` with a DSL (`:select`, `:text`,
 `:number`, `:hidden`). Values stored in `config["import_params"]`, accessible
-via `import_params` in all target instance methods. See [Targets docs](TARGETS.md#params--).
+via `import_params` in all target instance methods. See [Targets docs](TARGETS.md#params).
 
 ### ~~3. Security audit~~ DONE
 
@@ -54,12 +59,10 @@ config.scope = ->(user) { user }          # per-user
 config.scope = ->(user) { user.hotel }    # per-hotel
 ```
 
-### Preview ↔ Mapping navigation
+### ~~Preview ↔ Mapping navigation~~ DONE
 
-Allow users to go back from preview to the mapping step and adjust column
-mapping without restarting the import. Currently the flow is one-way:
-mapping → parse → preview. Adding a "Back to mapping" button on the preview
-page would let users correct mapping mistakes after seeing the parsed data.
+Implemented. Users can go back from preview to the mapping step and adjust
+column mapping without restarting the import.
 
 ### ~~CSV auto-detect: delimiter & encoding~~ DONE
 
