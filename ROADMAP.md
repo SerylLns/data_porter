@@ -94,6 +94,11 @@ column :email, type: :email, transform: ->(v) { v.downcase.strip }
 - Ship `config/locales/en.yml` as default
 - Users can override with their own locale files or add translations
 
+#### View Generator
+- `rails g data_porter:views` copies ERB/Phlex templates into the host app for customization
+- Similar to `devise:views` pattern
+- Allows full UI integration with the app's design system
+
 ### Low Priority
 
 #### Dashboard Analytics
