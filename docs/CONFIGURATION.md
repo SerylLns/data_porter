@@ -5,7 +5,8 @@ All options are set in `config/initializers/data_porter.rb`:
 ```ruby
 DataPorter.configure do |config|
   # Parent controller for the engine's controllers to inherit from.
-  # Controls authentication, layouts, and helpers.
+  # Defaults to ActionController::Base (no authentication).
+  # Set to "ApplicationController" to inherit authentication, layouts, and helpers.
   config.parent_controller = "ApplicationController"
 
   # ActiveJob queue name for import jobs.
@@ -56,7 +57,7 @@ end
 
 | Option | Default | Description |
 |---|---|---|
-| `parent_controller` | `"ApplicationController"` | Controller class the engine inherits from |
+| `parent_controller` | `"ActionController::Base"` | Controller class the engine inherits from |
 | `queue_name` | `:imports` | ActiveJob queue for import jobs |
 | `storage_service` | `:local` | ActiveStorage service name |
 | `cable_channel_prefix` | `"data_porter"` | ActionCable stream prefix |
@@ -71,13 +72,19 @@ end
 
 ## Authentication
 
-The engine inherits authentication from `parent_controller`. Set it to your authenticated base controller:
+By default, the engine inherits from `ActionController::Base` -- no authentication is required. This avoids conflicts with authorization gems (Pundit, CanCanCan, Action Policy, etc.) that add verification callbacks on `ApplicationController`.
+
+To add authentication, set `parent_controller` to your authenticated base controller:
 
 ```ruby
+config.parent_controller = "ApplicationController"
+# or a dedicated controller:
 config.parent_controller = "Admin::BaseController"
 ```
 
-All engine routes will require the same authentication as your base controller.
+All engine routes will then require the same authentication as your base controller.
+
+> **Note:** If your parent controller uses an authorization gem that enforces `after_action` verification (e.g. Pundit's `verify_policy_scoped`), you'll need to skip those callbacks for the engine's controllers. The simplest approach is to exclude `data_porter/` in your skip condition.
 
 ## Context builder
 

@@ -121,6 +121,7 @@ pending -> parsing -> previewing -> importing -> completed
 | POST | `/imports/:id/parse` | Parse source |
 | POST | `/imports/:id/confirm` | Run import |
 | POST | `/imports/:id/cancel` | Cancel import |
+| POST | `/imports/:id/back_to_mapping` | Reset to mapping step |
 | POST | `/imports/:id/dry_run` | Dry run validation |
 | GET | `/imports/:id/export_rejects` | Download rejects CSV |
 | | `/mapping_templates` | Full CRUD for templates |
@@ -131,7 +132,7 @@ pending -> parsing -> previewing -> importing -> completed
 git clone https://github.com/SerylLns/data_porter.git
 cd data_porter
 bin/setup
-bundle exec rspec     # 413 specs
+bundle exec rspec     # 423 specs
 bundle exec rubocop   # 0 offenses
 ```
 
