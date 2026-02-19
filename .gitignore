@@ -40,8 +40,16 @@ node_modules/
 
 # Blog articles (Dev.to drafts)
 /devto/
+/docs/dev_to.md
+/docs/reddit_post.md
 /docs/blog/
 /docs/blog_part_2/
+
+# Screenshots / media
+/docs/screenshots/
+
+# Bookmarklet
+/bookmarklet.md
 
 # Taskmaster
 /.taskmaster/
