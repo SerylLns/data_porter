@@ -101,6 +101,8 @@ pending -> parsing -> previewing -> importing -> completed
 
 ## Documentation
 
+**[Full documentation on GitHub Pages](https://seryllns.github.io/data_porter/)**
+
 | Topic | Description |
 |---|---|
 | [Configuration](docs/CONFIGURATION.md) | All options, authentication, context builder, real-time updates |
