@@ -29,17 +29,25 @@
 
 ### High Priority
 
+#### Required Fields in New Import Form
+- Validate required import params (`target.params`) on the new import form
+- Client-side: disable submit until required fields are filled
+- Server-side: reject creation if required params are missing
+
 #### Export (reverse workflow)
 - `ExportTarget` DSL mirroring the import Target
 - Define query scope, columns, and output format (CSV, JSON, XLSX)
 - Background job with progress bar (reuse existing ActionCable infrastructure)
 - Download link on completion
 
-#### Batch Import
+#### Batch Import & Resumable Jobs
 - Process large files in configurable batches (default: 1,000 records)
 - Use `insert_all` / `upsert_all` for bulk persistence
 - Granular progress: "12,000 / 150,000 records"
 - Memory-efficient streaming parser for CSV and XLSX
+- Resumable imports: save cursor position, resume on worker restart
+- Explore `ActiveJob::Continuable` (Rails 8.1+) with fallback mechanism for Rails 7.x
+- Ref: https://codewithrails.com/blog/rails-resumable-csv-import-continuable/
 
 #### Scheduled Imports
 - Cron-like configuration in the Target DSL: `schedule "0 3 * * *"`
@@ -73,9 +81,18 @@ column :email, type: :email, transform: ->(v) { v.downcase.strip }
 - JSON payload with import summary and error details
 
 #### Import API (REST)
-- `POST /data_porter/api/imports` to trigger imports programmatically
-- Accept file upload or source URL
-- JSON response with import ID for status polling
+- `POST /api/imports` -- create import (multipart file upload or JSON payload)
+- `GET /api/imports` -- list imports (paginated)
+- `GET /api/imports/:id` -- status + results
+- `DELETE /api/imports/:id` -- delete import
+- Auth via `config.api_authenticate` lambda (API key or Bearer token)
+- Reuses existing job pipeline (parse, import, dry run)
+- Simple JSON serialization (no Graphiti dependency)
+
+#### I18n
+- Extract all hardcoded strings from ERB views and Phlex components to locale files
+- Ship `config/locales/en.yml` as default
+- Users can override with their own locale files or add translations
 
 ### Low Priority
 
