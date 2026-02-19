@@ -12,7 +12,7 @@ module DataPorter
         columns = target._columns || []
         @file_headers = @import.config["file_headers"] || []
         @target_columns = columns.map { |c| [c.label, c.name.to_s, c.required] }
-        @default_mapping = (target._csv_mappings || {}).transform_values(&:to_s)
+        @default_mapping = saved_or_default_mapping(target)
         @templates = load_templates
       end
 
@@ -21,6 +21,13 @@ module DataPorter
 
         scope = scoped_template_base
         scope.for_target(@import.target_key)
+      end
+
+      def saved_or_default_mapping(target)
+        saved = @import.config&.dig("column_mapping")
+        return saved if saved.present?
+
+        (target._csv_mappings || {}).transform_values(&:to_s)
       end
 
       def save_column_mapping

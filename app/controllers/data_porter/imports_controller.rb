@@ -9,7 +9,8 @@ module DataPorter
 
     layout "data_porter/application"
 
-    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping status export_rejects destroy]
+    before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping
+                                        status export_rejects destroy back_to_mapping]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -61,6 +62,11 @@ module DataPorter
     def cancel
       @import.update!(status: :failed)
       redirect_to imports_path
+    end
+
+    def back_to_mapping
+      @import.reset_to_mapping!
+      redirect_to import_path(@import)
     end
 
     def dry_run

@@ -16,7 +16,7 @@ module DataPorter
                   :transaction_mode
 
     def initialize
-      @parent_controller = "ApplicationController"
+      @parent_controller = "ActionController::Base"
       @queue_name = :default
       @storage_service = :local
       @cable_channel_prefix = "data_porter"

@@ -65,6 +65,10 @@
           Dry Run
         <% end %>
       <% end %>
+      <% if @import.file_based? %>
+        <%= button_to "Back to Mapping", back_to_mapping_import_path(@import),
+              method: :post, class: "dp-btn dp-btn--secondary" %>
+      <% end %>
       <%= button_to "Cancel", cancel_import_path(@import),
             method: :post, class: "dp-btn dp-btn--danger" %>
     </div>

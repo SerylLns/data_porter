@@ -38,7 +38,8 @@ RSpec.describe DataPorter::ImportsController do
 
   describe "action methods" do
     it "defines all public actions including export_rejects" do
-      actions = %i[index new create show parse confirm cancel dry_run update_mapping status export_rejects destroy]
+      actions = %i[index new create show parse confirm cancel dry_run update_mapping
+                   status export_rejects destroy back_to_mapping]
       actions.each do |action|
         expect(described_class.instance_method(action)).to be_a(UnboundMethod)
       end
@@ -458,6 +459,56 @@ RSpec.describe DataPorter::ImportsController do
 
         expect(controller.send(:resolve_owner)).to be_nil
       end
+    end
+  end
+
+  describe "#saved_or_default_mapping" do
+    let(:controller) { described_class.new }
+    let(:import) { DataPorter::DataImport.new(target_key: "test_import", source_type: "csv") }
+
+    before { controller.instance_variable_set(:@import, import) }
+
+    context "when config has column_mapping" do
+      before do
+        import.config = { "column_mapping" => { "Name" => "name", "Email" => "email" } }
+      end
+
+      it "returns the saved mapping" do
+        result = controller.send(:saved_or_default_mapping, target_class)
+
+        expect(result).to eq("Name" => "name", "Email" => "email")
+      end
+    end
+
+    context "when config has no column_mapping" do
+      let(:mapping_target) do
+        Class.new(DataPorter::Target) do
+          label "Mapped"
+          model_name "Mapped"
+          columns do
+            column :name, type: :string
+          end
+          csv_mapping do
+            map "Full Name" => :name
+          end
+        end
+      end
+
+      before do
+        DataPorter::Registry.register(:mapped, mapping_target)
+      end
+
+      it "falls back to target csv_mappings" do
+        result = controller.send(:saved_or_default_mapping, mapping_target)
+
+        expect(result).to eq("Full Name" => "name")
+      end
+    end
+  end
+
+  describe "action methods" do
+    it "defines back_to_mapping" do
+      expect(described_class.instance_method(:back_to_mapping)).to be_a(UnboundMethod)
     end
   end
 

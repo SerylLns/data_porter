@@ -150,6 +150,68 @@ RSpec.describe DataPorter::DataImport, type: :model do
     end
   end
 
+  describe "#reset_to_mapping!" do
+    it "sets status to mapping" do
+      import = described_class.create!(target_key: "guests", source_type: "csv", status: :previewing)
+
+      import.reset_to_mapping!
+
+      expect(import.status).to eq("mapping")
+    end
+
+    it "clears records" do
+      record = DataPorter::StoreModels::ImportRecord.new(line_number: 1, data: { name: "Alice" })
+      import = described_class.create!(target_key: "guests", source_type: "csv", status: :previewing, records: [record])
+
+      import.reset_to_mapping!
+
+      expect(import.records).to eq([])
+    end
+
+    it "resets report" do
+      report = DataPorter::StoreModels::Report.new(records_count: 5, complete_count: 3)
+      import = described_class.create!(target_key: "guests", source_type: "csv", status: :previewing, report: report)
+
+      import.reset_to_mapping!
+
+      expect(import.report.records_count).to eq(0)
+      expect(import.report.complete_count).to eq(0)
+    end
+
+    it "clears config progress" do
+      import = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :previewing,
+        config: { "progress" => { "current" => 10, "total" => 100 }, "file_headers" => %w[A B] }
+      )
+
+      import.reset_to_mapping!
+
+      expect(import.config).not_to have_key("progress")
+    end
+
+    it "preserves file_headers in config" do
+      import = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :previewing,
+        config: { "file_headers" => %w[Name Email], "progress" => { "current" => 5 } }
+      )
+
+      import.reset_to_mapping!
+
+      expect(import.config["file_headers"]).to eq(%w[Name Email])
+    end
+
+    it "preserves column_mapping in config" do
+      import = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :previewing,
+        config: { "column_mapping" => { "Name" => "name" }, "progress" => {} }
+      )
+
+      import.reset_to_mapping!
+
+      expect(import.config["column_mapping"]).to eq("Name" => "name")
+    end
+  end
+
   describe "file attachment" do
     it "responds to file" do
       import = described_class.new

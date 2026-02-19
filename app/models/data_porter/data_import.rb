@@ -53,6 +53,15 @@ module DataPorter
       records.group_by(&:status).transform_values(&:count)
     end
 
+    def reset_to_mapping!
+      update!(
+        status: :mapping,
+        records: [],
+        report: StoreModels::Report.new,
+        config: (config || {}).except("progress")
+      )
+    end
+
     def file_based?
       %w[csv xlsx].include?(source_type)
     end

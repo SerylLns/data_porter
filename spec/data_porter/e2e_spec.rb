@@ -41,6 +41,42 @@ RSpec.describe "End-to-end import workflows" do
     end
   end
 
+  describe "back to mapping round-trip" do
+    let(:csv) { "Prenom,Nom,Email\nAlice,Smith,alice@example.com\nBob,Jones,bob@example.com\n" }
+    let(:wrong_mapping) { { "Prenom" => "last_name", "Nom" => "first_name", "Email" => "email" } }
+    let(:correct_mapping) { { "Prenom" => "first_name", "Nom" => "last_name", "Email" => "email" } }
+
+    before { register_contact_target }
+
+    it "extract_headers → mapping → parse → back_to_mapping → re-map → parse → import" do
+      import = build_import("csv")
+
+      run_extract_headers(import, content: csv)
+      expect(import.status).to eq("mapping")
+
+      apply_mapping(import, wrong_mapping)
+      run_parse(import, content: csv)
+      expect(import.status).to eq("previewing")
+      expect(import.records.first.data["first_name"]).to eq("Smith")
+
+      import.reset_to_mapping!
+      expect(import.status).to eq("mapping")
+      expect(import.records).to eq([])
+      expect(import.config["column_mapping"]).to eq(wrong_mapping)
+      expect(import.config["file_headers"]).to eq(%w[Prenom Nom Email])
+
+      apply_mapping(import, correct_mapping)
+      run_parse(import, content: csv)
+      expect(import.status).to eq("previewing")
+      expect(import.records.first.data["first_name"]).to eq("Alice")
+
+      run_import(import)
+      expect(import.status).to eq("completed")
+      expect(import.report.imported_count).to eq(2)
+      expect(persisted.first).to include(first_name: "Alice", last_name: "Smith")
+    end
+  end
+
   describe "XLSX source" do
     let(:fixture) { File.expand_path("../fixtures/contacts.xlsx", __dir__) }
     let(:mapping) { { "Prenom" => "first_name", "Nom" => "last_name", "Email" => "email" } }

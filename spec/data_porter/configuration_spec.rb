@@ -4,7 +4,7 @@ RSpec.describe DataPorter::Configuration do
   subject(:config) { described_class.new }
 
   it "has default parent_controller" do
-    expect(config.parent_controller).to eq("ApplicationController")
+    expect(config.parent_controller).to eq("ActionController::Base")
   end
 
   it "has default queue_name" do

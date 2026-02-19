@@ -2,7 +2,8 @@
 
 DataPorter.configure do |config|
   # Parent controller for the engine's controllers to inherit from.
-  # This controls authentication, layouts, and helpers.
+  # Defaults to ActionController::Base. Set to "ApplicationController" to inherit
+  # authentication, layouts, and helpers from your app.
   # config.parent_controller = "ApplicationController"
 
   # ActiveJob queue name for import jobs.

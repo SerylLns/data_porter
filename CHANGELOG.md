@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-19
+
+### Breaking
+
+- **Default parent controller changed to `ActionController::Base`** -- Engine controllers no longer inherit from `ApplicationController` by default, avoiding conflicts with authorization gems (Pundit, CanCanCan, etc.). Set `config.parent_controller = "ApplicationController"` to restore the previous behavior
+- **Engine routes mounted at root** -- `resources :imports` now uses `path: "/"` so the mount point controls the full URL (e.g. `mount DataPorter::Engine, at: "/imports"` gives `/imports`, not `/imports/imports`)
+
+### Added
+
+- **Back to mapping** -- `back_to_mapping` action resets a previewing import to the mapping step, preserving file headers and column mapping for re-mapping
+- **Saved mapping persistence** -- Mapping form restores previously saved column mapping instead of resetting to defaults
+
+### Changed
+
+- 423 RSpec examples (up from 413), 0 failures
+
 ## [1.1.0] - 2026-02-08
 
 ### Added
