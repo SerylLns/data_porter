@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 DataPorter::Engine.routes.draw do
+  resources :mapping_templates
+
   resources :imports, path: "/", only: %i[index new create show destroy] do
     member do
       post :parse
@@ -13,6 +15,4 @@ DataPorter::Engine.routes.draw do
       get :export_rejects
     end
   end
-
-  resources :mapping_templates
 end
