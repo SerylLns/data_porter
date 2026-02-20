@@ -45,6 +45,7 @@ module DataPorter
       def finalize_import(results)
         @data_import.update!(status: :completed)
         @broadcaster.success
+        WebhookNotifier.notify(@data_import, "import.completed")
         results
       end
 

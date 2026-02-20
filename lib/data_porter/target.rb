@@ -3,13 +3,14 @@
 require_relative "dsl/column"
 require_relative "dsl/param"
 require_relative "dsl/api_config"
+require_relative "dsl/webhook"
 
 module DataPorter
   class Target
     class << self
       attr_reader :_label, :_model_name, :_icon, :_sources,
                   :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
-                  :_api_config, :_dry_run_enabled, :_params
+                  :_api_config, :_dry_run_enabled, :_params, :_webhooks
 
       def label(value)
         @_label = value
@@ -70,6 +71,15 @@ module DataPorter
 
       def param(name, **)
         @_params << DSL::Param.new(name: name, **)
+      end
+
+      def webhooks(&)
+        @_webhooks = []
+        instance_eval(&)
+      end
+
+      def webhook(url, **)
+        @_webhooks << DSL::Webhook.new(url: url, **)
       end
 
       private

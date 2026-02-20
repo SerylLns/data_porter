@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-02-20
+
+### Added
+
+- **Webhooks** -- Per-target HTTP callbacks on import lifecycle events (`import.started`, `import.parsed`, `import.completed`, `import.failed`). Declarative DSL via `webhooks do webhook(url, events:, headers:, payload:) end`. HMAC-SHA256 request signing via `config.webhook_secret`. Async delivery via `WebhookJob` (fire-and-forget, 10s timeout). Custom payload lambdas and per-webhook headers supported
+
+### Changed
+
+- 508 RSpec examples (up from 466), 0 failures
+
 ## [2.2.0] - 2026-02-20
 
 ### Added

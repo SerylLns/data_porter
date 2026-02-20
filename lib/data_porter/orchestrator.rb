@@ -32,12 +32,14 @@ module DataPorter
       records = build_records
       @data_import.update!(records: records, status: :previewing)
       build_report
+      WebhookNotifier.notify(@data_import, "import.parsed")
     rescue StandardError => e
       handle_failure(e)
     end
 
     def import!
       @data_import.importing!
+      WebhookNotifier.notify(@data_import, "import.started")
       results = import_records
       update_import_report(results)
       @target.after_import(results, context: build_context)
@@ -102,6 +104,7 @@ module DataPorter
       )
       @data_import.update!(status: :failed, report: report)
       @broadcaster.failure(error.message)
+      WebhookNotifier.notify(@data_import, "import.failed")
     end
   end
 end

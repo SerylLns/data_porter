@@ -2,14 +2,6 @@
 
 ## Next
 
-### Webhooks
-
-HTTP callbacks on import lifecycle events (started, completed, failed). Configurable per-target with URL, headers, and payload template. Enables integration with Slack notifications, CI pipelines, or external dashboards.
-
----
-
-## Planned
-
 ### Bulk import
 
 High-volume import support using `insert_all` / `upsert_all` for batch persistence. Opt-in per target to bypass per-record `persist` calls, enabling 10-100x throughput for simple create/upsert scenarios. Configurable batch size, with fallback to per-record mode on conflict.

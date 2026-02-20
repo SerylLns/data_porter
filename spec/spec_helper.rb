@@ -114,6 +114,7 @@ require "data_porter/parse_job"
 require "data_porter/import_job"
 require "data_porter/dry_run_job"
 require "data_porter/extract_headers_job"
+require "data_porter/webhook_job"
 require "data_porter/mapping_template"
 
 class ApplicationController < ActionController::Base; end unless defined?(ApplicationController)

@@ -55,6 +55,10 @@ DataPorter.configure do |config|
   # :per_record -- each record persisted independently (default)
   # :all -- single transaction, rolls back entirely on any failure
   config.transaction_mode = :per_record
+
+  # HMAC-SHA256 secret for signing webhook payloads.
+  # When set, every webhook request includes an X-DataPorter-Signature header.
+  config.webhook_secret = ENV["DATA_PORTER_WEBHOOK_SECRET"]
 end
 ```
 
@@ -74,6 +78,7 @@ end
 | `max_file_size` | `10.megabytes` | Maximum file size for uploads |
 | `max_records` | `10_000` | Maximum number of records per import (nil to disable) |
 | `transaction_mode` | `:per_record` | `:per_record` or `:all` (single transaction rollback) |
+| `webhook_secret` | `nil` | HMAC-SHA256 secret for signing webhook payloads |
 
 ## Authentication
 
@@ -156,6 +161,64 @@ bin/rails data_porter:purge
 ```
 
 Attached files are purged from ActiveStorage along with the import record.
+
+## Webhooks
+
+DataPorter can notify external systems via HTTP POST when import lifecycle events occur. Webhooks are declared per-target:
+
+```ruby
+class OrderTarget < DataPorter::Target
+  label "Orders"
+
+  webhooks do
+    webhook "https://hooks.slack.com/xxx",
+            events: %i[completed failed],
+            headers: { "X-Custom" => "value" }
+    webhook "https://monitoring.internal/ingest",
+            events: [:completed],
+            payload: ->(data_import, event, data) {
+              data.merge("team" => "ops")
+            }
+  end
+end
+```
+
+### Events
+
+| Event | Fired when | Payload fields |
+|---|---|---|
+| `import.started` | Import begins (`importing!`) | `records_count` |
+| `import.parsed` | Parse completes (`previewing`) | `records_count`, `complete_count`, `partial_count` |
+| `import.completed` | Import succeeds | `imported_count`, `errored_count` |
+| `import.failed` | Import fails | `error_message` |
+
+### Options
+
+- **`events:`** -- Array of symbols (`:started`, `:parsed`, `:completed`, `:failed`). Default: all four
+- **`headers:`** -- Hash merged into POST request headers. Default: `{}`
+- **`payload:`** -- Lambda `(data_import, event, default_payload) -> hash` to enrich or replace the payload. Default: `nil`
+
+### HMAC signing
+
+When `config.webhook_secret` is set, every request includes:
+
+```
+X-DataPorter-Signature: sha256=<hex_digest>
+```
+
+Verify on the receiving end:
+
+```ruby
+expected = "sha256=" + OpenSSL::HMAC.hexdigest("SHA256", secret, request.body.read)
+received = request.headers["X-DataPorter-Signature"]
+valid = ActiveSupport::SecurityUtils.secure_compare(expected, received)
+```
+
+### Delivery
+
+- Async via `WebhookJob` (same queue as import jobs)
+- `Net::HTTP` POST with JSON body, 10s timeout
+- Fire-and-forget: failures are logged, not retried (host app's job backend handles retries if configured)
 
 ## i18n
 

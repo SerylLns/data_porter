@@ -36,4 +36,9 @@ DataPorter.configure do |config|
   # Auto-purge completed/failed imports older than this duration.
   # Set to nil to disable auto-purge. Run `rake data_porter:purge` manually or via cron.
   # config.purge_after = 60.days
+
+  # HMAC-SHA256 secret for signing webhook payloads.
+  # When set, every webhook request includes an X-DataPorter-Signature header.
+  # Set to nil to disable signing (default).
+  # config.webhook_secret = ENV["DATA_PORTER_WEBHOOK_SECRET"]
 end

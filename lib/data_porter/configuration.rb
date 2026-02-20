@@ -13,7 +13,8 @@ module DataPorter
                   :purge_after,
                   :max_file_size,
                   :max_records,
-                  :transaction_mode
+                  :transaction_mode,
+                  :webhook_secret
 
     def initialize
       @parent_controller = "ActionController::Base"
@@ -28,6 +29,7 @@ module DataPorter
       @max_file_size = 10.megabytes
       @max_records = 10_000
       @transaction_mode = :per_record
+      @webhook_secret = nil
     end
   end
 end

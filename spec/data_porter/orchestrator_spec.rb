@@ -516,4 +516,95 @@ RSpec.describe DataPorter::Orchestrator do
       DataPorter.configuration.transaction_mode = original
     end
   end
+
+  describe "webhook notifications" do
+    let(:webhook_target) do
+      records = persisted_records
+      Class.new(DataPorter::Target) do
+        label "WebhookGuests"
+        model_name "WebhookGuest"
+        sources :csv
+
+        columns do
+          column :first_name, type: :string, required: true
+        end
+
+        webhooks do
+          webhook "https://hooks.example.com/test",
+                  events: %i[started completed failed parsed]
+        end
+
+        define_method(:persist) do |record, **|
+          records << record.data
+        end
+      end
+    end
+
+    let(:webhook_import) do
+      DataPorter::Registry.register(:webhook_guests, webhook_target)
+      DataPorter::DataImport.create!(
+        target_key: "webhook_guests",
+        source_type: "csv",
+        user_type: "User",
+        user_id: 1
+      )
+    end
+
+    before do
+      ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+    end
+
+    it "notifies import.parsed after successful parse" do
+      orchestrator = described_class.new(webhook_import, content: "first_name\nAlice\n")
+
+      orchestrator.parse!
+
+      jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select { |j| j["job_class"] == "DataPorter::WebhookJob" }
+      expect(jobs.size).to eq(1)
+      payload = JSON.parse(jobs.first["arguments"][1])
+      expect(payload["event"]).to eq("import.parsed")
+    end
+
+    it "notifies import.started when import begins" do
+      orchestrator = described_class.new(webhook_import, content: "first_name\nAlice\n")
+      orchestrator.parse!
+      ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+      orchestrator = described_class.new(webhook_import)
+      orchestrator.import!
+
+      all_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs
+      webhook_jobs = all_jobs.select { |j| j["job_class"] == "DataPorter::WebhookJob" }
+      events = webhook_jobs.map { |j| JSON.parse(j["arguments"][1])["event"] }
+      expect(events).to include("import.started")
+    end
+
+    it "notifies import.completed after successful import" do
+      orchestrator = described_class.new(webhook_import, content: "first_name\nAlice\n")
+      orchestrator.parse!
+      ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+      orchestrator = described_class.new(webhook_import)
+      orchestrator.import!
+
+      all_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs
+      webhook_jobs = all_jobs.select { |j| j["job_class"] == "DataPorter::WebhookJob" }
+      events = webhook_jobs.map { |j| JSON.parse(j["arguments"][1])["event"] }
+      expect(events).to include("import.completed")
+    end
+
+    it "notifies import.failed on catastrophic error" do
+      webhook_import.update!(records: [])
+      allow(webhook_import).to receive(:importable_records).and_raise("fatal")
+      orchestrator = described_class.new(webhook_import)
+
+      orchestrator.import!
+
+      jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select { |j| j["job_class"] == "DataPorter::WebhookJob" }
+      events = jobs.map { |j| JSON.parse(j["arguments"][1]) }
+      failed_payload = events.find { |p| p["event"] == "import.failed" }
+      expect(failed_payload).not_to be_nil
+      expect(failed_payload["import"]["error_message"]).to eq("fatal")
+    end
+  end
 end
