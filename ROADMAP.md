@@ -2,20 +2,6 @@
 
 ## Next
 
-### Column transformers
-
-Built-in transformation pipeline applied per-column before the target's `transform` method. Declarative DSL in the target:
-
-```ruby
-columns do
-  column :email, type: :string, transform: [:strip, :downcase]
-  column :phone, type: :string, transform: [:strip, :normalize_phone]
-  column :born_on, type: :date, transform: [:parse_date]
-end
-```
-
-Ships with common transformers (`strip`, `downcase`, `titleize`, `normalize_phone`, `parse_date`). Custom transformers via a registry.
-
 ### Webhooks
 
 HTTP callbacks on import lifecycle events (started, completed, failed). Configurable per-target with URL, headers, and payload template. Enables integration with Slack notifications, CI pipelines, or external dashboards.

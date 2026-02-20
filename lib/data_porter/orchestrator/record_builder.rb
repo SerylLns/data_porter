@@ -30,6 +30,7 @@ module DataPorter
           line_number: index + 1,
           data: extract_data(row, columns)
         )
+        ColumnTransformer.apply_all(record, columns)
         record = @target.transform(record)
         @target.validate(record)
         validator.validate(record)

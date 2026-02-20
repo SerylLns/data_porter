@@ -336,6 +336,84 @@ RSpec.describe DataPorter::Orchestrator do
     end
   end
 
+  describe "column transformers" do
+    let(:transformer_target) do
+      Class.new(DataPorter::Target) do
+        label "TransformerGuests"
+        model_name "TransformerGuest"
+        sources :csv
+
+        columns do
+          column :email, type: :email, transform: %i[strip downcase]
+          column :phone, type: :phone, transform: %i[strip normalize_phone]
+          column :name, type: :string
+        end
+      end
+    end
+
+    let(:transformer_import) do
+      DataPorter::Registry.register(:transformer_guests, transformer_target)
+      DataPorter::DataImport.create!(
+        target_key: "transformer_guests",
+        source_type: "csv",
+        user_type: "User",
+        user_id: 1
+      )
+    end
+
+    it "applies column transformers during parse" do
+      csv = "email,phone,name\n  ALICE@EXAMPLE.COM  , +1 (555) 123-4567 ,Alice\n"
+      orchestrator = described_class.new(transformer_import, content: csv)
+
+      orchestrator.parse!
+
+      record = transformer_import.reload.records.first
+      expect(record.data["email"]).to eq("alice@example.com")
+      expect(record.data["phone"]).to eq("+15551234567")
+    end
+
+    it "leaves untransformed columns unchanged" do
+      csv = "email,phone,name\n  ALICE@EXAMPLE.COM  , +1 (555) 123-4567 ,Alice\n"
+      orchestrator = described_class.new(transformer_import, content: csv)
+
+      orchestrator.parse!
+
+      record = transformer_import.reload.records.first
+      expect(record.data["name"]).to eq("Alice")
+    end
+
+    it "applies transformers before target.transform" do
+      order = []
+      target_with_tracking = Class.new(DataPorter::Target) do
+        label "Tracking"
+        model_name "Tracking"
+        sources :csv
+
+        columns do
+          column :email, type: :string, transform: [:downcase]
+        end
+
+        define_method(:transform) do |record|
+          order << record.data[:email]
+          super(record)
+        end
+      end
+
+      DataPorter::Registry.register(:tracking, target_with_tracking)
+      import = DataPorter::DataImport.create!(
+        target_key: "tracking",
+        source_type: "csv",
+        user_type: "User",
+        user_id: 1
+      )
+      orchestrator = described_class.new(import, content: "email\nALICE@EXAMPLE.COM\n")
+
+      orchestrator.parse!
+
+      expect(order).to eq(["alice@example.com"])
+    end
+  end
+
   describe "max_records guard" do
     it "fails when record count exceeds max_records" do
       original = DataPorter.configuration.max_records

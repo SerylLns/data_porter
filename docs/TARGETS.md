@@ -95,6 +95,41 @@ Defines the expected columns for this import. Each column accepts:
 | `type` | Symbol | `:string` | One of `:string`, `:integer`, `:decimal`, `:boolean`, `:date` |
 | `required` | Boolean | `false` | Whether the column must have a value |
 | `label` | String | Humanized name | Display label in the preview |
+| `transform` | Symbol or Array | `[]` | Transformers applied before the target's `transform` method |
+
+#### Column transformers
+
+Transformers are applied per-column during parsing, before the target's `transform` method. They clean and normalize data declaratively:
+
+```ruby
+columns do
+  column :email, type: :email, transform: [:strip, :downcase]
+  column :phone, type: :phone, transform: [:strip, :normalize_phone]
+  column :born_on, type: :date, transform: [:parse_date]
+end
+```
+
+Built-in transformers:
+
+| Name | Effect |
+|---|---|
+| `strip` | Remove leading/trailing whitespace |
+| `downcase` | Convert to lowercase |
+| `upcase` | Convert to uppercase |
+| `titleize` | Capitalize first letter of each word |
+| `normalize_phone` | Remove spaces, dashes, parentheses, dots |
+| `parse_date` | Parse to ISO8601 (passthrough on failure) |
+| `parse_boolean` | Normalize true/1/yes/oui to `"true"`, rest to `"false"` |
+| `parse_integer` | Convert to integer string (passthrough on failure) |
+| `parse_decimal` | Convert to decimal string (passthrough on failure) |
+
+Register custom transformers:
+
+```ruby
+DataPorter::ColumnTransformer.register(:slugify) do |value|
+  value.parameterize
+end
+```
 
 ### `csv_mapping { ... }`
 
@@ -251,9 +286,9 @@ class ContactTarget < DataPorter::Target
   dry_run_enabled
 
   columns do
-    column :name, type: :string, required: true
-    column :email, type: :email
-    column :phone_number, type: :string
+    column :name, type: :string, required: true, transform: [:strip, :titleize]
+    column :email, type: :email, transform: [:strip, :downcase]
+    column :phone_number, type: :string, transform: [:strip, :normalize_phone]
     column :address, type: :string
     column :room, type: :string
   end
@@ -274,7 +309,6 @@ class ContactTarget < DataPorter::Target
 
   def transform(record)
     apply_default_room(record)
-    normalize_phone(record)
     record
   end
 
@@ -303,13 +337,6 @@ class ContactTarget < DataPorter::Target
     record.data["room"] = import_params["default_room"]
   end
 
-  def normalize_phone(record)
-    phone = record.data["phone_number"]
-    return if phone.blank?
-
-    record.data["phone_number"] = phone.gsub(/\s/, "")
-  end
-
   def validate_email_format(record)
     email = record.data["email"]
     return if email.blank?
@@ -326,12 +353,13 @@ This target exercises:
 |---|---|---|
 | 4 sources | `sources :csv, :xlsx, :json, :api` | All source types available |
 | Typed columns | `type: :string, :email` | Built-in validation |
+| Column transformers | `transform: [:strip, :downcase]` | Declarative data cleaning |
 | Required field | `required: true` on `name` | Rows without name get "missing" status |
 | Dry run | `dry_run_enabled` | Dry run button in preview |
 | Import params | `param :default_room`, `param :import_source` | Dynamic form fields |
 | JSON root | `json_root "contacts"` | Extracts from `{"contacts": [...]}` |
 | API config | `endpoint`, `headers`, `response_root` | Authenticated API fetch |
-| Transform | `apply_default_room`, `normalize_phone` | Fill blanks, strip whitespace |
+| Transform | `apply_default_room` | Fill blanks from import params |
 | Validate | `validate_email_format` | Custom error on invalid email |
 | After import | Logs summary | Post-import hook |
 | On error | Logs failed line | Per-record error hook |

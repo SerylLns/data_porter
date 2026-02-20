@@ -9,6 +9,7 @@ end
 require_relative "data_porter/version"
 require_relative "data_porter/configuration"
 require_relative "data_porter/type_validator"
+require_relative "data_porter/column_transformer"
 require_relative "data_porter/store_models/error"
 require_relative "data_porter/store_models/report"
 require_relative "data_porter/store_models/import_record"
