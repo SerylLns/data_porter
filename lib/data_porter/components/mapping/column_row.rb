@@ -36,7 +36,7 @@ module DataPorter
             data_data_porter__mapping_target: "columnSelect",
             data_action: "change->data-porter--mapping#onChange"
           ) do
-            option(value: "") { "Skip this column" }
+            option(value: "") { I18n.t("data_porter.mapping.skip_column") }
             @target_fields.each { |label, value, required| render_field_option(label, value, required) }
           end
         end

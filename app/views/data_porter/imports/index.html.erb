@@ -3,11 +3,11 @@
      data-data-porter--import-form-params-value="<%= @targets.map { |t| [t[:key], t[:params]] }.to_h.to_json %>"
      data-action="keydown@document->data-porter--import-form#closeModal">
   <div class="dp-header">
-    <h1 class="dp-title">Imports</h1>
+    <h1 class="dp-title"><%= t("data_porter.imports.title") %></h1>
     <div class="dp-header__actions">
-      <%= link_to "Mapping Templates", mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
+      <%= link_to t("data_porter.mapping_templates.title"), mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
       <button type="button" class="dp-btn dp-btn--primary" data-action="data-porter--import-form#openModal">
-        New Import
+        <%= t("data_porter.imports.new_import") %>
       </button>
     </div>
   </div>
@@ -16,11 +16,11 @@
     <table class="dp-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Target</th>
-          <th>Source</th>
-          <th>Status</th>
-          <th>Created</th>
+          <th><%= t("data_porter.imports.table.id") %></th>
+          <th><%= t("data_porter.imports.table.target") %></th>
+          <th><%= t("data_porter.imports.table.source") %></th>
+          <th><%= t("data_porter.imports.table.status") %></th>
+          <th><%= t("data_porter.imports.table.created") %></th>
           <th></th>
         </tr>
       </thead>
@@ -33,11 +33,11 @@
             <td><%= raw DataPorter::Components::Shared::StatusBadge.new(status: import.status).call %></td>
             <td><%= import.created_at&.strftime("%Y-%m-%d %H:%M") %></td>
             <td class="dp-table__actions">
-              <%= link_to "View", import_path(import), class: "dp-btn dp-btn--sm dp-btn--secondary" %>
+              <%= link_to t("data_porter.imports.view"), import_path(import), class: "dp-btn dp-btn--sm dp-btn--secondary" %>
               <% if import.completed? || import.failed? %>
-                <%= button_to "Delete", import_path(import),
+                <%= button_to t("data_porter.imports.delete"), import_path(import),
                       method: :delete, class: "dp-btn dp-btn--sm dp-btn--danger",
-                      data: { turbo_confirm: "Delete this import?" } %>
+                      data: { turbo_confirm: t("data_porter.imports.delete_confirm") } %>
               <% end %>
             </td>
           </tr>
@@ -47,9 +47,9 @@
   <% else %>
     <div class="dp-empty-state">
       <div class="dp-empty-state__icon">&#128230;</div>
-      <p class="dp-empty-state__text">No imports yet</p>
+      <p class="dp-empty-state__text"><%= t("data_porter.imports.no_imports") %></p>
       <button type="button" class="dp-btn dp-btn--primary" data-action="data-porter--import-form#openModal">
-        Create your first import
+        <%= t("data_porter.imports.create_first") %>
       </button>
     </div>
   <% end %>
@@ -58,16 +58,16 @@
     <div class="dp-modal__backdrop" data-action="click->data-porter--import-form#closeModalClick"></div>
     <div class="dp-modal__content">
       <div class="dp-modal__header">
-        <h2 class="dp-modal__title">New Import</h2>
+        <h2 class="dp-modal__title"><%= t("data_porter.imports.new_import") %></h2>
         <button type="button" class="dp-modal__close" data-action="data-porter--import-form#closeModalClick">&times;</button>
       </div>
 
       <%= form_with model: DataPorter::DataImport.new, url: imports_path, class: "dp-modal__body", multipart: true, data: { turbo: false } do |f| %>
         <div class="dp-field">
-          <%= f.label :target_key, "Target", class: "dp-label" %>
+          <%= f.label :target_key, t("data_porter.imports.form.target_label"), class: "dp-label" %>
           <%= f.select :target_key,
                 @targets.map { |t| [t[:label], t[:key]] },
-                { prompt: "Select a target..." },
+                { prompt: t("data_porter.imports.form.target_prompt") },
                 class: "dp-select",
                 data: {
                   data_porter__import_form_target: "targetSelect",
@@ -78,10 +78,10 @@
         <div data-data-porter--import-form-target="paramsContainer"></div>
 
         <div class="dp-field">
-          <%= f.label :source_type, "Source Type", class: "dp-label" %>
+          <%= f.label :source_type, t("data_porter.imports.form.source_label"), class: "dp-label" %>
           <%= f.select :source_type,
                 DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
-                { prompt: "Select source type..." },
+                { prompt: t("data_porter.imports.form.source_prompt") },
                 class: "dp-select",
                 data: {
                   data_porter__import_form_target: "sourceSelect",
@@ -90,7 +90,7 @@
         </div>
 
         <div class="dp-field" data-data-porter--import-form-target="fileField">
-          <%= f.label :file, "File", class: "dp-label" %>
+          <%= f.label :file, t("data_porter.imports.form.file_label"), class: "dp-label" %>
           <label class="dp-dropzone" data-data-porter--import-form-target="dropzone"
                  data-action="dragover->data-porter--import-form#dragover dragleave->data-porter--import-form#dragleave drop->data-porter--import-form#drop">
             <input type="file" name="data_import[file]" class="dp-dropzone__input"
@@ -98,16 +98,16 @@
                    data-action="data-porter--import-form#handleFile" />
             <div class="dp-dropzone__content">
               <div class="dp-dropzone__icon">&#128196;</div>
-              <span class="dp-dropzone__text">Drop your file here or <strong>browse</strong></span>
-              <span class="dp-dropzone__hint">CSV, JSON, or XLSX files accepted</span>
+              <span class="dp-dropzone__text"><%= raw t("data_porter.imports.form.dropzone_text") %></span>
+              <span class="dp-dropzone__hint"><%= t("data_porter.imports.form.dropzone_hint") %></span>
             </div>
             <div class="dp-dropzone__selected" data-data-porter--import-form-target="fileName" style="display: none;"></div>
           </label>
         </div>
 
         <div class="dp-modal__footer">
-          <%= f.submit "Start Import", class: "dp-btn dp-btn--primary" %>
-          <button type="button" class="dp-btn dp-btn--secondary" data-action="data-porter--import-form#closeModalClick">Cancel</button>
+          <%= f.submit t("data_porter.imports.start_import"), class: "dp-btn dp-btn--primary" %>
+          <button type="button" class="dp-btn dp-btn--secondary" data-action="data-porter--import-form#closeModalClick"><%= t("data_porter.imports.cancel") %></button>
         </div>
       <% end %>
     </div>

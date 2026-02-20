@@ -1,28 +1,28 @@
 <div class="data-porter">
   <div class="dp-header">
     <div class="dp-header__actions">
-      <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--secondary" %>
+      <%= link_to t("data_porter.imports.back_to_imports"), imports_path, class: "dp-btn dp-btn--secondary" %>
     </div>
     <h1 class="dp-title">
-      <%= @target._label %> Import #<%= @import.id %>
+      <%= t("data_porter.imports.show_title", target: @target._label, id: @import.id) %>
     </h1>
     <%= raw DataPorter::Components::Shared::StatusBadge.new(status: @import.status).call %>
   </div>
 
   <div class="dp-import-details">
     <dl class="dp-details-grid">
-      <dt>Target</dt>
+      <dt><%= t("data_porter.imports.details.target") %></dt>
       <dd><%= @target._label %></dd>
-      <dt>Source</dt>
+      <dt><%= t("data_porter.imports.details.source") %></dt>
       <dd><%= @import.source_type.upcase %></dd>
       <% if @import.file.attached? %>
-        <dt>File</dt>
+        <dt><%= t("data_porter.imports.details.file") %></dt>
         <dd><%= @import.file.filename %></dd>
       <% end %>
-      <dt>Created</dt>
+      <dt><%= t("data_porter.imports.details.created") %></dt>
       <dd><%= @import.created_at&.strftime("%Y-%m-%d %H:%M") %></dd>
       <% if @import.report.records_count.positive? %>
-        <dt>Records</dt>
+        <dt><%= t("data_porter.imports.details.records") %></dt>
         <dd><%= @import.report.records_count %></dd>
       <% end %>
     </dl>
@@ -58,18 +58,18 @@
 
     <div class="dp-actions">
       <%= button_to confirm_import_path(@import), method: :post, class: "dp-btn dp-btn--primary", data: { dp_submit: true } do %>
-        Confirm Import
+        <%= t("data_porter.imports.confirm_import") %>
       <% end %>
       <% if @target._dry_run_enabled %>
         <%= button_to dry_run_import_path(@import), method: :post, class: "dp-btn dp-btn--secondary", data: { dp_submit: true } do %>
-          Dry Run
+          <%= t("data_porter.imports.dry_run") %>
         <% end %>
       <% end %>
       <% if @import.file_based? %>
-        <%= button_to "Back to Mapping", back_to_mapping_import_path(@import),
+        <%= button_to t("data_porter.imports.back_to_mapping"), back_to_mapping_import_path(@import),
               method: :post, class: "dp-btn dp-btn--secondary" %>
       <% end %>
-      <%= button_to "Cancel", cancel_import_path(@import),
+      <%= button_to t("data_porter.imports.cancel"), cancel_import_path(@import),
             method: :post, class: "dp-btn dp-btn--danger" %>
     </div>
   <% end %>
@@ -89,25 +89,25 @@
           ).call %>
     <% end %>
     <div class="dp-actions">
-      <%= link_to "Back to imports", imports_path, class: "dp-btn dp-btn--primary" %>
+      <%= link_to t("data_porter.imports.back_to_imports"), imports_path, class: "dp-btn dp-btn--primary" %>
       <% rejected = @import.report.errored_count.to_i + @import.report.missing_count.to_i + @import.report.partial_count.to_i %>
       <% if rejected.positive? %>
-        <%= link_to "Download rejects CSV", export_rejects_import_path(@import), class: "dp-btn dp-btn--secondary" %>
+        <%= link_to t("data_porter.imports.download_rejects"), export_rejects_import_path(@import), class: "dp-btn dp-btn--secondary" %>
       <% end %>
-      <%= button_to "Delete", import_path(@import),
+      <%= button_to t("data_porter.imports.delete"), import_path(@import),
             method: :delete, class: "dp-btn dp-btn--danger",
-            data: { turbo_confirm: "Delete this import?" } %>
+            data: { turbo_confirm: t("data_porter.imports.delete_confirm") } %>
     </div>
   <% end %>
 
   <% if @import.failed? %>
     <%= raw DataPorter::Components::Shared::FailureAlert.new(report: @import.report).call %>
     <div class="dp-actions">
-      <%= button_to "Retry", parse_import_path(@import),
+      <%= button_to t("data_porter.imports.retry"), parse_import_path(@import),
             method: :post, class: "dp-btn dp-btn--primary" %>
-      <%= button_to "Delete", import_path(@import),
+      <%= button_to t("data_porter.imports.delete"), import_path(@import),
             method: :delete, class: "dp-btn dp-btn--danger",
-            data: { turbo_confirm: "Delete this import?" } %>
+            data: { turbo_confirm: t("data_porter.imports.delete_confirm") } %>
     </div>
   <% end %>
 </div>
@@ -117,7 +117,7 @@
     document.querySelectorAll("[data-dp-submit]").forEach(function(btn) {
       btn.closest("form").addEventListener("submit", function() {
         btn.disabled = true;
-        btn.innerHTML = '<span class="dp-spinner"></span>Processing...';
+        btn.innerHTML = '<span class="dp-spinner"></span><%= j t("data_porter.imports.processing") %>';
       });
     });
   })();

@@ -54,7 +54,7 @@ module DataPorter
           return if @templates.empty?
 
           div(class: "dp-field") do
-            label(class: "dp-label") { "Load Template" }
+            label(class: "dp-label") { I18n.t("data_porter.mapping.load_template") }
             render TemplateSelect.new(templates: @templates)
           end
         end
@@ -96,14 +96,14 @@ module DataPorter
         def render_template_checkbox
           label(style: "display: flex; align-items: center; gap: 0.5rem;") do
             input(type: "checkbox", name: "save_template", value: "1")
-            span { "Save as template" }
+            span { I18n.t("data_porter.mapping.save_as_template") }
           end
         end
 
         def render_template_name_input
           input(
             type: "text", name: "template_name",
-            placeholder: "Template name",
+            placeholder: I18n.t("data_porter.mapping.template_name_placeholder"),
             class: "dp-select",
             style: "margin-top: 0.5rem;"
           )
@@ -111,7 +111,7 @@ module DataPorter
 
         def render_actions
           div(class: "dp-actions") do
-            button(type: "submit", class: "dp-btn dp-btn--primary") { "Continue" }
+            button(type: "submit", class: "dp-btn dp-btn--primary") { I18n.t("data_porter.mapping.continue") }
           end
         end
 

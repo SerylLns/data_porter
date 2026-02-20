@@ -4,6 +4,10 @@ module DataPorter
   class Engine < ::Rails::Engine
     isolate_namespace DataPorter
 
+    initializer "data_porter.i18n" do
+      config.i18n.load_path += Dir[root.join("config/locales/**/*.yml")]
+    end
+
     initializer "data_porter.assets.precompile" do |app|
       if app.config.respond_to?(:assets)
         app.config.assets.precompile += %w[

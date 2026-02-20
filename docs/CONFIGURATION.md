@@ -156,3 +156,40 @@ bin/rails data_porter:purge
 ```
 
 Attached files are purged from ActiveStorage along with the import record.
+
+## i18n
+
+All UI strings, error messages, and status labels are translatable via Rails I18n. The engine ships with English and French locales.
+
+### Changing the language
+
+Set your app's default locale in `config/application.rb`:
+
+```ruby
+config.i18n.default_locale = :fr
+```
+
+### Customizing labels
+
+Override any key in your own locale file:
+
+```yaml
+# config/locales/data_porter.en.yml
+en:
+  data_porter:
+    imports:
+      confirm_import: "Run Import"
+      delete_confirm: "Are you sure?"
+```
+
+Rails merges your keys over the gem's defaults -- no need to copy the entire file.
+
+### Adding a new language
+
+Use the locale generator to get a file with all keys pre-filled:
+
+```bash
+bin/rails generate data_porter:locale de
+```
+
+This creates `config/locales/data_porter.de.yml` with English values. Translate them and you're done.

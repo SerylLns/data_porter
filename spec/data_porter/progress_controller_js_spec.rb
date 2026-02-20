@@ -17,7 +17,7 @@ RSpec.describe "progress_controller.js" do
   end
 
   it "defines id and url values" do
-    expect(content).to include("static values = { id: Number, url: String }")
+    expect(content).to include("static values = { id: Number, url: String, labels: Object }")
   end
 
   it "polls for status via fetch" do

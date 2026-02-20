@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-20
+
+### Added
+
+- **i18n** -- All UI strings, error messages, and status labels are now translatable via Rails I18n. Ships with English and French locales (~100 keys each)
+- **Locale generator** -- `rails g data_porter:locale fr` copies a locale file with all keys pre-filled for translation
+- **Documentation site** -- MkDocs Material site with GitHub Pages deployment, search, dark mode, and full API reference
+- **Progress labels via data attributes** -- Stimulus progress controller reads translated labels from the server instead of hardcoded JS strings
+
+### Changed
+
+- 438 RSpec examples (up from 423), 0 failures
+
 ## [2.0.0] - 2026-02-19
 
 ### Breaking

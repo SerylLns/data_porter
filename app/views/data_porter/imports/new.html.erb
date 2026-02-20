@@ -1,6 +1,6 @@
 <div class="data-porter">
   <div class="dp-header">
-    <h1 class="dp-title">New Import</h1>
+    <h1 class="dp-title"><%= t("data_porter.imports.new_title") %></h1>
   </div>
 
   <% if @import.errors.any? %>
@@ -13,10 +13,10 @@
 
   <%= form_with model: @import, url: imports_path, class: "dp-form", multipart: true, data: { turbo: false } do |f| %>
     <div class="dp-field">
-      <%= f.label :target_key, "Target", class: "dp-label" %>
+      <%= f.label :target_key, t("data_porter.imports.form.target_label"), class: "dp-label" %>
       <%= f.select :target_key,
             @targets.map { |t| [t[:label], t[:key]] },
-            { prompt: "Select a target..." },
+            { prompt: t("data_porter.imports.form.target_prompt") },
             id: "dp-target-select-new",
             class: "dp-select",
             data: {
@@ -28,30 +28,30 @@
     <div id="dp-params-container" class="dp-params-container"></div>
 
     <div class="dp-field">
-      <%= f.label :source_type, "Source Type", class: "dp-label" %>
+      <%= f.label :source_type, t("data_porter.imports.form.source_label"), class: "dp-label" %>
       <%= f.select :source_type,
             DataPorter.configuration.enabled_sources.map { |s| [s.to_s.upcase, s] },
-            { prompt: "Select source type..." },
+            { prompt: t("data_porter.imports.form.source_prompt") },
             id: "dp-source-select-new",
             class: "dp-select" %>
     </div>
 
     <div id="dp-file-field-new" class="dp-field">
-      <%= f.label :file, "File", class: "dp-label" %>
+      <%= f.label :file, t("data_porter.imports.form.file_label"), class: "dp-label" %>
       <label class="dp-dropzone" id="dp-dropzone-new">
         <input type="file" name="data_import[file]" id="dp-file-input-new" class="dp-dropzone__input" />
         <div class="dp-dropzone__content">
           <div class="dp-dropzone__icon">&#128196;</div>
-          <span class="dp-dropzone__text">Drop your file here or <strong>browse</strong></span>
-          <span class="dp-dropzone__hint">CSV, JSON, or XLSX files accepted</span>
+          <span class="dp-dropzone__text"><%= raw t("data_porter.imports.form.dropzone_text") %></span>
+          <span class="dp-dropzone__hint"><%= t("data_porter.imports.form.dropzone_hint") %></span>
         </div>
         <div class="dp-dropzone__selected" id="dp-file-name-new" style="display: none;"></div>
       </label>
     </div>
 
     <div class="dp-actions">
-      <%= f.submit "Start Import", class: "dp-btn dp-btn--primary" %>
-      <%= link_to "Cancel", imports_path, class: "dp-btn dp-btn--secondary" %>
+      <%= f.submit t("data_porter.imports.start_import"), class: "dp-btn dp-btn--primary" %>
+      <%= link_to t("data_porter.imports.cancel"), imports_path, class: "dp-btn dp-btn--secondary" %>
     </div>
   <% end %>
 </div>
@@ -84,7 +84,7 @@
           input.className = "dp-select";
           var blank = document.createElement("option");
           blank.value = "";
-          blank.textContent = "Select...";
+          blank.textContent = "<%= j t("data_porter.imports.form.select_prompt") %>";
           input.appendChild(blank);
           p.collection.forEach(function(opt) {
             var o = document.createElement("option");

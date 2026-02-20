@@ -22,7 +22,7 @@ module DataPorter
         return unless max
         return if count <= max
 
-        raise Error, "File contains #{count} records, exceeds maximum of #{max}"
+        raise Error, I18n.t("data_porter.errors.max_records", count: count, max: max)
       end
 
       def build_record(row, index, columns, validator)

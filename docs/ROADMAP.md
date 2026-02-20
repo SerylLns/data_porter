@@ -7,10 +7,6 @@ icon: material/map-marker-path
 
 ## Next
 
-### i18n
-
-Full internationalization of all UI strings, error messages, and status labels. Ship with English and French translations. Host apps can override or add languages via standard Rails I18n.
-
 ### Column transformers
 
 Built-in transformation pipeline applied per-column before the target's `transform` method. Declarative DSL in the target:

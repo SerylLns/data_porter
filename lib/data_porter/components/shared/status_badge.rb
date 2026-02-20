@@ -10,7 +10,9 @@ module DataPorter
         end
 
         def view_template
-          span(class: "dp-badge dp-badge--#{@status}") { @status.capitalize }
+          span(class: "dp-badge dp-badge--#{@status}") do
+            I18n.t("data_porter.components.status_badge.#{@status}", default: @status.capitalize)
+          end
         end
       end
     end

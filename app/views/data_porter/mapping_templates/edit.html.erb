@@ -1,11 +1,11 @@
 <div class="data-porter">
   <div class="dp-header">
-    <h1 class="dp-title">Edit Mapping Template</h1>
+    <h1 class="dp-title"><%= t("data_porter.mapping_templates.edit_title") %></h1>
   </div>
 
   <%= render "form", template: @template, targets: @targets, target_columns_map: @target_columns_map %>
 
   <div class="dp-nav">
-    <%= link_to "Back to templates", mapping_templates_path, class: "dp-link" %>
+    <%= link_to t("data_porter.mapping_templates.back_to_templates"), mapping_templates_path, class: "dp-link" %>
   </div>
 </div>

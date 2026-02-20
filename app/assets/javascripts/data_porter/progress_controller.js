@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["bar", "text", "label"]
-  static values = { id: Number, url: String }
+  static values = { id: Number, url: String, labels: Object }
 
   connect() {
     this.poll()
@@ -32,8 +32,8 @@ export default class extends Controller {
 
   updateLabel(status) {
     if (!this.hasLabelTarget) return
-    var labels = { pending: "Waiting...", extracting_headers: "Extracting headers...", parsing: "Parsing records...", importing: "Importing...", dry_running: "Dry run..." }
-    this.labelTarget.textContent = labels[status] || "Processing..."
+    var labels = this.hasLabelsValue ? this.labelsValue : {}
+    this.labelTarget.textContent = labels[status] || labels["processing"] || status
   }
 
   disconnect() {

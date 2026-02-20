@@ -21,7 +21,7 @@ module DataPorter
 
         def render_label
           div(class: "dp-progress-label") do
-            span(data_data_porter__progress_target: "label") { "Waiting..." }
+            span(data_data_porter__progress_target: "label") { I18n.t("data_porter.components.progress.waiting") }
           end
         end
 
@@ -36,10 +36,17 @@ module DataPorter
         def stimulus_attrs
           attrs = {
             data_controller: "data-porter--progress",
-            data_data_porter__progress_id_value: @import_id.to_s
+            data_data_porter__progress_id_value: @import_id.to_s,
+            data_data_porter__progress_labels_value: progress_labels.to_json
           }
           attrs[:data_data_porter__progress_url_value] = @status_url if @status_url
           attrs
+        end
+
+        def progress_labels
+          %w[pending extracting_headers parsing importing dry_running processing].index_with do |key|
+            I18n.t("data_porter.components.progress.#{key}")
+          end
         end
       end
     end

@@ -15,7 +15,7 @@ module DataPorter
             class: "dp-select dp-mapping-template",
             data_action: "change->data-porter--mapping#loadTemplate"
           ) do
-            option(value: "") { "Select a template..." }
+            option(value: "") { I18n.t("data_porter.mapping.select_template") }
             @templates.each { |t| render_option(t) }
           end
         end

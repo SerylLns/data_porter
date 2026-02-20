@@ -11,10 +11,11 @@ module DataPorter
 
         def view_template
           div(class: "dp-summary-cards") do
-            card("dp-card--complete", @report.complete_count, "Ready")
-            card("dp-card--partial", @report.partial_count, "Incomplete")
-            card("dp-card--missing", @report.missing_count, "Missing")
-            card("dp-card--duplicate", @report.duplicate_count, "Duplicates")
+            card("dp-card--complete", @report.complete_count, I18n.t("data_porter.components.summary_cards.ready"))
+            card("dp-card--partial", @report.partial_count, I18n.t("data_porter.components.summary_cards.incomplete"))
+            card("dp-card--missing", @report.missing_count, I18n.t("data_porter.components.summary_cards.missing"))
+            card("dp-card--duplicate", @report.duplicate_count,
+                 I18n.t("data_porter.components.summary_cards.duplicates"))
           end
         end
 

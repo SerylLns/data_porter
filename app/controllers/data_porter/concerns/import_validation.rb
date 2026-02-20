@@ -18,7 +18,7 @@ module DataPorter
         allowed = target._sources || DataPorter.configuration.enabled_sources
         return true if allowed.map(&:to_s).include?(@import.source_type.to_s)
 
-        @import.errors.add(:source_type, "#{@import.source_type} is not available for this target")
+        @import.errors.add(:source_type, I18n.t("data_porter.errors.source_unavailable", source: @import.source_type))
         false
       end
 
@@ -26,7 +26,7 @@ module DataPorter
         return true unless %w[csv json xlsx].include?(@import.source_type)
         return true if @import.file.attached?
 
-        @import.errors.add(:file, "must be attached for #{@import.source_type.upcase} imports")
+        @import.errors.add(:file, I18n.t("data_porter.errors.file_required", source: @import.source_type.upcase))
         false
       end
 
@@ -34,7 +34,7 @@ module DataPorter
         missing = missing_required_params
         return true if missing.empty?
 
-        missing.each { |p| @import.errors.add(:base, "#{p.label} is required") }
+        missing.each { |p| @import.errors.add(:base, I18n.t("data_porter.errors.required", label: p.label)) }
         false
       end
 
@@ -55,7 +55,7 @@ module DataPorter
         max = DataPorter.configuration.max_file_size
         return true if @import.file.blob.byte_size <= max
 
-        @import.errors.add(:file, "is too large (max #{max / 1.megabyte} MB)")
+        @import.errors.add(:file, I18n.t("data_porter.errors.file_too_large", max: max / 1.megabyte))
         false
       end
 
@@ -68,7 +68,7 @@ module DataPorter
         content_type = @import.file.blob.content_type
         return true if allowed.include?(content_type)
 
-        @import.errors.add(:file, "has an invalid content type (#{content_type})")
+        @import.errors.add(:file, I18n.t("data_porter.errors.invalid_content_type", type: content_type))
         false
       end
     end

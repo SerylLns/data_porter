@@ -26,19 +26,27 @@ module DataPorter
         end
 
         def render_title
-          h3(class: "dp-results__title") { success? ? "Import completed" : "Import completed with errors" }
+          key = success? ? "completed" : "completed_with_errors"
+          h3(class: "dp-results__title") { I18n.t("data_porter.components.results_summary.#{key}") }
         end
 
         def render_stats
           div(class: "dp-results__cards") do
-            stat("dp-results__stat--success", @report.imported_count, "Imported")
-            stat("dp-results__stat--error", @report.errored_count, "Errors")
-            stat("dp-results__stat--warning", skipped_count, "Skipped") if skipped_count.positive?
+            stat("dp-results__stat--success", @report.imported_count,
+                 I18n.t("data_porter.components.results_summary.imported"))
+            stat("dp-results__stat--error", @report.errored_count,
+                 I18n.t("data_porter.components.results_summary.errors"))
+            if skipped_count.positive?
+              stat("dp-results__stat--warning", skipped_count,
+                   I18n.t("data_porter.components.results_summary.skipped"))
+            end
           end
         end
 
         def render_duration
-          div(class: "dp-results__duration") { "Duration: #{@duration}" }
+          div(class: "dp-results__duration") do
+            I18n.t("data_porter.components.results_summary.duration", duration: @duration)
+          end
         end
 
         def stat(css_class, count, label)

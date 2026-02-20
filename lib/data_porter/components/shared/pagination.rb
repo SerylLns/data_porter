@@ -24,22 +24,26 @@ module DataPorter
         private
 
         def render_prev
+          label = "\u2190 #{I18n.t("data_porter.components.pagination.previous")}"
           if @page > 1
-            a(href: page_url(@page - 1), class: "dp-pagination__btn") { "\u2190 Previous" }
+            a(href: page_url(@page - 1), class: "dp-pagination__btn") { label }
           else
-            span(class: "dp-pagination__btn dp-pagination__btn--disabled") { "\u2190 Previous" }
+            span(class: "dp-pagination__btn dp-pagination__btn--disabled") { label }
           end
         end
 
         def render_indicator
-          span(class: "dp-pagination__info") { "Page #{@page} of #{@total_pages}" }
+          span(class: "dp-pagination__info") do
+            I18n.t("data_porter.components.pagination.page_info", page: @page, total: @total_pages)
+          end
         end
 
         def render_next
+          label = "#{I18n.t("data_porter.components.pagination.next")} \u2192"
           if @page < @total_pages
-            a(href: page_url(@page + 1), class: "dp-pagination__btn") { "Next \u2192" }
+            a(href: page_url(@page + 1), class: "dp-pagination__btn") { label }
           else
-            span(class: "dp-pagination__btn dp-pagination__btn--disabled") { "Next \u2192" }
+            span(class: "dp-pagination__btn dp-pagination__btn--disabled") { label }
           end
         end
 

@@ -1,26 +1,26 @@
 <%= form_with model: template, url: template.persisted? ? mapping_template_path(template) : mapping_templates_path, class: "dp-form", method: template.persisted? ? :patch : :post, data: { controller: "data-porter--template-form", "data-porter--template-form-columns-value": target_columns_map.to_json } do |f| %>
   <div class="dp-field">
-    <%= f.label :target_key, "Target", class: "dp-label" %>
+    <%= f.label :target_key, t("data_porter.mapping_templates.form.target_label"), class: "dp-label" %>
     <%= f.select :target_key,
           targets.map { |t| [t[:label], t[:key]] },
-          { prompt: "Select a target..." },
+          { prompt: t("data_porter.mapping_templates.form.target_prompt") },
           class: "dp-select",
           data: { action: "change->data-porter--template-form#targetChanged" } %>
   </div>
 
   <div class="dp-field">
-    <%= f.label :name, "Template Name", class: "dp-label" %>
-    <%= f.text_field :name, class: "dp-select", placeholder: "e.g. French Headers" %>
+    <%= f.label :name, t("data_porter.mapping_templates.form.name_label"), class: "dp-label" %>
+    <%= f.text_field :name, class: "dp-select", placeholder: t("data_porter.mapping_templates.form.name_placeholder") %>
   </div>
 
   <div class="dp-field">
-    <label class="dp-label">Column Mappings</label>
+    <label class="dp-label"><%= t("data_porter.mapping_templates.form.column_mappings") %></label>
     <div id="dp-mapping-pairs" data-data-porter--template-form-target="pairsContainer">
       <% (template.mapping.presence || { "" => "" }).each do |header, field| %>
         <div class="dp-mapping-pair" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-          <input type="text" name="mapping_template[mapping_keys][]" value="<%= header %>" placeholder="File header" class="dp-select" style="flex: 1;" />
+          <input type="text" name="mapping_template[mapping_keys][]" value="<%= header %>" placeholder="<%= t("data_porter.mapping_templates.form.file_header_placeholder") %>" class="dp-select" style="flex: 1;" />
           <select name="mapping_template[mapping_values][]" class="dp-select" style="flex: 1;" data-data-porter--template-form-target="fieldSelect">
-            <option value="">Select a field...</option>
+            <option value=""><%= t("data_porter.mapping_templates.form.field_prompt") %></option>
             <% if template.target_key.present? && target_columns_map[template.target_key.to_s].present? %>
               <% target_columns_map[template.target_key.to_s].each do |label, name| %>
                 <option value="<%= name %>" <%= "selected" if name == field.to_s %>><%= label %></option>
@@ -30,11 +30,11 @@
         </div>
       <% end %>
     </div>
-    <button type="button" class="dp-btn dp-btn--secondary" style="margin-top: 0.5rem;" data-action="data-porter--template-form#addPair">+ Add Mapping</button>
+    <button type="button" class="dp-btn dp-btn--secondary" style="margin-top: 0.5rem;" data-action="data-porter--template-form#addPair"><%= t("data_porter.mapping_templates.form.add_mapping") %></button>
   </div>
 
   <div class="dp-actions">
-    <%= f.submit template.persisted? ? "Update Template" : "Create Template", class: "dp-btn dp-btn--primary" %>
-    <%= link_to "Cancel", mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
+    <%= f.submit template.persisted? ? t("data_porter.mapping_templates.form.update") : t("data_porter.mapping_templates.form.create"), class: "dp-btn dp-btn--primary" %>
+    <%= link_to t("data_porter.mapping_templates.form.cancel"), mapping_templates_path, class: "dp-btn dp-btn--secondary" %>
   </div>
 <% end %>

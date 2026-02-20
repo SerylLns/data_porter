@@ -24,10 +24,10 @@ module DataPorter
         def render_header
           thead do
             tr do
-              th { "#" }
-              th { "Status" }
+              th { I18n.t("data_porter.components.table.line_number") }
+              th { I18n.t("data_porter.components.table.status") }
               @columns.each { |col| th { col.label } }
-              th { "Errors" }
+              th { I18n.t("data_porter.components.table.errors") }
             end
           end
         end
