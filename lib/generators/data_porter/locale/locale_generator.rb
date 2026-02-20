@@ -5,37 +5,26 @@ require "rails/generators"
 module DataPorter
   module Generators
     class LocaleGenerator < Rails::Generators::Base
+      source_root File.expand_path("../../../../config/locales", __dir__)
+
       argument :locale, type: :string, default: "en"
 
       def copy_locale_file
-        source = engine_locale_path
+        source = source_file
         destination = "config/locales/data_porter.#{locale}.yml"
 
-        if File.exist?(source)
-          copy_file(source, destination)
-          gsub_file(destination, /^#{source_locale}:/, "#{locale}:")
-        else
-          create_from_english(destination)
-        end
+        copy_file(source, destination)
+        gsub_file(destination, /^#{source_locale}:/, "#{locale}:") unless locale == source_locale
       end
 
       private
 
-      def engine_locale_path
-        File.expand_path("../../../../config/locales/#{locale}.yml", __dir__)
-      end
-
-      def english_locale_path
-        File.expand_path("../../../../config/locales/en.yml", __dir__)
+      def source_file
+        File.exist?(File.join(self.class.source_root, "#{locale}.yml")) ? "#{locale}.yml" : "en.yml"
       end
 
       def source_locale
-        File.exist?(engine_locale_path) ? locale : "en"
-      end
-
-      def create_from_english(destination)
-        copy_file(english_locale_path, destination)
-        gsub_file(destination, /^en:/, "#{locale}:")
+        source_file.delete_suffix(".yml")
       end
     end
   end
