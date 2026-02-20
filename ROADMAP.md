@@ -1,111 +1,103 @@
 # Roadmap
 
-## Completed
+## Next
 
-### v0.2.0 -- XLSX Source
-- ~~Parse `.xlsx` files natively via `creek` gem~~
-- ~~Sheet selector via `config["sheet_index"]`~~
-- ~~Same parsing pipeline as CSV~~
+### i18n
 
-### v0.3.0 -- Interactive Column Mapping & Templates
-- ~~Mapping UI: each CSV/XLSX column header gets a dropdown to select the target field~~
-- ~~Save mapping as a reusable template (name + column-to-field pairs)~~
-- ~~Template selector that pre-fills all dropdowns at once~~
-- ~~Stored per-target so each import type has its own template library~~
-- ~~Header extraction step before parsing for file-based sources~~
-- ~~Dynamic mapping priority: user mapping > code mapping > auto-map~~
+Full internationalization of all UI strings, error messages, and status labels. Ship with English and French translations. Host apps can override or add languages via standard Rails I18n.
 
-### v0.4.0 -- Standalone Engine UX
-- ~~Self-contained layout with Stimulus + Turbo Drive via CDN importmap~~
-- ~~Required field indication and duplicate mapping detection~~
-- ~~File validation on create for file-based sources~~
-- ~~Turbo Drive for instant page navigation~~
-- ~~Import details card on show page~~
-- ~~Improved template management UI~~
+### Column transformers
+
+Built-in transformation pipeline applied per-column before the target's `transform` method. Declarative DSL in the target:
+
+```ruby
+columns do
+  column :email, type: :string, transform: [:strip, :downcase]
+  column :phone, type: :string, transform: [:strip, :normalize_phone]
+  column :born_on, type: :date, transform: [:parse_date]
+end
+```
+
+Ships with common transformers (`strip`, `downcase`, `titleize`, `normalize_phone`, `parse_date`). Custom transformers via a registry.
+
+### Webhooks
+
+HTTP callbacks on import lifecycle events (started, completed, failed). Configurable per-target with URL, headers, and payload template. Enables integration with Slack notifications, CI pipelines, or external dashboards.
 
 ---
 
 ## Planned
 
-### High Priority
+### Bulk import
 
-#### Required Fields in New Import Form
-- Validate required import params (`target.params`) on the new import form
-- Client-side: disable submit until required fields are filled
-- Server-side: reject creation if required params are missing
+High-volume import support using `insert_all` / `upsert_all` for batch persistence. Opt-in per target to bypass per-record `persist` calls, enabling 10-100x throughput for simple create/upsert scenarios. Configurable batch size, with fallback to per-record mode on conflict.
 
-#### Export (reverse workflow)
-- `ExportTarget` DSL mirroring the import Target
-- Define query scope, columns, and output format (CSV, JSON, XLSX)
-- Background job with progress bar (reuse existing ActionCable infrastructure)
-- Download link on completion
+### Update & diff mode
 
-#### Batch Import & Resumable Jobs
-- Process large files in configurable batches (default: 1,000 records)
-- Use `insert_all` / `upsert_all` for bulk persistence
-- Granular progress: "12,000 / 150,000 records"
-- Memory-efficient streaming parser for CSV and XLSX
-- Resumable imports: save cursor position, resume on worker restart
-- Explore `ActiveJob::Continuable` (Rails 8.1+) with fallback mechanism for Rails 7.x
-- Ref: https://codewithrails.com/blog/rails-resumable-csv-import-continuable/
+Support update (upsert) imports alongside create-only. Given a `deduplicate_by` key, detect existing records and show a diff preview: new records, changed fields (highlighted), unchanged rows. User confirms which changes to apply. Enables recurring data sync workflows.
 
-#### Scheduled Imports
-- Cron-like configuration in the Target DSL: `schedule "0 3 * * *"`
-- Recurring API source imports (fetch external data on a timer)
-- Dashboard for scheduled imports with last run status and next run time
-- Built on ActiveJob + `solid_queue` or host app's queue adapter
+### Resume / retry on failure
 
-### Medium Priority
+If an import fails mid-way (timeout, crash, transient error), resume from the last successful record instead of restarting from scratch. Track a checkpoint index in the report. Critical for large imports (5k+ records) where re-processing everything is not acceptable.
 
-#### Column Transformers
-- Inline transform lambdas in the column DSL
-- Built-in transformers: `downcase`, `strip`, `normalize_phone`, `parse_date`
+### API pagination
+
+Support paginated API sources. The current API source does a single GET, which works for small datasets but not for APIs returning thousands of records across multiple pages. Support offset, cursor, and link-header pagination strategies via `api_config`:
+
 ```ruby
-column :email, type: :email, transform: ->(v) { v.downcase.strip }
+api_config do
+  endpoint "https://api.example.com/contacts"
+  pagination :cursor, param: "after", root: "data", next_key: "meta.next_cursor"
+end
 ```
 
-#### Auto-suggest Mapping
-- Fuzzy matching between file headers and target columns
-- Suggest mappings based on Levenshtein distance or string similarity
-- Pre-fill dropdowns with best guesses, user confirms
+### Import API (REST)
 
-#### Diff Mode
-- Compare incoming records with existing database data
-- Show what will be created, updated, or left unchanged
-- Visual diff on the preview step before confirming
-- Supports `deduplicate_by` keys for record matching
+Headless REST API for programmatic imports:
 
-#### Webhooks
-- Notify an external URL on import completion or failure
-- Configurable per-target or globally
-- JSON payload with import summary and error details
-
-#### Import API (REST)
-- `POST /api/imports` -- create import (multipart file upload or JSON payload)
-- `GET /api/imports` -- list imports (paginated)
-- `GET /api/imports/:id` -- status + results
-- `DELETE /api/imports/:id` -- delete import
+- `POST /api/imports` — create import (multipart file upload or JSON payload)
+- `GET /api/imports/:id` — status + results
 - Auth via `config.api_authenticate` lambda (API key or Bearer token)
 - Reuses existing job pipeline (parse, import, dry run)
-- Simple JSON serialization (no Graphiti dependency)
 
-#### I18n
-- Extract all hardcoded strings from ERB views and Phlex components to locale files
-- Ship `config/locales/en.yml` as default
-- Users can override with their own locale files or add translations
+### View generator & theming
 
-#### View Generator
-- `rails g data_porter:views` copies ERB/Phlex templates into the host app for customization
-- Similar to `devise:views` pattern
-- Allows full UI integration with the app's design system
+Customizable UI in two layers:
 
-### Low Priority
+- **View generator** — `rails g data_porter:views` copies the 7 ERB templates into the host app for structural customization (layout, buttons, sections). Similar to `devise:views`.
+- **CSS theming** — All styles use `--dp-*` custom properties. Host apps override variables to match their design system, no ERB changes needed.
+- **Light / dark mode** — Two built-in presets toggled via `prefers-color-scheme` or a `.dp-dark` class.
 
-#### Dashboard Analytics
-- Stats: imports per week, error rate, average duration, top targets
-- Lightweight charts (inline SVG, no JS dependency)
+### Auto-map heuristics
 
-#### Rollback
-- Undo a completed import (soft-delete created records)
-- Uses `target_id` already tracked on each ImportRecord
-- Confirmation step with summary of records to be reverted
+Smart column mapping suggestions using tokenized header matching and synonym dictionaries. When a CSV has "E-mail Address", auto-suggest mapping to `:email`. Built-in synonyms for common patterns (phone → phone_number, first name → first_name). Configurable synonym lists per target.
+
+---
+
+## Ideas
+
+### Export (reverse workflow)
+
+`ExportTarget` DSL mirroring the import Target. Define query scope, columns, and output format (CSV, JSON, XLSX). Background job with progress bar and download link on completion.
+
+### External connectors
+
+Source plugins beyond local files and HTTP APIs:
+
+- **Google Sheets** — OAuth2 + Sheets API, treat a spreadsheet as a source
+- **SFTP** — Poll a remote directory for new files
+- **AWS S3** — Watch a bucket/prefix for uploads
+
+Each connector implements the `Sources::Base` interface. Installed as optional companion gems (`data_porter-google_sheets`, `data_porter-s3`).
+
+### Scheduled imports
+
+Recurring imports from API or remote sources on a cron schedule. A target declares a schedule, and DataPorter automatically fetches and imports at the configured interval. Built on ActiveJob with configurable queue.
+
+### Rollback
+
+Undo a completed import by soft-deleting the created records. Confirmation step with summary of records to be reverted.
+
+### Dashboard & analytics
+
+Import statistics dashboard: success rates, average duration, records per import, most-used targets, failure trends. Mountable as an admin-only route.
