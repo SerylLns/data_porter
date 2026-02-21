@@ -1,7 +1,7 @@
 .dp-progress-container {
   margin: 2rem 0;
   padding: 2rem;
-  background: white;
+  background: var(--dp-bg-elevated);
   border: 1px solid var(--dp-gray-200);
   border-radius: var(--dp-radius-lg);
   box-shadow: var(--dp-shadow-sm);

@@ -10,7 +10,7 @@
   border-radius: var(--dp-radius-lg);
   border: 1px solid var(--dp-gray-200);
   text-align: center;
-  background: white;
+  background: var(--dp-bg-elevated);
   box-shadow: var(--dp-shadow-sm);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }

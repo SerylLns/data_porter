@@ -3,7 +3,7 @@
   border-collapse: separate;
   border-spacing: 0;
   margin-bottom: 1.5rem;
-  background: white;
+  background: var(--dp-bg-elevated);
   border: 1px solid var(--dp-gray-200);
   border-radius: var(--dp-radius-lg);
   overflow: hidden;
@@ -65,7 +65,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--dp-primary);
-  background: white;
+  background: var(--dp-bg-elevated);
   border: 1px solid var(--dp-gray-300);
   border-radius: var(--dp-radius-md);
   text-decoration: none;
@@ -85,7 +85,7 @@
 }
 
 .dp-pagination__btn--disabled:hover {
-  background: white;
+  background: var(--dp-bg-elevated);
   border-color: var(--dp-gray-300);
 }
 

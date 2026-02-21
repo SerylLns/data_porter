@@ -14,7 +14,7 @@
 }
 
 .dp-row--complete { background: var(--dp-success-light); }
-.dp-row--partial { background: var(--dp-warning-light); }
+.dp-row--partial { background: var(--dp-danger-light); }
 .dp-row--missing { background: var(--dp-danger-light); }
 
 .dp-errors {

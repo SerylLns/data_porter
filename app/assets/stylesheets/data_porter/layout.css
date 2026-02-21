@@ -12,7 +12,7 @@
 
 .dp-form {
   max-width: 520px;
-  background: white;
+  background: var(--dp-bg-elevated);
   padding: 2rem;
   border: 1px solid var(--dp-gray-200);
   border-radius: var(--dp-radius-lg);
@@ -36,8 +36,8 @@
   border: 1px solid var(--dp-gray-300);
   border-radius: var(--dp-radius-md);
   font-size: 0.9375rem;
-  background: white;
-  color: var(--dp-gray-800);
+  background: var(--dp-bg-elevated);
+  color: var(--dp-text);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   appearance: none;
 }
@@ -95,7 +95,7 @@
 .dp-btn--primary { background: var(--dp-primary); color: white; box-shadow: var(--dp-shadow-sm); }
 .dp-btn--primary:hover { background: var(--dp-primary-hover); box-shadow: var(--dp-shadow-md); }
 
-.dp-btn--secondary { background: white; color: var(--dp-gray-700); border-color: var(--dp-gray-300); box-shadow: var(--dp-shadow-sm); }
+.dp-btn--secondary { background: var(--dp-bg-elevated); color: var(--dp-gray-700); border-color: var(--dp-gray-300); box-shadow: var(--dp-shadow-sm); }
 .dp-btn--secondary:hover { background: var(--dp-gray-50); border-color: var(--dp-gray-400); }
 
 .dp-btn--danger { background: var(--dp-danger); color: white; box-shadow: var(--dp-shadow-sm); }
@@ -112,7 +112,7 @@
 .dp-empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  background: white;
+  background: var(--dp-bg-elevated);
   border: 2px dashed var(--dp-gray-300);
   border-radius: var(--dp-radius-xl);
 }
@@ -121,7 +121,7 @@
 .dp-empty-state__text { font-size: 1.125rem; color: var(--dp-gray-500); margin: 0 0 1.5rem; }
 
 .dp-import-details {
-  background: white;
+  background: var(--dp-bg-elevated);
   padding: 1.5rem;
   border: 1px solid var(--dp-gray-200);
   border-radius: var(--dp-radius-lg);

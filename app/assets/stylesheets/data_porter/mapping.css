@@ -1,6 +1,6 @@
 .dp-mapping-form {
   max-width: 700px;
-  background: white;
+  background: var(--dp-bg-elevated);
   padding: 2rem;
   border: 1px solid var(--dp-gray-200);
   border-radius: var(--dp-radius-lg);
@@ -53,8 +53,8 @@
 }
 
 .dp-mapping-row--duplicate {
-  border-color: #f59e0b;
-  background: #fffbeb;
+  border-color: var(--dp-warning-border);
+  background: var(--dp-warning-light);
 }
 
 .dp-mapping-required-warning,
@@ -67,13 +67,13 @@
 }
 
 .dp-mapping-required-warning {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+  background: var(--dp-danger-light);
+  border: 1px solid var(--dp-danger-border);
+  color: var(--dp-danger);
 }
 
 .dp-mapping-duplicate-warning {
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-  color: #92400e;
+  background: var(--dp-warning-light);
+  border: 1px solid var(--dp-warning-border);
+  color: var(--dp-warning);
 }

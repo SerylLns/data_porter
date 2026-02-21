@@ -3,7 +3,7 @@
 .dp-modal__backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); }
 .dp-modal__content {
   position: relative;
-  background: white;
+  background: var(--dp-bg-elevated);
   border-radius: var(--dp-radius-xl);
   box-shadow: var(--dp-shadow-lg), 0 25px 50px -12px rgba(0,0,0,0.15);
   width: 100%;

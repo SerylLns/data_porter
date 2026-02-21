@@ -12,8 +12,8 @@
 }
 
 .dp-results--partial {
-  background: var(--dp-warning-light);
-  border: 1px solid var(--dp-warning-border);
+  background: var(--dp-danger-light);
+  border: 1px solid var(--dp-danger-border);
 }
 
 .dp-results__icon {
@@ -39,7 +39,7 @@
 .dp-results__stat {
   padding: 1rem;
   border-radius: var(--dp-radius-md);
-  background: white;
+  background: var(--dp-bg-elevated);
   border: 1px solid var(--dp-gray-200);
 }
 
