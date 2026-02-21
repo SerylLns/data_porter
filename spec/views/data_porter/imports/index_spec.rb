@@ -84,6 +84,10 @@ RSpec.describe "data_porter/imports/index.html.erb" do
     expect(html).to include("params-value")
   end
 
+  it "displays the target icon" do
+    expect(html).to include('<i class="fas fa-users"></i>')
+  end
+
   context "with no imports" do
     subject(:html) do
       view = build_view(imports: [], targets: targets)

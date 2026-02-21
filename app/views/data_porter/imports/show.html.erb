@@ -4,7 +4,7 @@
       <%= link_to t("data_porter.imports.back_to_imports"), imports_path, class: "dp-btn dp-btn--secondary" %>
     </div>
     <h1 class="dp-title">
-      <%= t("data_porter.imports.show_title", target: @target._label, id: @import.id) %>
+      <% if @target._icon.present? %><i class="<%= @target._icon %>"></i> <% end %><%= t("data_porter.imports.show_title", target: @target._label, id: @import.id) %>
     </h1>
     <%= raw DataPorter::Components::Shared::StatusBadge.new(status: @import.status).call %>
   </div>
@@ -12,7 +12,7 @@
   <div class="dp-import-details">
     <dl class="dp-details-grid">
       <dt><%= t("data_porter.imports.details.target") %></dt>
-      <dd><%= @target._label %></dd>
+      <dd><% if @target._icon.present? %><i class="<%= @target._icon %>"></i> <% end %><%= @target._label %></dd>
       <dt><%= t("data_porter.imports.details.source") %></dt>
       <dd><%= @import.source_type.upcase %></dd>
       <% if @import.file.attached? %>

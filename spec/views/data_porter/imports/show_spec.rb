@@ -51,6 +51,16 @@ RSpec.describe "data_porter/imports/show.html.erb" do
     expect(html).to include("Guests")
   end
 
+  it "displays the target icon in the title" do
+    expect(html).to include('<i class="fas fa-users"></i>')
+  end
+
+  it "displays the target icon in the details" do
+    doc = Nokogiri::HTML(html)
+    icons = doc.css("dd i.fas.fa-users")
+    expect(icons.length).to be >= 1
+  end
+
   it "renders a status badge" do
     expect(html).to include("dp-badge")
   end
