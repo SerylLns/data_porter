@@ -18,6 +18,7 @@ module DataPorter
           data_porter/template_form_controller.js
           data_porter/progress_controller.js
           data_porter/import_form_controller.js
+          data_porter/theme_controller.js
         ]
       end
     end

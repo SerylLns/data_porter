@@ -14,7 +14,8 @@
         "data_porter/mapping_controller": "<%= asset_path('data_porter/mapping_controller.js') %>",
         "data_porter/template_form_controller": "<%= asset_path('data_porter/template_form_controller.js') %>",
         "data_porter/progress_controller": "<%= asset_path('data_porter/progress_controller.js') %>",
-        "data_porter/import_form_controller": "<%= asset_path('data_porter/import_form_controller.js') %>"
+        "data_porter/import_form_controller": "<%= asset_path('data_porter/import_form_controller.js') %>",
+        "data_porter/theme_controller": "<%= asset_path('data_porter/theme_controller.js') %>"
       }
     }
   </script>
@@ -25,15 +26,18 @@
     import TemplateFormController from "data_porter/template_form_controller"
     import ProgressController from "data_porter/progress_controller"
     import ImportFormController from "data_porter/import_form_controller"
+    import ThemeController from "data_porter/theme_controller"
 
     const application = Application.start()
     application.register("data-porter--mapping", MappingController)
     application.register("data-porter--template-form", TemplateFormController)
     application.register("data-porter--progress", ProgressController)
     application.register("data-porter--import-form", ImportFormController)
+    application.register("data-porter--theme", ThemeController)
   </script>
 </head>
-<body>
+<body data-controller="data-porter--theme">
   <%= yield %>
+  <button class="dp-theme-toggle" data-action="data-porter--theme#toggle" data-data-porter--theme-target="icon" aria-label="Toggle theme">&#9789;</button>
 </body>
 </html>

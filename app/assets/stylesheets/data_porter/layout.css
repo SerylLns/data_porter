@@ -145,3 +145,30 @@
   margin: 0;
   color: var(--dp-gray-800);
 }
+
+.dp-theme-toggle {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--dp-border-strong);
+  background: var(--dp-bg-elevated);
+  color: var(--dp-text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  box-shadow: var(--dp-shadow-md);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.dp-theme-toggle:hover {
+  background: var(--dp-bg-subtle);
+  color: var(--dp-text);
+  box-shadow: var(--dp-shadow-lg);
+  transform: scale(1.05);
+}
