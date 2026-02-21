@@ -8,18 +8,22 @@ module DataPorter
       def import_bulk
         importable = @data_import.importable_records
         context = build_context
-        config = @target.class._bulk_config
+        bulk_config = @target.class._bulk_config
         results = { created: 0, errored: 0 }
+
+        process_batches(importable, context, bulk_config, results)
+        finalize_import(results)
+      end
+
+      def process_batches(importable, context, bulk_config, results)
         total = importable.size
         processed = 0
 
-        importable.each_slice(config[:batch_size]) do |batch|
-          persist_batch_with_fallback(batch, context, config, results)
+        importable.each_slice(bulk_config[:batch_size]) do |batch|
+          persist_batch_with_fallback(batch, context, bulk_config, results)
           processed += batch.size
-          broadcast_progress(processed, total)
+          broadcast_progress(processed, total, results: results)
         end
-
-        finalize_import(results)
       end
 
       def persist_batch_with_fallback(batch, context, config, results)

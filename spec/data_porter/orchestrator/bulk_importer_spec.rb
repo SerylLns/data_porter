@@ -82,6 +82,17 @@ RSpec.describe DataPorter::Orchestrator do
       expect(report.errored_count).to eq(0)
     end
 
+    it "saves checkpoint to config after each batch" do
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      checkpoint = data_import.reload.config["checkpoint"]
+      expect(checkpoint["processed"]).to eq(5)
+      expect(checkpoint["created"]).to eq(5)
+      expect(checkpoint["errored"]).to eq(0)
+    end
+
     it "broadcasts progress per batch, not per record" do
       broadcaster = instance_double(DataPorter::Broadcaster)
       allow(DataPorter::Broadcaster).to receive(:new).and_return(broadcaster)
