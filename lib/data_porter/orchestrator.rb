@@ -32,6 +32,7 @@ module DataPorter
     def parse!
       @data_import.parsing!
       records = build_records
+      clear_stale_import_data
       @data_import.update!(records: records, status: :previewing)
       build_report
       WebhookNotifier.notify(@data_import, "import.parsed")
@@ -110,6 +111,13 @@ module DataPorter
         "created" => results[:created],
         "errored" => results[:errored]
       }
+    end
+
+    def clear_stale_import_data
+      config = @data_import.config || {}
+      config.delete("checkpoint")
+      config.delete("progress")
+      @data_import.config = config
     end
 
     def handle_failure(error)

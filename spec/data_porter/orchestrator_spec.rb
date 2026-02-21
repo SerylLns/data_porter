@@ -114,6 +114,20 @@ RSpec.describe DataPorter::Orchestrator do
       expect(report.complete_count).to eq(2)
     end
 
+    it "clears stale checkpoint from previous import" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 5, "created" => 4, "errored" => 1 },
+                            "progress" => { "current" => 5, "total" => 10 }
+                          })
+      orchestrator = described_class.new(data_import, content: csv_content)
+
+      orchestrator.parse!
+
+      config = data_import.reload.config
+      expect(config).not_to have_key("checkpoint")
+      expect(config).not_to have_key("progress")
+    end
+
     it "transitions to failed on error" do
       allow_any_instance_of(DataPorter::Sources::Csv).to receive(:fetch).and_raise("parse error")
       orchestrator = described_class.new(data_import, content: csv_content)
