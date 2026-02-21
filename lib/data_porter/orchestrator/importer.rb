@@ -23,7 +23,7 @@ module DataPorter
 
         importable.each_with_index do |record, index|
           persist_record(record, context, results)
-          broadcast_progress(index + 1, total)
+          broadcast_progress(index + 1, total, results: results)
         end
 
         finalize_import(results)

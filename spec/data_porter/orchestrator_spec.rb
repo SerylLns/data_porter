@@ -276,6 +276,29 @@ RSpec.describe DataPorter::Orchestrator do
       expect(broadcaster).to have_received(:success).once
     end
 
+    it "saves checkpoint to config during import" do
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      checkpoint = data_import.reload.config["checkpoint"]
+      expect(checkpoint["processed"]).to eq(2)
+      expect(checkpoint["created"]).to eq(2)
+      expect(checkpoint["errored"]).to eq(0)
+    end
+
+    it "does not save checkpoint during parse" do
+      fresh_import = DataPorter::DataImport.create!(
+        target_key: "guests", source_type: "csv",
+        user_type: "User", user_id: 1
+      )
+      orchestrator = described_class.new(fresh_import, content: csv_content)
+
+      orchestrator.parse!
+
+      expect(fresh_import.reload.config).not_to have_key("checkpoint")
+    end
+
     it "broadcasts failure on catastrophic error" do
       data_import.update!(records: [])
       allow(data_import).to receive(:importable_records).and_raise("fatal")

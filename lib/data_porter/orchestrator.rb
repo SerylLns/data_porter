@@ -92,12 +92,24 @@ module DataPorter
       DataPorter.configuration.context_builder&.call(@data_import)
     end
 
-    def broadcast_progress(current, total)
-      percentage = ((current.to_f / total) * 100).round
+    def broadcast_progress(current, total, results: nil)
       config = @data_import.config || {}
-      config["progress"] = { "current" => current, "total" => total, "percentage" => percentage }
+      config["progress"] = { "current" => current, "total" => total, "percentage" => pct(current, total) }
+      save_checkpoint(config, current, results) if results
       @data_import.update_column(:config, config)
       @broadcaster.progress(current, total)
+    end
+
+    def pct(current, total)
+      ((current.to_f / total) * 100).round
+    end
+
+    def save_checkpoint(config, processed, results)
+      config["checkpoint"] = {
+        "processed" => processed,
+        "created" => results[:created],
+        "errored" => results[:errored]
+      }
     end
 
     def handle_failure(error)
