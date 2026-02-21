@@ -72,6 +72,12 @@ Upload, Map, Preview, Import — supports CSV, XLSX, JSON, and API sources with 
 
 ---
 
+!!! tip "Follow the build series"
+    Want to see how DataPorter was built from scratch, step by step?
+    **[Building DataPorter on dev.to](https://dev.to/seryllns_/series/35813)** -- a 30-part series covering architecture decisions, TDD workflow, and every feature from first commit to production.
+
+---
+
 ## Quick Example
 
 ```ruby

@@ -103,6 +103,8 @@ pending -> parsing -> previewing -> importing -> completed
 
 **[Full documentation on GitHub Pages](https://seryllns.github.io/data_porter/)**
 
+> **Build series**: Want to see how DataPorter was built step by step? [Building DataPorter on dev.to](https://dev.to/seryllns_/series/35813) -- 30 parts covering architecture, TDD, and every feature from first commit to production.
+
 | Topic | Description |
 |---|---|
 | [Configuration](docs/CONFIGURATION.md) | All options, authentication, context builder, real-time updates |
