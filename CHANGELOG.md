@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto-map heuristics** -- Smart column suggestions that pre-fill mapping selects when CSV/XLSX headers match target fields by exact name or built-in synonym (e.g. "E-mail Address" → email, "fname" → first_name). Supports per-column custom synonyms via `synonyms:` keyword in column DSL. Fallback chain: saved mapping > code-defined > auto-map > empty
 
+## [2.5.0] - 2026-02-21
+
+### Added
+
+- **Bulk import mode** -- Opt-in per-target batch persistence via `bulk_mode batch_size: 500, on_conflict: :retry_per_record`. Uses `insert_all` by default (with auto-injected timestamps) for 10-100x throughput on simple create scenarios. Custom batch logic via `persist_batch` override. Configurable conflict strategy: `:retry_per_record` (default) retries failed batches record-by-record, `:fail_batch` marks entire batch as errored. Progress broadcasts per batch instead of per record
+
+### Changed
+
+- 551 RSpec examples (up from 540), 0 failures
+
 ## [2.4.0] - 2026-02-21
 
 ### Added

@@ -7,10 +7,6 @@ icon: material/map-marker-path
 
 ## Next
 
-### Bulk import
-
-High-volume import support using `insert_all` / `upsert_all` for batch persistence. Opt-in per target to bypass per-record `persist` calls, enabling 10-100x throughput for simple create/upsert scenarios. Configurable batch size, with fallback to per-record mode on conflict.
-
 ### Update & diff mode
 
 Support update (upsert) imports alongside create-only. Given a `deduplicate_by` key, detect existing records and show a diff preview: new records, changed fields (highlighted), unchanged rows. User confirms which changes to apply. Enables recurring data sync workflows.
