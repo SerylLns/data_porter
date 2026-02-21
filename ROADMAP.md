@@ -6,10 +6,6 @@
 
 Support update (upsert) imports alongside create-only. Given a `deduplicate_by` key, detect existing records and show a diff preview: new records, changed fields (highlighted), unchanged rows. User confirms which changes to apply. Enables recurring data sync workflows.
 
-### Resume / retry on failure
-
-If an import fails mid-way (timeout, crash, transient error), resume from the last successful record instead of restarting from scratch. Track a checkpoint index in the report. Critical for large imports (5k+ records) where re-processing everything is not acceptable.
-
 ### API pagination
 
 Support paginated API sources. The current API source does a single GET, which works for small datasets but not for APIs returning thousands of records across multiple pages. Support offset, cursor, and link-header pagination strategies via `api_config`:

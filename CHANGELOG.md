@@ -11,6 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto-map heuristics** -- Smart column suggestions that pre-fill mapping selects when CSV/XLSX headers match target fields by exact name or built-in synonym (e.g. "E-mail Address" → email, "fname" → first_name). Supports per-column custom synonyms via `synonyms:` keyword in column DSL. Fallback chain: saved mapping > code-defined > auto-map > empty
 
+## [2.6.0] - 2026-02-21
+
+### Added
+
+- **Resume on failure** -- When an import fails mid-way (crash, timeout, exception), resume from the last successful record instead of re-importing from scratch. Progress checkpoints stored in the existing `config` JSONB column alongside `broadcast_progress` — zero additional DB operations or migrations. Works with both per-record and bulk import modes
+- `resumable?` predicate on `DataImport` — returns `true` when a failed import has a checkpoint with processed records
+- Resume button in the failed import UI (primary action), with Retry demoted to secondary
+- `POST :resume` route on the imports controller
+
+### Fixed
+
+- `handle_failure` now preserves existing report data (parsed counts, partial results) instead of creating a new empty report
+- `parse!` now clears stale checkpoint and progress data from previous import attempts
+
+### Changed
+
+- 574 RSpec examples (up from 551), 0 failures
+
 ## [2.5.1] - 2026-02-21
 
 ### Fixed
