@@ -103,6 +103,31 @@ RSpec.describe DataPorter::Orchestrator do
       expect(checkpoint["processed"]).to eq(2)
     end
 
+    it "resumes bulk import skipping already-processed records" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 2, "created" => 2, "errored" => 0 }
+                          })
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(persisted_batches.size).to eq(2)
+      expect(persisted_batches.flatten.map { |d| d["name"] }).to eq(%w[Charlie Diana Eve])
+    end
+
+    it "seeds bulk results from checkpoint counts" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 2, "created" => 1, "errored" => 1 }
+                          })
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      report = data_import.reload.report
+      expect(report.imported_count).to eq(4)
+      expect(report.errored_count).to eq(1)
+    end
+
     it "broadcasts progress per batch, not per record" do
       broadcaster = instance_double(DataPorter::Broadcaster)
       allow(DataPorter::Broadcaster).to receive(:new).and_return(broadcaster)
