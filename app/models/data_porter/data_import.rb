@@ -53,12 +53,16 @@ module DataPorter
       records.group_by(&:status).transform_values(&:count)
     end
 
+    def resumable?
+      failed? && config&.dig("checkpoint", "processed").to_i.positive?
+    end
+
     def reset_to_mapping!
       update!(
         status: :mapping,
         records: [],
         report: StoreModels::Report.new,
-        config: (config || {}).except("progress")
+        config: (config || {}).except("progress", "checkpoint")
       )
     end
 

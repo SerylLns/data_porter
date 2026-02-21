@@ -200,6 +200,17 @@ RSpec.describe DataPorter::DataImport, type: :model do
       expect(import.config["file_headers"]).to eq(%w[Name Email])
     end
 
+    it "clears config checkpoint" do
+      import = described_class.create!(
+        target_key: "guests", source_type: "csv", status: :previewing,
+        config: { "checkpoint" => { "processed" => 10 }, "file_headers" => %w[A B] }
+      )
+
+      import.reset_to_mapping!
+
+      expect(import.config).not_to have_key("checkpoint")
+    end
+
     it "preserves column_mapping in config" do
       import = described_class.create!(
         target_key: "guests", source_type: "csv", status: :previewing,
@@ -209,6 +220,41 @@ RSpec.describe DataPorter::DataImport, type: :model do
       import.reset_to_mapping!
 
       expect(import.config["column_mapping"]).to eq("Name" => "name")
+    end
+  end
+
+  describe "#resumable?" do
+    it "returns true when failed with checkpoint" do
+      import = described_class.new(
+        status: :failed,
+        config: { "checkpoint" => { "processed" => 10, "created" => 8, "errored" => 2 } }
+      )
+
+      expect(import).to be_resumable
+    end
+
+    it "returns false when failed without checkpoint" do
+      import = described_class.new(status: :failed, config: {})
+
+      expect(import).not_to be_resumable
+    end
+
+    it "returns false when failed with zero processed" do
+      import = described_class.new(
+        status: :failed,
+        config: { "checkpoint" => { "processed" => 0 } }
+      )
+
+      expect(import).not_to be_resumable
+    end
+
+    it "returns false when not failed" do
+      import = described_class.new(
+        status: :completed,
+        config: { "checkpoint" => { "processed" => 10 } }
+      )
+
+      expect(import).not_to be_resumable
     end
   end
 
