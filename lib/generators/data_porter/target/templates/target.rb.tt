@@ -5,6 +5,7 @@ class <%= target_class_name %> < DataPorter::Target
   model_name "<%= model_name %>"
   icon "fas fa-file-import"
   sources <%= target_sources %>
+  # bulk_mode batch_size: 500, on_conflict: :retry_per_record
 <% if parsed_columns.any? %>
 
   columns do

@@ -37,6 +37,10 @@ DataPorter.configure do |config|
   # Set to nil to disable auto-purge. Run `rake data_porter:purge` manually or via cron.
   # config.purge_after = 60.days
 
+  # Bulk import: enable per-target via `bulk_mode` in your Target class.
+  # Uses insert_all for 10-100x throughput on large imports.
+  # See docs/ADVANCED.md for configuration options.
+
   # HMAC-SHA256 secret for signing webhook payloads.
   # When set, every webhook request includes an X-DataPorter-Signature header.
   # Set to nil to disable signing (default).

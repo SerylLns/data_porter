@@ -2,12 +2,14 @@
 
 require_relative "orchestrator/record_builder"
 require_relative "orchestrator/importer"
+require_relative "orchestrator/bulk_importer"
 require_relative "orchestrator/dry_runner"
 
 module DataPorter
   class Orchestrator
     include RecordBuilder
     include Importer
+    include BulkImporter
     include DryRunner
 
     def initialize(data_import, content: nil)

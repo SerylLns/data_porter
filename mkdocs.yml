@@ -94,6 +94,7 @@ nav:
       - Column Mapping: MAPPING.md
       - Views & Theming: VIEWS.md
       - Routes: routes.md
+  - Advanced: ADVANCED.md
   - Roadmap: ROADMAP.md
   - Changelog: changelog.md
   - Contributing: contributing.md

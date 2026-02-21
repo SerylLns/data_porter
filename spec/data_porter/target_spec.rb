@@ -154,6 +154,82 @@ RSpec.describe DataPorter::Target do
     end
   end
 
+  describe "bulk_mode DSL" do
+    it "defaults _bulk_config to nil" do
+      expect(target_class._bulk_config).to be_nil
+    end
+
+    it "stores bulk config with defaults" do
+      klass = Class.new(described_class) do
+        model_name "Guest"
+        bulk_mode
+      end
+
+      expect(klass._bulk_config).to eq(batch_size: 500, on_conflict: :retry_per_record)
+    end
+
+    it "accepts custom batch_size" do
+      klass = Class.new(described_class) do
+        model_name "Guest"
+        bulk_mode batch_size: 200
+      end
+
+      expect(klass._bulk_config[:batch_size]).to eq(200)
+    end
+
+    it "accepts on_conflict: :fail_batch" do
+      klass = Class.new(described_class) do
+        model_name "Guest"
+        bulk_mode on_conflict: :fail_batch
+      end
+
+      expect(klass._bulk_config[:on_conflict]).to eq(:fail_batch)
+    end
+  end
+
+  describe "default persist_batch" do
+    let(:model_class) { class_double("Guest") }
+
+    before do
+      stub_const("Guest", model_class)
+    end
+
+    it "calls insert_all on the model class with timestamps" do
+      klass = Class.new(described_class) do
+        model_name "Guest"
+        bulk_mode
+      end
+
+      records = [
+        DataPorter::StoreModels::ImportRecord.new(data: { "name" => "Alice" }),
+        DataPorter::StoreModels::ImportRecord.new(data: { "name" => "Bob" })
+      ]
+
+      allow(model_class).to receive(:insert_all)
+      target = klass.new
+
+      target.persist_batch(records, context: nil)
+
+      expect(model_class).to have_received(:insert_all) do |rows|
+        expect(rows.size).to eq(2)
+        expect(rows.first).to include("name" => "Alice")
+        expect(rows.first).to have_key("created_at")
+        expect(rows.first).to have_key("updated_at")
+      end
+    end
+
+    it "raises Error when model_name is not defined" do
+      klass = Class.new(described_class) do
+        bulk_mode
+      end
+      target = klass.new
+
+      expect { target.persist_batch([], context: nil) }.to raise_error(
+        DataPorter::Error, /model_name is required/
+      )
+    end
+  end
+
   describe "default hooks" do
     let(:target) { target_class.new }
     let(:record) { DataPorter::StoreModels::ImportRecord.new }

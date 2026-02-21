@@ -10,7 +10,8 @@ module DataPorter
     class << self
       attr_reader :_label, :_model_name, :_icon, :_sources,
                   :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
-                  :_api_config, :_dry_run_enabled, :_params, :_webhooks
+                  :_api_config, :_dry_run_enabled, :_params, :_webhooks,
+                  :_bulk_config
 
       def label(value)
         @_label = value
@@ -82,6 +83,10 @@ module DataPorter
         @_webhooks << DSL::Webhook.new(url: url, **)
       end
 
+      def bulk_mode(batch_size: 500, on_conflict: :retry_per_record)
+        @_bulk_config = { batch_size: batch_size, on_conflict: on_conflict }
+      end
+
       private
 
       def auto_register
@@ -106,6 +111,16 @@ module DataPorter
 
     def persist(_record, context:)
       raise NotImplementedError
+    end
+
+    def persist_batch(records, context: nil) # rubocop:disable Lint/UnusedMethodArgument
+      raise Error, "model_name is required for default persist_batch" unless self.class._model_name
+
+      now = Time.current
+      model_class = self.class._model_name.constantize
+      model_class.insert_all(
+        records.map { |r| r.data.merge("created_at" => now, "updated_at" => now) }
+      )
     end
 
     def after_import(_results, context:); end

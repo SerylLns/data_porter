@@ -6,7 +6,9 @@ module DataPorter
       private
 
       def import_records
-        if DataPorter.configuration.transaction_mode == :all
+        if @target.class._bulk_config
+          import_bulk
+        elsif DataPorter.configuration.transaction_mode == :all
           import_all_or_nothing
         else
           import_per_record
