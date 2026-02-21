@@ -276,15 +276,57 @@ RSpec.describe DataPorter::Orchestrator do
       expect(broadcaster).to have_received(:success).once
     end
 
-    it "saves checkpoint to config during import" do
+    it "preserves checkpoint in config on catastrophic failure" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 1, "created" => 1, "errored" => 0 }
+                          })
+      allow(data_import).to receive(:importable_records).and_raise("fatal")
       orchestrator = described_class.new(data_import)
 
       orchestrator.import!
 
       checkpoint = data_import.reload.config["checkpoint"]
-      expect(checkpoint["processed"]).to eq(2)
-      expect(checkpoint["created"]).to eq(2)
-      expect(checkpoint["errored"]).to eq(0)
+      expect(checkpoint["processed"]).to eq(1)
+    end
+
+    it "clears checkpoint after successful import" do
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(data_import.reload.config).not_to have_key("checkpoint")
+    end
+
+    it "resumes from checkpoint skipping already-processed records" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 1, "created" => 1, "errored" => 0 }
+                          })
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(persisted_records.size).to eq(1)
+      expect(persisted_records.first).to include("first_name" => "Bob")
+    end
+
+    it "seeds results from checkpoint counts" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 1, "created" => 1, "errored" => 0 }
+                          })
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      report = data_import.reload.report
+      expect(report.imported_count).to eq(2)
+    end
+
+    it "processes all records when no checkpoint exists" do
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(persisted_records.size).to eq(2)
     end
 
     it "does not save checkpoint during parse" do

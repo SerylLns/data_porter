@@ -82,15 +82,25 @@ RSpec.describe DataPorter::Orchestrator do
       expect(report.errored_count).to eq(0)
     end
 
-    it "saves checkpoint to config after each batch" do
+    it "clears checkpoint after successful bulk import" do
+      orchestrator = described_class.new(data_import)
+
+      orchestrator.import!
+
+      expect(data_import.reload.config).not_to have_key("checkpoint")
+    end
+
+    it "preserves checkpoint on catastrophic bulk failure" do
+      data_import.update!(config: {
+                            "checkpoint" => { "processed" => 2, "created" => 2, "errored" => 0 }
+                          })
+      allow(data_import).to receive(:importable_records).and_raise("fatal")
       orchestrator = described_class.new(data_import)
 
       orchestrator.import!
 
       checkpoint = data_import.reload.config["checkpoint"]
-      expect(checkpoint["processed"]).to eq(5)
-      expect(checkpoint["created"]).to eq(5)
-      expect(checkpoint["errored"]).to eq(0)
+      expect(checkpoint["processed"]).to eq(2)
     end
 
     it "broadcasts progress per batch, not per record" do
