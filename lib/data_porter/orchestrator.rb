@@ -101,9 +101,8 @@ module DataPorter
     end
 
     def handle_failure(error)
-      report = StoreModels::Report.new(
-        error_reports: [StoreModels::Error.new(message: error.message)]
-      )
+      report = @data_import.report || StoreModels::Report.new
+      report.error_reports = [StoreModels::Error.new(message: error.message)]
       @data_import.update!(status: :failed, report: report)
       @broadcaster.failure(error.message)
       WebhookNotifier.notify(@data_import, "import.failed")

@@ -230,6 +230,18 @@ RSpec.describe DataPorter::Orchestrator do
       expect(data_import.reload.status).to eq("failed")
     end
 
+    it "preserves existing report data on failure" do
+      orchestrator = described_class.new(data_import)
+      allow(data_import).to receive(:importable_records).and_raise("fatal")
+
+      orchestrator.import!
+
+      report = data_import.reload.report
+      expect(report.records_count).to eq(2)
+      expect(report.complete_count).to eq(2)
+      expect(report.error_reports.first.message).to eq("fatal")
+    end
+
     it "stores progress in config" do
       orchestrator = described_class.new(data_import)
 
