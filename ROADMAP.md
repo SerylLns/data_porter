@@ -34,10 +34,6 @@ Headless REST API for programmatic imports:
 - Auth via `config.api_authenticate` lambda (API key or Bearer token)
 - Reuses existing job pipeline (parse, import, dry run)
 
-### Auto-map heuristics
-
-Smart column mapping suggestions using tokenized header matching and synonym dictionaries. When a CSV has "E-mail Address", auto-suggest mapping to `:email`. Built-in synonyms for common patterns (phone → phone_number, first name → first_name). Configurable synonym lists per target.
-
 ---
 
 ## Ideas
