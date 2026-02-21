@@ -1,5 +1,6 @@
 ---
 title: Routes
+icon: material/routes
 ---
 
 # Routes

@@ -140,4 +140,12 @@ Visit `/imports` and start importing.
 
     [:octicons-arrow-right-24: Sources](SOURCES.md)
 
+-   :material-book-open-variant:{ .lg .middle } **Full Reference**
+
+    ---
+
+    Mapping, views, routes, advanced features, and more.
+
+    [:octicons-arrow-right-24: Reference](CONFIGURATION.md)
+
 </div>
