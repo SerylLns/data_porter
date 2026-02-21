@@ -104,3 +104,4 @@ DataPorter guides users through a multi-step workflow depending on the source ty
 - [Targets](TARGETS.md) — Full DSL reference with hooks and params
 - [Sources](SOURCES.md) — CSV, XLSX, JSON, and API source details
 - [Column Mapping](MAPPING.md) — Interactive mapping and templates
+- [Views & Theming](VIEWS.md) — View generator, CSS variables, and dark mode
