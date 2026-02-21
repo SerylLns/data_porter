@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-02-21
+
+### Added
+
+- **View generator** -- `rails g data_porter:views` copies ERB templates into the host app for structural customization. Supports scoped copy: `imports`, `mapping_templates`, `layout`
+- **Dark mode** -- Built-in dark theme via `.dp-dark` CSS class with automatic OS preference detection via `@media (prefers-color-scheme: dark)`. Theme toggle button with localStorage persistence
+- **Semantic CSS variables** -- 8 high-level `--dp-*` variables (`--dp-bg`, `--dp-bg-elevated`, `--dp-text`, etc.) for easy theming without modifying templates
+
+### Changed
+
+- All hardcoded `white` backgrounds replaced with semantic CSS variables across 8 stylesheets
+- Light mode color palette strengthened for better contrast (success, warning, danger backgrounds)
+- 519 RSpec examples (up from 508), 0 failures
+
 ## [2.3.0] - 2026-02-20
 
 ### Added

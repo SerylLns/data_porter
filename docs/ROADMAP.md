@@ -39,14 +39,6 @@ Headless REST API for programmatic imports:
 - Auth via `config.api_authenticate` lambda (API key or Bearer token)
 - Reuses existing job pipeline (parse, import, dry run)
 
-### View generator & theming
-
-Customizable UI in two layers:
-
-- **View generator** — `rails g data_porter:views` copies the 7 ERB templates into the host app for structural customization (layout, buttons, sections). Similar to `devise:views`.
-- **CSS theming** — All styles use `--dp-*` custom properties. Host apps override variables to match their design system, no ERB changes needed.
-- **Light / dark mode** — Two built-in presets toggled via `prefers-color-scheme` or a `.dp-dark` class.
-
 ### Auto-map heuristics
 
 Smart column mapping suggestions using tokenized header matching and synonym dictionaries. When a CSV has "E-mail Address", auto-suggest mapping to `:email`. Built-in synonyms for common patterns (phone → phone_number, first name → first_name). Configurable synonym lists per target.
