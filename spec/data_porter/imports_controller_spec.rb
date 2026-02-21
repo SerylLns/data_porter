@@ -37,9 +37,9 @@ RSpec.describe DataPorter::ImportsController do
   end
 
   describe "action methods" do
-    it "defines all public actions including export_rejects" do
+    it "defines all public actions including export_rejects and resume" do
       actions = %i[index new create show parse confirm cancel dry_run update_mapping
-                   status export_rejects destroy back_to_mapping]
+                   status export_rejects destroy back_to_mapping resume]
       actions.each do |action|
         expect(described_class.instance_method(action)).to be_a(UnboundMethod)
       end

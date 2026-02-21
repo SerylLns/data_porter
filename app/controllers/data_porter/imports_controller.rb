@@ -10,7 +10,7 @@ module DataPorter
     layout "data_porter/application"
 
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping
-                                        status export_rejects destroy back_to_mapping]
+                                        status export_rejects destroy back_to_mapping resume]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -66,6 +66,12 @@ module DataPorter
 
     def back_to_mapping
       @import.reset_to_mapping!
+      redirect_to import_path(@import)
+    end
+
+    def resume
+      @import.update!(status: :pending)
+      DataPorter::ImportJob.perform_later(@import.id)
       redirect_to import_path(@import)
     end
 
