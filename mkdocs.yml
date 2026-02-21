@@ -92,6 +92,7 @@ nav:
       - Targets: TARGETS.md
       - Sources: SOURCES.md
       - Column Mapping: MAPPING.md
+      - Views & Theming: VIEWS.md
       - Routes: routes.md
   - Roadmap: ROADMAP.md
   - Changelog: changelog.md
