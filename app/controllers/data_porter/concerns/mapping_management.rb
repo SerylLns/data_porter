@@ -27,7 +27,21 @@ module DataPorter
         saved = @import.config&.dig("column_mapping")
         return saved if saved.present?
 
-        (target._csv_mappings || {}).transform_values(&:to_s)
+        code_mapping = (target._csv_mappings || {}).transform_values(&:to_s)
+        return code_mapping if code_mapping.present?
+
+        auto_map_suggestions(target)
+      end
+
+      def auto_map_suggestions(target)
+        columns = target._columns || []
+        return {} if columns.empty? || @file_headers.empty?
+
+        custom = columns.each_with_object({}) do |col, hash|
+          hash[col.name] = col.synonyms if col.synonyms.any?
+        end
+
+        AutoMapper.new(@file_headers, columns.map(&:name), custom_synonyms: custom).call
       end
 
       def save_column_mapping
