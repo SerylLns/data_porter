@@ -215,5 +215,36 @@ RSpec.describe "data_porter/imports/show.html.erb" do
     it "shows retry button" do
       expect(html).to include("Retry")
     end
+
+    it "does not show resume button without checkpoint" do
+      expect(html).not_to include("Resume")
+    end
+
+    context "when resumable" do
+      let(:import) do
+        DataPorter::Registry.clear
+        DataPorter::Registry.register(:guests, target_class)
+
+        DataPorter::DataImport.create!(
+          target_key: "guests",
+          source_type: "csv",
+          status: :failed,
+          config: { "checkpoint" => { "processed" => 10, "created" => 8, "errored" => 2 } },
+          report: DataPorter::StoreModels::Report.new(
+            error_reports: [
+              DataPorter::StoreModels::Error.new(message: "Connection lost")
+            ]
+          )
+        )
+      end
+
+      it "shows resume button" do
+        expect(html).to include("Resume")
+      end
+
+      it "shows retry as secondary" do
+        expect(html).to include("dp-btn--secondary")
+      end
+    end
   end
 end

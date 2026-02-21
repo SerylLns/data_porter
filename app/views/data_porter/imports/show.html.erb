@@ -103,8 +103,12 @@
   <% if @import.failed? %>
     <%= raw DataPorter::Components::Shared::FailureAlert.new(report: @import.report).call %>
     <div class="dp-actions">
+      <% if @import.resumable? %>
+        <%= button_to t("data_porter.imports.resume"), resume_import_path(@import),
+              method: :post, class: "dp-btn dp-btn--primary" %>
+      <% end %>
       <%= button_to t("data_porter.imports.retry"), parse_import_path(@import),
-            method: :post, class: "dp-btn dp-btn--primary" %>
+            method: :post, class: "dp-btn dp-btn--secondary" %>
       <%= button_to t("data_porter.imports.delete"), import_path(@import),
             method: :delete, class: "dp-btn dp-btn--danger",
             data: { turbo_confirm: t("data_porter.imports.delete_confirm") } %>

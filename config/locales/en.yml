@@ -10,6 +10,7 @@ en:
       delete: "Delete"
       delete_confirm: "Delete this import?"
       retry: "Retry"
+      resume: "Resume"
       start_import: "Start Import"
       confirm_import: "Confirm Import"
       dry_run: "Dry Run"

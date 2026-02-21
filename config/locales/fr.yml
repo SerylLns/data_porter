@@ -10,6 +10,7 @@ fr:
       delete: "Supprimer"
       delete_confirm: "Supprimer cet import ?"
       retry: "Réessayer"
+      resume: "Reprendre"
       start_import: "Lancer l'import"
       confirm_import: "Confirmer l'import"
       dry_run: "Essai à blanc"
