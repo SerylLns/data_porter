@@ -18,6 +18,8 @@ fr:
       back_to_mapping: "Retour au mapping"
       download_rejects: "Télécharger les rejets CSV"
       processing: "Traitement..."
+      edit_cell: "Cliquer pour modifier"
+      saving: "Enregistrement..."
       no_imports: "Aucun import"
       create_first: "Créer votre premier import"
       details:
