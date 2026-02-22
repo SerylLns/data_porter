@@ -1,0 +1,46 @@
+.dp-cell--editable {
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease, outline 0.15s ease;
+}
+
+.dp-cell--editable:hover {
+  background: var(--dp-primary-light);
+  outline: 1px dashed var(--dp-primary);
+}
+
+.dp-inline-input {
+  width: 100%;
+  padding: 0.25rem 0.375rem;
+  border: 2px solid var(--dp-primary);
+  border-radius: var(--dp-radius-sm);
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  background: var(--dp-bg);
+  color: var(--dp-text);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.dp-inline-input:focus {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.dp-cell--saving {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.dp-cell--error {
+  outline: 2px solid var(--dp-danger);
+}
+
+.dp-cell--success {
+  animation: dp-flash-success 0.6s ease;
+}
+
+@keyframes dp-flash-success {
+  0%, 100% { background: transparent; }
+  50% { background: var(--dp-success-light); }
+}

@@ -9,5 +9,6 @@
  *= require data_porter/alerts
  *= require data_porter/modal
  *= require data_porter/mapping
+ *= require data_porter/inline_edit
  *= require data_porter/dark
  */
