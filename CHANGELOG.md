@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto-map heuristics** -- Smart column suggestions that pre-fill mapping selects when CSV/XLSX headers match target fields by exact name or built-in synonym (e.g. "E-mail Address" → email, "fname" → first_name). Supports per-column custom synonyms via `synonyms:` keyword in column DSL. Fallback chain: saved mapping > code-defined > auto-map > empty
 
+## [2.7.0] - 2026-02-22
+
+### Added
+
+- **Inline edit in preview** -- Click any cell in the preview table to fix validation errors directly, without re-uploading the file. Optimistic UI with background validation: click cell → input appears → edit → blur/Enter → value updates instantly → PATCH to server → re-validate → update status, errors, and summary cards
+- `RecordRevalidator` service -- Re-validates an existing record after data change using the same pipeline as initial parse (transforms + target validation + built-in validation), with JSONB string-key normalization for post-persistence records
+- `RecordUpdater` service -- Orchestrates cell update, re-validation, delta-based report update, and persistence. Returns transformed value, status, errors, and updated report counts
+- `PATCH :update_record` route and controller action with `ensure_previewing` guard
+- Stimulus `inline_edit_controller` -- Click-to-edit cells with Enter/blur to save, Escape to cancel, Tab/Shift+Tab to navigate between cells. Updates row status, errors cell, and summary card counts from server response
+- Editable mode on `Preview::Table` and `Preview::SummaryCards` Phlex components -- `editable: true` renders Stimulus controller, click actions, data attributes on cells. Non-editable mode (completed/failed views) renders exactly as before
+- Inline edit CSS -- editable cell hover, inline input, saving/error/success animation states
+- `edit_cell` and `saving` locale keys (en + fr)
+
+### Changed
+
+- 638 RSpec examples (up from 574), 0 failures
+
 ## [2.6.0] - 2026-02-21
 
 ### Added
