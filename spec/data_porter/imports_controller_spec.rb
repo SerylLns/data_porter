@@ -37,9 +37,9 @@ RSpec.describe DataPorter::ImportsController do
   end
 
   describe "action methods" do
-    it "defines all public actions including export_rejects and resume" do
+    it "defines all public actions including export_rejects, resume, and update_record" do
       actions = %i[index new create show parse confirm cancel dry_run update_mapping
-                   status export_rejects destroy back_to_mapping resume]
+                   update_record status export_rejects destroy back_to_mapping resume]
       actions.each do |action|
         expect(described_class.instance_method(action)).to be_a(UnboundMethod)
       end
@@ -506,7 +506,7 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
-  describe "action methods" do
+  describe "action methods (back_to_mapping)" do
     it "defines back_to_mapping" do
       expect(described_class.instance_method(:back_to_mapping)).to be_a(UnboundMethod)
     end
@@ -681,6 +681,50 @@ RSpec.describe DataPorter::ImportsController do
       it "returns true" do
         expect(controller.send(:valid_file_content_type?)).to be true
       end
+    end
+  end
+
+  describe "#ensure_previewing" do
+    let(:controller) { described_class.new }
+
+    context "when import is previewing" do
+      let(:import) { DataPorter::DataImport.new(status: :previewing) }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns nil (does not halt)" do
+        expect(controller.send(:ensure_previewing)).to be_nil
+      end
+    end
+
+    context "when import is not previewing" do
+      let(:import) { DataPorter::DataImport.new(status: :completed) }
+
+      before do
+        controller.instance_variable_set(:@import, import)
+        allow(controller).to receive(:render)
+      end
+
+      it "renders an error response" do
+        controller.send(:ensure_previewing)
+        expect(controller).to have_received(:render).with(
+          json: { error: "Import is not in previewing state" },
+          status: :unprocessable_entity
+        )
+      end
+    end
+  end
+
+  describe "before_actions for update_record" do
+    it "registers set_import for update_record" do
+      expect(described_class.instance_method(:update_record)).to be_a(UnboundMethod)
+    end
+
+    it "registers ensure_previewing for update_record" do
+      callbacks = described_class._process_action_callbacks.select do |c|
+        c.filter == :ensure_previewing
+      end
+      expect(callbacks).not_to be_empty
     end
   end
 end

@@ -10,7 +10,9 @@ module DataPorter
     layout "data_porter/application"
 
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping
-                                        status export_rejects destroy back_to_mapping resume]
+                                        update_record status export_rejects destroy
+                                        back_to_mapping resume]
+    before_action :ensure_previewing, only: :update_record
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -81,6 +83,16 @@ module DataPorter
       redirect_to import_path(@import)
     end
 
+    def update_record
+      updater = RecordUpdater.new(@import)
+      result = updater.call(
+        line_number: params[:line_number].to_i,
+        column: params[:column],
+        value: params[:value]
+      )
+      render json: result
+    end
+
     def status
       progress = @import.config["progress"] || {}
       render json: { status: @import.status, progress: progress }
@@ -102,6 +114,12 @@ module DataPorter
 
     def set_import
       @import = scoped_imports.find(params[:id])
+    end
+
+    def ensure_previewing
+      return if @import.previewing?
+
+      render json: { error: "Import is not in previewing state" }, status: :unprocessable_entity
     end
 
     def scoped_imports

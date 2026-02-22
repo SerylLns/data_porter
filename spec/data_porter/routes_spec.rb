@@ -12,6 +12,7 @@ RSpec.describe "DataPorter routes" do
           post :dry_run
           post :resume
           patch :update_mapping
+          patch :update_record
           get :status
           get :export_rejects
         end
@@ -44,6 +45,7 @@ RSpec.describe "DataPorter routes" do
     expect(route_set).to include(["status", "/imports/:id/status(.:format)"])
     expect(route_set).to include(["export_rejects", "/imports/:id/export_rejects(.:format)"])
     expect(route_set).to include(["resume", "/imports/:id/resume(.:format)"])
+    expect(route_set).to include(["update_record", "/imports/:id/update_record(.:format)"])
     expect(route_set).to include(["destroy", "/imports/:id(.:format)"])
   end
 
