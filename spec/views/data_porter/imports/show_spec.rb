@@ -179,6 +179,18 @@ RSpec.describe "data_porter/imports/show.html.erb" do
     it "shows cancel button" do
       expect(html).to include("Cancel")
     end
+
+    it "renders table with inline edit controller" do
+      expect(html).to include('data-controller="data-porter--inline-edit"')
+    end
+
+    it "renders editable cells" do
+      expect(html).to include("dp-cell--editable")
+    end
+
+    it "renders summary cards with count-key targets" do
+      expect(html).to include("data-count-key")
+    end
   end
 
   context "when completed" do

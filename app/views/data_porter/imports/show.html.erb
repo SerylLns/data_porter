@@ -46,10 +46,12 @@
 
   <% if @import.previewing? %>
     <div id="records">
-    <%= raw DataPorter::Components::Preview::SummaryCards.new(report: @import.report).call %>
+    <%= raw DataPorter::Components::Preview::SummaryCards.new(report: @import.report, editable: true).call %>
     <%= raw DataPorter::Components::Preview::Table.new(
           columns: @target._columns,
-          records: @records
+          records: @records,
+          editable: true,
+          update_url: update_record_import_path(@import)
         ).call %>
     </div>
     <%= raw DataPorter::Components::Shared::Pagination.new(
