@@ -73,4 +73,12 @@ RSpec.describe "inline_edit_controller.js" do
   it "skips save when value unchanged" do
     expect(content).to include("newValue === original")
   end
+
+  it "adds editing class while input is visible" do
+    expect(content).to include("dp-cell--editing")
+  end
+
+  it "removes editing class on blur" do
+    expect(content).to include('cell.classList.remove("dp-cell--editing")')
+  end
 end

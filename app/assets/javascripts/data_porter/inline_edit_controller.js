@@ -11,6 +11,7 @@ export default class extends Controller {
     var value = cell.dataset.value || ""
     cell.dataset.originalValue = value
     cell.textContent = ""
+    cell.classList.add("dp-cell--editing")
 
     var input = document.createElement("input")
     input.type = "text"
@@ -19,9 +20,14 @@ export default class extends Controller {
     input.dataset.lineNumber = cell.dataset.lineNumber
     input.dataset.column = cell.dataset.column
 
-    input.addEventListener("blur", this.save.bind(this))
-    input.addEventListener("keydown", this.handleKey.bind(this))
+    var self = this
+    input._blurHandler = function(e) { self.save(e) }
+    input._keyHandler = function(e) { self.handleKey(e) }
+    input.addEventListener("blur", input._blurHandler)
+    input.addEventListener("keydown", input._keyHandler)
     cell.appendChild(input)
+    this.autoSize(input)
+    input.addEventListener("input", function() { self.autoSize(input) })
     input.focus()
     input.select()
   }
@@ -35,36 +41,47 @@ export default class extends Controller {
       this.cancel(event.target)
     } else if (event.key === "Tab") {
       event.preventDefault()
-      var cell = event.target.closest("[data-column]")
+      var cell = event.target.closest("td")
       event.target.blur()
       this.moveToNext(cell, event.shiftKey)
     }
   }
 
   cancel(input) {
-    var cell = input.closest("[data-column]")
+    var cell = input.closest("td")
+    input.removeEventListener("blur", input._blurHandler)
+    input.removeEventListener("keydown", input._keyHandler)
+    cell.classList.remove("dp-cell--editing")
     var original = cell.dataset.originalValue || ""
     cell.textContent = original
     delete cell.dataset.originalValue
+    cell.blur()
   }
 
   save(event) {
     var input = event.target
-    var cell = input.closest("[data-column]")
+    var cell = input.closest("td")
     if (!cell) return
+
+    input.removeEventListener("blur", input._blurHandler)
+    input.removeEventListener("keydown", input._keyHandler)
 
     var newValue = input.value
     var original = cell.dataset.originalValue
 
+    cell.classList.remove("dp-cell--editing")
+
     if (newValue === original) {
       cell.textContent = original
       delete cell.dataset.originalValue
+      cell.blur()
       return
     }
 
     cell.textContent = newValue
     cell.classList.add("dp-cell--saving")
     delete cell.dataset.originalValue
+    cell.blur()
 
     this.patch(cell, {
       line_number: parseInt(cell.dataset.lineNumber, 10),
@@ -102,7 +119,7 @@ export default class extends Controller {
   applyResponse(cell, data) {
     cell.classList.remove("dp-cell--saving")
     cell.classList.add("dp-cell--success")
-    setTimeout(function() { cell.classList.remove("dp-cell--success") }, 600)
+    setTimeout(function() { cell.classList.remove("dp-cell--success") }, 800)
 
     cell.textContent = data.value
     cell.dataset.value = data.value
@@ -138,6 +155,25 @@ export default class extends Controller {
         el.textContent = String(report[key])
       }
     })
+  }
+
+  autoSize(input) {
+    var span = document.createElement("span")
+    span.style.cssText = "position:absolute;visibility:hidden;white-space:pre;"
+    var computed = window.getComputedStyle(input)
+    span.style.font = computed.font
+    span.style.padding = computed.padding
+    span.style.border = computed.border
+    span.textContent = input.value || " "
+    document.body.appendChild(span)
+    var cell = input.closest("td")
+    var minWidth = cell ? cell.offsetWidth : 100
+    var tableRight = this.element.getBoundingClientRect().right
+    var cellLeft = cell.getBoundingClientRect().left
+    var maxWidth = tableRight - cellLeft - 4
+    var width = Math.min(Math.max(minWidth, span.offsetWidth + 4), maxWidth)
+    input.style.width = width + "px"
+    document.body.removeChild(span)
   }
 
   moveToNext(currentCell, reverse) {

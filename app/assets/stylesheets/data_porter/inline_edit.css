@@ -1,16 +1,44 @@
 .dp-cell--editable {
   cursor: pointer;
   position: relative;
-  transition: background 0.15s ease, outline 0.15s ease;
+  outline: none;
+  transition: background 0.15s ease;
 }
 
-.dp-cell--editable:hover {
+.dp-cell--editable:focus,
+.dp-cell--editable:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.dp-cell--editable:hover:not(.dp-cell--editing):not(.dp-cell--saving) {
   background: var(--dp-primary-light);
-  outline: 1px dashed var(--dp-primary);
+}
+
+.dp-cell--editable:hover:not(.dp-cell--editing):not(.dp-cell--saving)::after {
+  content: "\f303";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.65rem;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.35rem;
+  color: var(--dp-primary);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.dp-cell--editing {
+  padding: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  overflow: visible;
 }
 
 .dp-inline-input {
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
   padding: 0.25rem 0.375rem;
   border: 2px solid var(--dp-primary);
   border-radius: var(--dp-radius-sm);
@@ -21,6 +49,7 @@
   color: var(--dp-text);
   outline: none;
   box-sizing: border-box;
+  z-index: 10;
 }
 
 .dp-inline-input:focus {
@@ -32,15 +61,62 @@
   pointer-events: none;
 }
 
+.dp-cell--saving::after {
+  content: "\f110";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.7rem;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.35rem;
+  color: var(--dp-primary);
+  animation: dp-spin 0.8s linear infinite;
+}
+
 .dp-cell--error {
-  outline: 2px solid var(--dp-danger);
+  outline: 2px solid var(--dp-danger) !important;
+  background: var(--dp-danger-light);
+}
+
+.dp-cell--error::after {
+  content: "\f00d";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.7rem;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.35rem;
+  color: var(--dp-danger);
 }
 
 .dp-cell--success {
-  animation: dp-flash-success 0.6s ease;
+  animation: dp-flash-success 0.8s ease;
+}
+
+.dp-cell--success::after {
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.7rem;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.35rem;
+  color: var(--dp-success);
+  animation: dp-fade-out 0.8s ease forwards;
 }
 
 @keyframes dp-flash-success {
-  0%, 100% { background: transparent; }
-  50% { background: var(--dp-success-light); }
+  0% { background: var(--dp-success-light); }
+  100% { background: transparent; }
+}
+
+@keyframes dp-fade-out {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes dp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
