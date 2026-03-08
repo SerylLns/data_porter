@@ -44,6 +44,44 @@ When parsing, mappings are resolved in priority order:
 
 1. **User mapping** -- from the mapping UI (`config["column_mapping"]`)
 2. **Code mapping** -- from the Target DSL (`csv_mapping`)
-3. **Auto-map** -- parameterize headers to match column names
+3. **Auto-map** -- heuristic matching using exact names and synonyms
 
 Non-file sources (JSON, API) skip the mapping step entirely.
+
+## Auto-Map Heuristics
+
+When no user mapping or code mapping exists for a column, DataPorter attempts to auto-map file headers to target fields. The matching works in two steps:
+
+1. **Exact match** -- normalize the header (lowercase, underscores) and compare to column names. `"First Name"` matches `first_name`.
+2. **Synonym match** -- look up the normalized header in a built-in synonym table. `"E-mail Address"` matches `email`, `"fname"` matches `first_name`.
+
+### Built-in synonyms
+
+DataPorter ships with synonyms for common fields:
+
+| Column | Recognized synonyms |
+|---|---|
+| `email` | email, e_mail, email_address, courriel, mail |
+| `first_name` | firstname, fname, first, prenom |
+| `last_name` | lastname, lname, last, nom |
+| `phone_number` | phone, tel, telephone, mobile, cell |
+| `address` | addr, street, adresse |
+| `city` | ville, town |
+| `zip_code` | zip, postal_code, postcode, code_postal |
+| `country` | pays, nation |
+| `company` | company_name, organization, organisation, entreprise, societe |
+
+See `DataPorter::AutoMapper::SYNONYMS` for the full list.
+
+### Custom synonyms
+
+Add per-column synonyms via the `synonyms:` keyword in the column DSL:
+
+```ruby
+columns do
+  column :email, type: :string, synonyms: %w[correo e_posta]
+  column :room_number, type: :string, synonyms: %w[chambre room_no]
+end
+```
+
+Custom synonyms are merged with the built-in list -- they extend, not replace.

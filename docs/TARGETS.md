@@ -96,6 +96,7 @@ Defines the expected columns for this import. Each column accepts:
 | `required` | Boolean | `false` | Whether the column must have a value |
 | `label` | String | Humanized name | Display label in the preview |
 | `transform` | Symbol or Array | `[]` | Transformers applied before the target's `transform` method |
+| `synonyms` | Array | `[]` | Extra header synonyms for auto-map (e.g. `synonyms: %w[courriel mail]`) |
 
 #### Column transformers
 
