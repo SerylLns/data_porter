@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-03-08
+
 ### Added
 
 - **Auto-map heuristics** -- Smart column suggestions that pre-fill mapping selects when CSV/XLSX headers match target fields by exact name or built-in synonym (e.g. "E-mail Address" → email, "fname" → first_name). Supports per-column custom synonyms via `synonyms:` keyword in column DSL. Fallback chain: saved mapping > code-defined > auto-map > empty
+
+### Fixed
+
+- Inline edit cell selector now uses `closest("td")` instead of `closest("[data-column]")` to avoid matching the input element itself
 
 ## [2.7.0] - 2026-02-22
 
