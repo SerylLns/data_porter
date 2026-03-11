@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    data_porter (2.8.0)
+    data_porter (2.9.0)
       creek (~> 2.6)
       csv (~> 3.0)
       phlex (~> 2.0)
@@ -292,7 +292,7 @@ CHECKSUMS
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   creek (2.6.3) sha256=337d9acbabc1a7890a33643fee7b62bd5ca739adbff94a4eb6fd63f7495ebd2c
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
-  data_porter (2.8.0)
+  data_porter (2.9.0)
   date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373

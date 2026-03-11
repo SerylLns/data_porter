@@ -62,7 +62,9 @@ module DataPorter
 
         def render_cell(record, col)
           value = cell_value(record, col)
-          td(**cell_attrs(record, col, value)) { value }
+          attrs = cell_attrs(record, col, value)
+          attrs[:title] = value if value.length > 30
+          td(**attrs) { value }
         end
 
         def render_errors_cell(record)

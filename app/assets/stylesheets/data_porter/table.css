@@ -30,6 +30,16 @@
   font-size: 0.875rem;
   color: var(--dp-gray-700);
   border-bottom: 1px solid var(--dp-gray-100);
+  max-width: 15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dp-table td.dp-cell--editing {
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
 }
 
 .dp-table tbody tr:last-child td {

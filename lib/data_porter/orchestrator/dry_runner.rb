@@ -19,8 +19,13 @@ module DataPorter
       end
 
       def dry_run_record(record, context)
-        @target.persist(record, context: context)
-        record.dry_run_passed = true
+        ActiveRecord::Base.transaction do
+          @target.persist(record, context: context)
+          record.dry_run_passed = true
+          raise ActiveRecord::Rollback
+        end
+      rescue ActiveRecord::Rollback
+        nil
       rescue StandardError => e
         record.dry_run_passed = false
         record.add_error(e.message)

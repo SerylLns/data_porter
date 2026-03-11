@@ -13,14 +13,16 @@ module DataPorter
       end
 
       def headers
-        first_line = csv_content.lines.first
-        raw = ::CSV.parse_line(first_line, **extra_options).map(&:to_s)
+        line = csv_content.lines[header_row_index]
+        raw = ::CSV.parse_line(line, **extra_options).map(&:to_s)
         fallback_headers(raw)
       end
 
       def fetch
         rows = []
-        ::CSV.parse(csv_content, **csv_options) do |row|
+        ::CSV.parse(effective_csv_content, **csv_options) do |row|
+          next if row.to_h.values.all? { |v| v.to_s.strip.empty? }
+
           rows << apply_csv_mapping(row)
         end
         rows
@@ -30,6 +32,13 @@ module DataPorter
 
       def csv_content
         @csv_content ||= ensure_utf8(@content || download_file)
+      end
+
+      def effective_csv_content
+        offset = header_row_index
+        return csv_content if offset.zero?
+
+        csv_content.lines.drop(offset).join
       end
 
       def download_file
@@ -67,8 +76,8 @@ module DataPorter
       end
 
       def detect_separator
-        first_line = csv_content.lines.first.to_s
-        SEPARATORS.max_by { |sep| first_line.count(sep) }
+        header_line = csv_content.lines[header_row_index].to_s
+        SEPARATORS.max_by { |sep| header_line.count(sep) }
       end
     end
   end

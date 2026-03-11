@@ -52,6 +52,14 @@
   z-index: 10;
 }
 
+textarea.dp-inline-input {
+  resize: none;
+  overflow: hidden;
+  min-height: 2.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .dp-inline-input:focus {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }

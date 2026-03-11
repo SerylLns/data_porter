@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-03-11
+
+### Added
+
+- **`header_row` DSL** -- Skip leading description/metadata rows in CSV and XLSX files. Declare `header_row 2` in Target DSL to treat the 3rd row (0-indexed) as headers. Also configurable at runtime via `config["header_row"]` on individual imports
+- **Long text cell handling** -- Preview table cells with long content are truncated with ellipsis and show full text on hover via `title` tooltip. Inline edit switches to `<textarea>` for values over 50 characters with auto-height resize. Ctrl+Enter to save in textarea mode
+
+### Fixed
+
+- **Dry run persistence** -- Dry run now wraps `persist` in a rolled-back `ActiveRecord::Base.transaction` instead of calling persist without rollback, which was creating real records
+- **Rack 3 params compatibility** -- `permitted_column_mapping` in `MappingManagement` now handles `Rack::QueryParser::Params` via duck-typing instead of `params.require().permit!`
+- **Trailing blank headers** -- `fallback_headers` strips trailing empty columns from CSV/XLSX header rows that caused phantom mapping slots in the UI
+- **Empty data rows** -- CSV and XLSX `fetch` methods now filter out rows where all values are blank, preventing hundreds of false "incomplete" records
+- **Turbo form compatibility** -- Mapping form renders with `data-turbo="false"` to prevent Turbo Drive from intercepting multipart form submissions in host apps
+- **POST route aliases** -- `update_mapping` and `update_record` now accept both POST and PATCH to work around Turbo/UJS method override issues
+
 ## [2.8.0] - 2026-03-08
 
 ### Added

@@ -22,6 +22,7 @@ module DataPorter
             action: @action_url,
             method: "post",
             class: "dp-mapping-form",
+            data_turbo: "false",
             data_controller: "data-porter--mapping",
             data_data_porter__mapping_required_columns_value: required_columns_json
           ) { render_form_body }

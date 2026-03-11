@@ -46,10 +46,17 @@ module DataPorter
         row.to_h.transform_keys { |k| k.parameterize(separator: "_").to_sym }
       end
 
-      def fallback_headers(raw_headers)
-        return raw_headers if raw_headers.any?(&:present?)
+      def header_row_index
+        config = @data_import.config
+        from_config = config["header_row"] if config.is_a?(Hash)
+        from_config&.to_i || @target_class._header_row || 0
+      end
 
-        raw_headers.each_with_index.map { |_, i| "col_#{i + 1}" }
+      def fallback_headers(raw_headers)
+        stripped = raw_headers.reverse.drop_while(&:blank?).reverse
+        return stripped if stripped.any?(&:present?)
+
+        stripped.each_with_index.map { |_, i| "col_#{i + 1}" }
       end
     end
   end

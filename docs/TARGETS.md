@@ -35,6 +35,7 @@ class OrderTarget < DataPorter::Target
   model_name "Order"
   icon "fas fa-shopping-cart"
   sources :csv, :json, :api, :xlsx
+  header_row 0
 
   columns do
     column :order_number, type: :string, required: true
@@ -164,6 +165,34 @@ Skip records that share the same value(s) for the given column(s):
 ```ruby
 deduplicate_by :email
 deduplicate_by :first_name, :last_name
+```
+
+### `header_row(value)`
+
+Sets which row contains the column headers (0-based index, default: `0` — the first row). Rows before the header row are skipped entirely. Applies to both CSV and XLSX sources.
+
+Useful when files contain metadata or description rows above the actual headers:
+
+```
+(empty row)                          ← row 0 (skipped)
+*required, *required, Ex: 45.39...   ← row 1 (skipped)
+name, address, latitude, longitude   ← row 2 (headers)
+Alice, 123 Main St, 45.39, 6.56     ← row 3 (data)
+```
+
+```ruby
+class HousingTarget < DataPorter::Target
+  label "Housings"
+  sources :csv, :xlsx
+  header_row 2
+  # ...
+end
+```
+
+Can also be set at runtime via import config (takes priority over the DSL):
+
+```ruby
+import.config = { "header_row" => 2 }
 ```
 
 ### `dry_run_enabled`

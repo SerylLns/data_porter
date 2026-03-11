@@ -17,12 +17,26 @@ Custom separator:
 import.config = { "separator" => ";" }
 ```
 
+Skip leading rows (e.g. metadata lines before the actual headers):
+
+```ruby
+import.config = { "header_row" => 2 }
+```
+
+See [`header_row`](TARGETS.md#header_rowvalue) for details.
+
 ## XLSX
 
 Upload an Excel `.xlsx` file. Uses the same `csv_mapping` for header-to-column mapping as CSV. By default the first sheet is parsed; select a different sheet via config:
 
 ```ruby
 import.config = { "sheet_index" => 1 }
+```
+
+Skip leading rows (same as CSV):
+
+```ruby
+import.config = { "header_row" => 2 }
 ```
 
 Powered by [creek](https://github.com/pythonicrubyist/creek) for streaming, memory-efficient parsing.

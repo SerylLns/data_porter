@@ -11,7 +11,7 @@ module DataPorter
       attr_reader :_label, :_model_name, :_icon, :_sources,
                   :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
                   :_api_config, :_dry_run_enabled, :_params, :_webhooks,
-                  :_bulk_config
+                  :_bulk_config, :_header_row
 
       def label(value)
         @_label = value
@@ -63,6 +63,10 @@ module DataPorter
 
       def dry_run_enabled
         @_dry_run_enabled = true
+      end
+
+      def header_row(value)
+        @_header_row = value.to_i
       end
 
       def params(&)

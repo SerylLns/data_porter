@@ -13,8 +13,8 @@ module DataPorter
 
       def headers
         sheet = target_sheet
-        first_row = sheet.simple_rows.first
-        raw = first_row&.values&.map(&:to_s) || []
+        header = sheet.simple_rows.drop(header_row_index).first
+        raw = header&.values&.map(&:to_s) || []
         fallback_headers(raw)
       ensure
         cleanup
@@ -36,10 +36,21 @@ module DataPorter
 
       def parse_sheet(sheet)
         rows = sheet.simple_rows.to_a
-        return [] if rows.size <= 1
+        offset = header_row_index
+        return [] if rows.size <= offset + 1
 
-        headers = rows.first.values.map(&:to_s)
-        rows.drop(1).map { |row| build_row(headers, row) }
+        headers = extract_headers(rows, offset)
+        extract_data_rows(rows, offset, headers)
+      end
+
+      def extract_headers(rows, offset)
+        rows[offset].values.map(&:to_s)
+      end
+
+      def extract_data_rows(rows, offset, headers)
+        rows.drop(offset + 1)
+            .reject { |row| row.values.all? { |v| v.to_s.strip.empty? } }
+            .map { |row| build_row(headers, row) }
       end
 
       def build_row(headers, row)

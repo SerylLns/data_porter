@@ -74,11 +74,34 @@ RSpec.describe DataPorter::Sources::Csv do
       expect(source.headers).to eq(%w[Prenom Nom Email])
     end
 
-    it "generates fallback headers when header row is empty" do
+    it "returns empty array when header row is entirely blank" do
       csv_content = ",,,\nAlice,Smith,alice@example.com,extra\n"
       source = described_class.new(data_import, content: csv_content)
 
-      expect(source.headers).to eq(%w[col_1 col_2 col_3 col_4])
+      expect(source.headers).to eq([])
+    end
+
+    it "skips leading rows when header_row is set in config" do
+      import = data_import
+      import.config = { "header_row" => 2 }
+      csv_content = "notes\n*required,*required\nPrenom,Nom,Email\nAlice,Smith,alice@example.com\n"
+      source = described_class.new(import, content: csv_content)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
+
+    it "skips leading rows when header_row is set on target" do
+      target_with_offset = Class.new(DataPorter::Target) do
+        label "Offset"
+        model_name "Offset"
+        header_row 2
+      end
+      DataPorter::Registry.register(:offset, target_with_offset)
+      import = DataPorter::DataImport.new(target_key: "offset", source_type: "csv")
+      csv_content = "notes\n*required,*required\nFirst Name,Last Name\nAlice,Smith\n"
+      source = described_class.new(import, content: csv_content)
+
+      expect(source.headers).to eq(["First Name", "Last Name"])
     end
   end
 
@@ -142,6 +165,19 @@ RSpec.describe DataPorter::Sources::Csv do
       rows = source.fetch
 
       expect(rows.first[:first_name]).to eq("Alice")
+    end
+
+    it "skips leading rows when header_row is set" do
+      import = data_import
+      import.config = { "header_row" => 2 }
+      csv_content = "notes\ndescription line\nPrenom,Nom,Email\n" \
+                    "Alice,Smith,alice@example.com\nBob,Jones,bob@example.com\n"
+      source = described_class.new(import, content: csv_content)
+
+      rows = source.fetch
+
+      expect(rows.size).to eq(2)
+      expect(rows.first).to eq(first_name: "Alice", last_name: "Smith", email: "alice@example.com")
     end
 
     it "transcodes Latin-1 content to UTF-8 for fetch" do

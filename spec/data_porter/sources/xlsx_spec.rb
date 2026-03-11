@@ -34,6 +34,12 @@ RSpec.describe DataPorter::Sources::Xlsx do
 
       expect(source.headers).to eq(%w[Prenom Nom Email])
     end
+
+    it "uses header_row 0 by default (first row)" do
+      source = described_class.new(data_import, file_path: fixture_path)
+
+      expect(source.headers).to eq(%w[Prenom Nom Email])
+    end
   end
 
   describe "#fetch" do

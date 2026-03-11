@@ -69,7 +69,9 @@ module DataPorter
       end
 
       def permitted_column_mapping
-        raw = params.require(:column_mapping).permit!.to_h
+        raw = params[:column_mapping]
+        raw = raw.to_unsafe_h if raw.respond_to?(:to_unsafe_h)
+        raw = raw.to_h unless raw.is_a?(Hash)
         valid_names = valid_column_names
         raw.transform_values { |v| valid_names.include?(v) ? v : "" }
       end

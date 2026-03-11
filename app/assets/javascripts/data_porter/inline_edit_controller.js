@@ -13,8 +13,9 @@ export default class extends Controller {
     cell.textContent = ""
     cell.classList.add("dp-cell--editing")
 
-    var input = document.createElement("input")
-    input.type = "text"
+    var isLong = value.length > 50
+    var input = document.createElement(isLong ? "textarea" : "input")
+    if (!isLong) input.type = "text"
     input.className = "dp-inline-input"
     input.value = value
     input.dataset.lineNumber = cell.dataset.lineNumber
@@ -22,18 +23,22 @@ export default class extends Controller {
 
     var self = this
     input._blurHandler = function(e) { self.save(e) }
-    input._keyHandler = function(e) { self.handleKey(e) }
+    input._keyHandler = function(e) { self.handleKey(e, isLong) }
     input.addEventListener("blur", input._blurHandler)
     input.addEventListener("keydown", input._keyHandler)
     cell.appendChild(input)
     this.autoSize(input)
-    input.addEventListener("input", function() { self.autoSize(input) })
+    if (isLong) this.autoHeight(input)
+    input.addEventListener("input", function() {
+      self.autoSize(input)
+      if (isLong) self.autoHeight(input)
+    })
     input.focus()
     input.select()
   }
 
-  handleKey(event) {
-    if (event.key === "Enter") {
+  handleKey(event, isTextarea) {
+    if (event.key === "Enter" && (!isTextarea || event.ctrlKey || event.metaKey)) {
       event.preventDefault()
       event.target.blur()
     } else if (event.key === "Escape") {
@@ -174,6 +179,11 @@ export default class extends Controller {
     var width = Math.min(Math.max(minWidth, span.offsetWidth + 4), maxWidth)
     input.style.width = width + "px"
     document.body.removeChild(span)
+  }
+
+  autoHeight(textarea) {
+    textarea.style.height = "auto"
+    textarea.style.height = textarea.scrollHeight + "px"
   }
 
   moveToNext(currentCell, reverse) {
