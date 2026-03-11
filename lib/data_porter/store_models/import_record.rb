@@ -10,8 +10,12 @@ module DataPorter
 
       attribute :line_number, :integer
       attribute :status, :string, default: "pending"
-      attribute :data, default: -> { {} }
+      attribute :data, default: -> { HashWithIndifferentAccess.new }
       attribute :errors_list, Error.to_array_type, default: -> { [] }
+
+      def data=(value)
+        super(value.is_a?(Hash) ? value.with_indifferent_access : value)
+      end
       attribute :warnings, Error.to_array_type, default: -> { [] }
       attribute :target_id, :integer
       attribute :dry_run_passed, :boolean, default: false
@@ -29,7 +33,7 @@ module DataPorter
       end
 
       def attributes
-        data.symbolize_keys.compact
+        data.stringify_keys.compact.with_indifferent_access
       end
 
       def determine_status!

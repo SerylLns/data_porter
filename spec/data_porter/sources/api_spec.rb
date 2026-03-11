@@ -42,7 +42,7 @@ RSpec.describe DataPorter::Sources::Api do
       records = source.fetch
 
       expect(records.size).to eq(2)
-      expect(records.first[:name]).to eq("Beach House")
+      expect(records.first["name"]).to eq("Beach House")
     end
   end
 
@@ -81,7 +81,7 @@ RSpec.describe DataPorter::Sources::Api do
       source = described_class.new(import_with_lambda)
       records = source.fetch
 
-      expect(records.first[:title]).to eq("Item 42")
+      expect(records.first["title"]).to eq("Item 42")
     end
   end
 
@@ -119,7 +119,7 @@ RSpec.describe DataPorter::Sources::Api do
       source = described_class.new(import_with_lambda_headers)
       records = source.fetch
 
-      expect(records.first[:value]).to eq("secret")
+      expect(records.first["value"]).to eq("secret")
     end
   end
 
@@ -157,19 +157,19 @@ RSpec.describe DataPorter::Sources::Api do
       source = described_class.new(import_no_root)
       records = source.fetch
 
-      expect(records.first[:name]).to eq("Direct")
+      expect(records.first["name"]).to eq("Direct")
     end
   end
 
   describe "#fetch transforms keys" do
-    it "parameterizes keys to symbols" do
+    it "parameterizes keys to strings" do
       response_body = '{"stays": [{"Full Name": "Alice Smith"}]}'
       stub_http_get(response_body)
 
       source = described_class.new(import)
       records = source.fetch
 
-      expect(records.first[:full_name]).to eq("Alice Smith")
+      expect(records.first["full_name"]).to eq("Alice Smith")
     end
   end
 

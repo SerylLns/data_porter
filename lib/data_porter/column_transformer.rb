@@ -41,10 +41,8 @@ module DataPorter
     end
 
     def self.resolve_key(data, name)
-      return name.to_s if data.key?(name.to_s)
-      return name if data.key?(name)
-
-      nil
+      key = name.to_s
+      key if data.key?(key)
     end
 
     def self.custom_transformers

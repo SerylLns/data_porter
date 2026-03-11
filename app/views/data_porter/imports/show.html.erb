@@ -42,6 +42,11 @@
           templates: @templates,
           default_mapping: @default_mapping
         ).call %>
+    <div class="dp-actions">
+      <%= button_to t("data_porter.imports.delete"), import_path(@import),
+            method: :delete, class: "dp-btn dp-btn--danger",
+            data: { turbo_confirm: t("data_porter.imports.delete_confirm") } %>
+    </div>
   <% end %>
 
   <% if @import.previewing? %>
@@ -71,8 +76,9 @@
         <%= button_to t("data_porter.imports.back_to_mapping"), back_to_mapping_import_path(@import),
               method: :post, class: "dp-btn dp-btn--secondary" %>
       <% end %>
-      <%= button_to t("data_porter.imports.cancel"), cancel_import_path(@import),
-            method: :post, class: "dp-btn dp-btn--danger" %>
+      <%= button_to t("data_porter.imports.delete"), import_path(@import),
+            method: :delete, class: "dp-btn dp-btn--danger",
+            data: { turbo_confirm: t("data_porter.imports.delete_confirm") } %>
     </div>
   <% end %>
 

@@ -33,16 +33,16 @@ RSpec.describe DataPorter::Sources::Json do
       records = source.fetch
 
       expect(records.size).to eq(1)
-      expect(records.first[:first_name]).to eq("Alice")
-      expect(records.first[:last_name]).to eq("Smith")
+      expect(records.first["first_name"]).to eq("Alice")
+      expect(records.first["last_name"]).to eq("Smith")
     end
 
-    it "transforms keys to parameterized symbols" do
+    it "transforms keys to parameterized strings" do
       json = '[{"First Name": "Bob", "Last Name": "Jones"}]'
       source = described_class.new(import, content: json)
       records = source.fetch
 
-      expect(records.first[:first_name]).to eq("Bob")
+      expect(records.first["first_name"]).to eq("Bob")
     end
 
     it "handles multiple records" do
@@ -82,7 +82,7 @@ RSpec.describe DataPorter::Sources::Json do
       records = source.fetch
 
       expect(records.size).to eq(2)
-      expect(records.first[:name]).to eq("Alice")
+      expect(records.first["name"]).to eq("Alice")
     end
   end
 
@@ -92,7 +92,7 @@ RSpec.describe DataPorter::Sources::Json do
       source = described_class.new(import)
       records = source.fetch
 
-      expect(records.first[:first_name]).to eq("Config")
+      expect(records.first["first_name"]).to eq("Config")
     end
   end
 end

@@ -13,7 +13,7 @@ module DataPorter
         records = extract_records(parsed, api)
 
         Array(records).map do |hash|
-          hash.transform_keys { |k| k.parameterize(separator: "_").to_sym }
+          hash.transform_keys { |k| k.parameterize(separator: "_") }
         end
       end
 

@@ -58,10 +58,10 @@ RSpec.describe DataPorter::StoreModels::ImportRecord do
   end
 
   describe "#attributes" do
-    it "returns symbolized compact data" do
+    it "returns compact data with string keys" do
       record = described_class.new(data: { "name" => "Alice", "email" => nil })
 
-      expect(record.attributes).to eq({ name: "Alice" })
+      expect(record.attributes).to eq({ "name" => "Alice" })
     end
   end
 

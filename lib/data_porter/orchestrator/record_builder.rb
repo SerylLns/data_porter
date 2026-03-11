@@ -40,7 +40,7 @@ module DataPorter
 
       def extract_data(row, columns)
         columns.each_with_object({}) do |col, hash|
-          hash[col.name] = row[col.name] || row[col.name.to_s]
+          hash[col.name.to_s] = row[col.name.to_s] || row[col.name]
         end
       end
     end

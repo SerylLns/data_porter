@@ -58,7 +58,7 @@ RSpec.describe DataPorter::Sources::Base do
 
       result = source.test_mapping(row)
 
-      expect(result).to eq(first_name: "Alice", last_name: "Smith")
+      expect(result).to eq("first_name" => "Alice", "last_name" => "Smith")
     end
 
     it "auto-maps headers when no csv_mappings defined" do
@@ -69,7 +69,7 @@ RSpec.describe DataPorter::Sources::Base do
 
       result = source.test_mapping(row)
 
-      expect(result).to eq(first_name: "Alice", email_address: "alice@example.com")
+      expect(result).to eq("first_name" => "Alice", "email_address" => "alice@example.com")
     end
 
     it "uses user column_mapping from config when present" do
@@ -81,7 +81,7 @@ RSpec.describe DataPorter::Sources::Base do
 
       result = source.test_mapping(row)
 
-      expect(result).to eq(first_name: "Hans", last_name: "Mueller")
+      expect(result).to eq("first_name" => "Hans", "last_name" => "Mueller")
     end
 
     it "prioritizes user mapping over code mapping" do
@@ -93,7 +93,7 @@ RSpec.describe DataPorter::Sources::Base do
 
       result = source.test_mapping(row)
 
-      expect(result).to eq(first_name: "Alice", last_name: "Smith")
+      expect(result).to eq("first_name" => "Alice", "last_name" => "Smith")
     end
   end
 end

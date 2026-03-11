@@ -35,7 +35,7 @@ RSpec.describe DataPorter::RecordRevalidator do
 
       it "applies transforms" do
         revalidator.call(record)
-        expect(record.data[:email]).to eq("alice@test.com")
+        expect(record.data["email"]).to eq("alice@test.com")
       end
 
       it "sets status to complete" do
@@ -135,7 +135,7 @@ RSpec.describe DataPorter::RecordRevalidator do
           end
 
           def transform(record)
-            record.data[:name] = record.data[:name].to_s.strip.capitalize
+            record.data["name"] = record.data["name"].to_s.strip.capitalize
             record
           end
         end
@@ -154,7 +154,7 @@ RSpec.describe DataPorter::RecordRevalidator do
 
       it "applies target transform" do
         transforming_revalidator.call(record)
-        expect(record.data[:name]).to eq("Alice")
+        expect(record.data["name"]).to eq("Alice")
       end
     end
 

@@ -32,18 +32,18 @@ module DataPorter
 
       def user_map(row)
         user_mapping.each_with_object({}) do |(header, column), hash|
-          hash[column.to_sym] = row[header]
+          hash[column.to_s] = row[header]
         end
       end
 
       def explicit_map(row, mappings)
         mappings.each_with_object({}) do |(header, column), hash|
-          hash[column] = row[header]
+          hash[column.to_s] = row[header]
         end
       end
 
       def auto_map(row)
-        row.to_h.transform_keys { |k| k.parameterize(separator: "_").to_sym }
+        row.to_h.transform_keys { |k| k.parameterize(separator: "_") }
       end
 
       def header_row_index

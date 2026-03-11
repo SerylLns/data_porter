@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-03-11
+
+### Changed
+
+- **Record data keys normalized to strings** -- `record.data` now uses `HashWithIndifferentAccess`, so both `record.data["key"]` and `record.data[:key]` work consistently. Sources, RecordBuilder, ColumnTransformer, and RecordValidator all produce string keys. No breaking change for existing Targets
+- **Delete on mapping and preview** -- Imports in `mapping` and `previewing` status now show a Delete button with confirmation. Previously only `completed` and `failed` imports could be deleted. The preview Cancel button (which set status to `failed` without deleting) is replaced by Delete
+
 ## [2.9.0] - 2026-03-11
 
 ### Added

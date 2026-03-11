@@ -176,8 +176,8 @@ RSpec.describe "data_porter/imports/show.html.erb" do
       expect(html).to include("Confirm")
     end
 
-    it "shows cancel button" do
-      expect(html).to include("Cancel")
+    it "shows delete button" do
+      expect(html).to include("Delete")
     end
 
     it "renders table with inline edit controller" do

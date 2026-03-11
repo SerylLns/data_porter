@@ -72,7 +72,7 @@ module DataPorter
         end
 
         def cell_value(record, col)
-          (record.data[col.name.to_s] || record.data[col.name]).to_s
+          record.data[col.name.to_s].to_s
         end
 
         def row_attrs(record)

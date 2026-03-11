@@ -24,9 +24,10 @@ module DataPorter
     def normalize_keys(record)
       @columns.each do |col|
         string_key = col.name.to_s
-        next unless record.data.key?(string_key) && !record.data.key?(col.name)
+        next if record.data.key?(string_key)
+        next unless record.data.key?(col.name)
 
-        record.data[col.name] = record.data.delete(string_key)
+        record.data[string_key] = record.data.delete(col.name)
       end
     end
   end

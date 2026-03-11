@@ -32,10 +32,7 @@ module DataPorter
       record.data[key] = value
     end
 
-    def resolve_key(data, column)
-      return column.to_sym if data.key?(column.to_sym)
-      return column.to_s if data.key?(column.to_s)
-
+    def resolve_key(_data, column)
       column.to_s
     end
 

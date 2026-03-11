@@ -8,7 +8,7 @@ module DataPorter
 
     def validate(record)
       @columns.each do |col|
-        value = record.data[col.name]
+        value = record.data[col.name.to_s]
         validate_required(record, col, value)
         validate_type(record, col, value)
       end

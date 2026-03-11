@@ -485,7 +485,7 @@ RSpec.describe DataPorter::Orchestrator do
         end
 
         define_method(:transform) do |record|
-          order << record.data[:email]
+          order << record.data["email"]
           super(record)
         end
       end

@@ -113,7 +113,7 @@ RSpec.describe DataPorter::Sources::Csv do
       rows = source.fetch
 
       expect(rows.size).to eq(2)
-      expect(rows.first).to eq(first_name: "Alice", last_name: "Smith", email: "alice@example.com")
+      expect(rows.first).to eq("first_name" => "Alice", "last_name" => "Smith", "email" => "alice@example.com")
     end
 
     it "handles empty CSV" do
@@ -135,7 +135,7 @@ RSpec.describe DataPorter::Sources::Csv do
 
       rows = source.fetch
 
-      expect(rows.first).to eq(first_name: "Alice", last_name: "Smith")
+      expect(rows.first).to eq("first_name" => "Alice", "last_name" => "Smith")
     end
 
     it "handles custom separators via config" do
@@ -146,7 +146,7 @@ RSpec.describe DataPorter::Sources::Csv do
 
       rows = source.fetch
 
-      expect(rows.first[:first_name]).to eq("Alice")
+      expect(rows.first["first_name"]).to eq("Alice")
     end
 
     it "auto-detects semicolon separator for fetch" do
@@ -155,7 +155,7 @@ RSpec.describe DataPorter::Sources::Csv do
 
       rows = source.fetch
 
-      expect(rows.first[:first_name]).to eq("Alice")
+      expect(rows.first["first_name"]).to eq("Alice")
     end
 
     it "auto-detects tab separator for fetch" do
@@ -164,7 +164,7 @@ RSpec.describe DataPorter::Sources::Csv do
 
       rows = source.fetch
 
-      expect(rows.first[:first_name]).to eq("Alice")
+      expect(rows.first["first_name"]).to eq("Alice")
     end
 
     it "skips leading rows when header_row is set" do
@@ -177,7 +177,7 @@ RSpec.describe DataPorter::Sources::Csv do
       rows = source.fetch
 
       expect(rows.size).to eq(2)
-      expect(rows.first).to eq(first_name: "Alice", last_name: "Smith", email: "alice@example.com")
+      expect(rows.first).to eq("first_name" => "Alice", "last_name" => "Smith", "email" => "alice@example.com")
     end
 
     it "transcodes Latin-1 content to UTF-8 for fetch" do
@@ -186,7 +186,7 @@ RSpec.describe DataPorter::Sources::Csv do
 
       rows = source.fetch
 
-      expect(rows.first[:first_name]).to eq("René")
+      expect(rows.first["first_name"]).to eq("René")
     end
   end
 end

@@ -49,8 +49,8 @@ RSpec.describe DataPorter::Sources::Xlsx do
       rows = source.fetch
 
       expect(rows.size).to eq(2)
-      expect(rows.first).to eq(first_name: "Alice", last_name: "Smith", email: "alice@example.com")
-      expect(rows.last).to eq(first_name: "Bob", last_name: "Jones", email: "bob@example.com")
+      expect(rows.first).to eq("first_name" => "Alice", "last_name" => "Smith", "email" => "alice@example.com")
+      expect(rows.last).to eq("first_name" => "Bob", "last_name" => "Jones", "email" => "bob@example.com")
     end
 
     it "handles empty XLSX (headers only)" do
@@ -71,7 +71,7 @@ RSpec.describe DataPorter::Sources::Xlsx do
 
       rows = source.fetch
 
-      expect(rows.first).to eq(prenom: "Alice", nom: "Smith", email: "alice@example.com")
+      expect(rows.first).to eq("prenom" => "Alice", "nom" => "Smith", "email" => "alice@example.com")
     end
 
     it "selects sheet by index via config" do
@@ -83,7 +83,7 @@ RSpec.describe DataPorter::Sources::Xlsx do
       rows = source.fetch
 
       expect(rows.size).to eq(1)
-      expect(rows.first).to eq(first_name: "Charlie", last_name: "Brown", email: "charlie@example.com")
+      expect(rows.first).to eq("first_name" => "Charlie", "last_name" => "Brown", "email" => "charlie@example.com")
     end
   end
 end
