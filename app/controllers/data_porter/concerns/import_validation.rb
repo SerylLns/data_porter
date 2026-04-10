@@ -11,6 +11,12 @@ module DataPorter
         "xlsx" => %w[application/vnd.openxmlformats-officedocument.spreadsheetml.sheet]
       }.freeze
 
+      EXTENSIONS_BY_SOURCE = {
+        "csv" => %w[.csv],
+        "json" => %w[.json],
+        "xlsx" => %w[.xlsx]
+      }.freeze
+
       private
 
       def valid_source_for_target?
@@ -56,6 +62,26 @@ module DataPorter
         return true if @import.file.blob.byte_size <= max
 
         @import.errors.add(:file, I18n.t("data_porter.errors.file_too_large", max: max / 1.megabyte))
+        false
+      end
+
+      def valid_file_extension_for_source?
+        return true unless @import.file.attached?
+
+        allowed = EXTENSIONS_BY_SOURCE[@import.source_type]
+        return true unless allowed
+
+        actual = File.extname(@import.file.blob.filename.to_s).downcase
+        return true if allowed.include?(actual)
+
+        @import.errors.add(
+          :file,
+          I18n.t(
+            "data_porter.errors.file_extension_mismatch",
+            expected: allowed.join(", "),
+            actual: actual.presence || "none"
+          )
+        )
         false
       end
 

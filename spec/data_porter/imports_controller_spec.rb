@@ -684,6 +684,84 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
+  describe "#valid_file_extension_for_source?" do
+    let(:controller) { described_class.new }
+
+    def stub_import(source_type, filename)
+      import = DataPorter::DataImport.new(source_type: source_type)
+      blob = double("blob", filename: ActiveStorage::Filename.new(filename))
+      attachment = double("file", attached?: true, blob: blob)
+      allow(import).to receive(:file).and_return(attachment)
+      controller.instance_variable_set(:@import, import)
+      import
+    end
+
+    context "with csv source and .csv file" do
+      it "returns true" do
+        stub_import("csv", "data.csv")
+        expect(controller.send(:valid_file_extension_for_source?)).to be true
+      end
+    end
+
+    context "with xlsx source and .csv file" do
+      it "returns false" do
+        stub_import("xlsx", "data.csv")
+        expect(controller.send(:valid_file_extension_for_source?)).to be false
+      end
+
+      it "adds an error mentioning expected and actual extensions" do
+        import = stub_import("xlsx", "data.csv")
+        controller.send(:valid_file_extension_for_source?)
+        expect(import.errors[:file].first).to include(".xlsx").and include(".csv")
+      end
+    end
+
+    context "with csv source and .xlsx file" do
+      it "returns false" do
+        stub_import("csv", "report.xlsx")
+        expect(controller.send(:valid_file_extension_for_source?)).to be false
+      end
+    end
+
+    context "with csv source and uppercase .CSV extension" do
+      it "returns true" do
+        stub_import("csv", "DATA.CSV")
+        expect(controller.send(:valid_file_extension_for_source?)).to be true
+      end
+    end
+
+    context "with json source and .json file" do
+      it "returns true" do
+        stub_import("json", "payload.json")
+        expect(controller.send(:valid_file_extension_for_source?)).to be true
+      end
+    end
+
+    context "with source type not in extension map" do
+      it "returns true" do
+        stub_import("api", "anything.bin")
+        expect(controller.send(:valid_file_extension_for_source?)).to be true
+      end
+    end
+
+    context "when no file is attached" do
+      let(:import) { DataPorter::DataImport.new(source_type: "csv") }
+
+      before { controller.instance_variable_set(:@import, import) }
+
+      it "returns true" do
+        expect(controller.send(:valid_file_extension_for_source?)).to be true
+      end
+    end
+
+    context "with file having no extension" do
+      it "returns false" do
+        stub_import("csv", "data")
+        expect(controller.send(:valid_file_extension_for_source?)).to be false
+      end
+    end
+  end
+
   describe "#ensure_previewing" do
     let(:controller) { described_class.new }
 

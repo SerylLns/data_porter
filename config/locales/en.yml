@@ -124,3 +124,4 @@ en:
       file_required: "must be attached for %{source} imports"
       file_too_large: "is too large (max %{max} MB)"
       invalid_content_type: "has an invalid content type (%{type})"
+      file_extension_mismatch: "expected a %{expected} file but got %{actual}"

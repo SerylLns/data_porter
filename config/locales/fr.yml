@@ -124,3 +124,4 @@ fr:
       file_required: "doit être joint pour les imports %{source}"
       file_too_large: "est trop volumineux (max %{max} Mo)"
       invalid_content_type: "a un type de contenu invalide (%{type})"
+      file_extension_mismatch: "fichier %{expected} attendu mais %{actual} reçu"

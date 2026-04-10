@@ -144,6 +144,7 @@ module DataPorter
         valid_source_for_target?,
         valid_file_presence?,
         valid_file_size?,
+        valid_file_extension_for_source?,
         valid_file_content_type?,
         valid_import_params?
       ].all?
