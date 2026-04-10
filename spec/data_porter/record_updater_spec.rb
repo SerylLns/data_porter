@@ -130,4 +130,45 @@ RSpec.describe DataPorter::RecordUpdater do
       end
     end
   end
+
+  context "when target uses import_params in validate" do
+    let(:target_class) do
+      Class.new(DataPorter::Target) do
+        label "Guests"
+        model_name "Guest"
+
+        params do
+          param :hotel_id, type: :select, required: true
+        end
+
+        columns do
+          column :name, type: :string, required: true
+        end
+
+        def validate(record)
+          record.add_error("Hotel is required") if import_params["hotel_id"].blank?
+        end
+      end
+    end
+
+    let(:data_import) do
+      DataPorter::DataImport.create!(
+        target_key: "guests",
+        source_type: "csv",
+        status: :previewing,
+        records: [complete_record],
+        report: DataPorter::StoreModels::Report.new(
+          records_count: 1,
+          complete_count: 1
+        ),
+        config: { "import_params" => { "hotel_id" => "42" } }
+      )
+    end
+
+    it "hydrates import_params on the target so revalidation sees them" do
+      result = updater.call(line_number: 1, column: "name", value: "Updated")
+      expect(result[:errors]).to be_empty
+      expect(result[:status]).to eq("complete")
+    end
+  end
 end

@@ -5,6 +5,7 @@ module DataPorter
     def initialize(data_import)
       @data_import = data_import
       @target = data_import.target_class.new
+      @target.import_params = data_import.config&.dig("import_params") || {}
       @revalidator = RecordRevalidator.new(@target)
     end
 
