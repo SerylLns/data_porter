@@ -54,9 +54,9 @@ RSpec.describe DataPorter::Registry do
 
       expect(result).to contain_exactly(
         { key: :guests, label: "Guests", icon: "fas fa-users",
-          sources: DataPorter.configuration.enabled_sources, params: [] },
+          sources: DataPorter.configuration.enabled_sources, params: [], header_row: 1 },
         { key: :products, label: "Products", icon: "fas fa-box",
-          sources: DataPorter.configuration.enabled_sources, params: [] }
+          sources: DataPorter.configuration.enabled_sources, params: [], header_row: 1 }
       )
     end
 
@@ -171,6 +171,29 @@ RSpec.describe DataPorter::Registry do
         result = described_class.available.find { |t| t[:key] == :guests }
 
         expect(result[:params]).to eq([])
+      end
+    end
+
+    context "with header_row" do
+      it "defaults to 1 when target does not declare header_row" do
+        described_class.register(:guests, target_class)
+
+        result = described_class.available.find { |t| t[:key] == :guests }
+
+        expect(result[:header_row]).to eq(1)
+      end
+
+      it "exposes the DSL header_row as a 1-based value" do
+        header_target = Class.new(DataPorter::Target) do
+          label "Offset"
+          model_name "Offset"
+          header_row 2
+        end
+        described_class.register(:offset, header_target)
+
+        result = described_class.available.find { |t| t[:key] == :offset }
+
+        expect(result[:header_row]).to eq(3)
       end
     end
   end

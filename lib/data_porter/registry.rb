@@ -16,15 +16,7 @@ module DataPorter
       end
 
       def available
-        @targets.map do |key, klass|
-          {
-            key: key,
-            label: klass._label,
-            icon: klass._icon,
-            sources: klass._sources || DataPorter.configuration.enabled_sources,
-            params: serialize_params(klass._params)
-          }
-        end
+        @targets.map { |key, klass| serialize_target(key, klass) }
       end
 
       def refresh!
@@ -36,6 +28,17 @@ module DataPorter
       end
 
       private
+
+      def serialize_target(key, klass)
+        {
+          key: key,
+          label: klass._label,
+          icon: klass._icon,
+          sources: klass._sources || DataPorter.configuration.enabled_sources,
+          params: serialize_params(klass._params),
+          header_row: (klass._header_row || 0) + 1
+        }
+      end
 
       def resolve_collection(collection)
         return unless collection
