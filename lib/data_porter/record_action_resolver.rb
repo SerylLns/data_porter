@@ -14,7 +14,18 @@ module DataPorter
       records.each { |record| resolve(record, index) }
     end
 
+    def call_one(record, records)
+      index = @matcher.call([record])
+      @first_lines = earlier_lines(record, records)
+      resolve(record, index)
+    end
+
     private
+
+    def earlier_lines(record, records)
+      records.select { |other| other.line_number < record.line_number }
+             .each_with_object({}) { |other, lines| lines[@matcher.key_for(other)] ||= other.line_number }
+    end
 
     def resolve(record, index)
       record.diff = {}
