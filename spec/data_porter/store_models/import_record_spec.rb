@@ -19,6 +19,18 @@ RSpec.describe DataPorter::StoreModels::ImportRecord do
     it "defaults dry_run_passed to false" do
       expect(record.dry_run_passed).to be false
     end
+
+    it "defaults action to nil" do
+      expect(record.action).to be_nil
+    end
+
+    it "defaults diff to an empty hash" do
+      expect(record.diff).to eq({})
+    end
+
+    it "defaults excluded to false" do
+      expect(record.excluded).to be false
+    end
   end
 
   describe "#add_error" do
@@ -54,6 +66,28 @@ RSpec.describe DataPorter::StoreModels::ImportRecord do
     it "returns true when status is complete" do
       record.status = "complete"
       expect(record.importable?).to be true
+    end
+
+    it "returns false when the record is excluded" do
+      record.status = "complete"
+      record.excluded = true
+
+      expect(record.importable?).to be false
+    end
+  end
+
+  describe "update mode attributes persistence" do
+    it "round-trips action, diff and excluded through the JSONB column" do
+      record.action = "update"
+      record.diff = { "email" => ["old@example.com", "new@example.com"] }
+      record.excluded = true
+      import = DataPorter::DataImport.create!(target_key: "guests", source_type: "csv", records: [record])
+
+      reloaded = import.reload.records.first
+
+      expect(reloaded.action).to eq("update")
+      expect(reloaded.diff).to eq("email" => ["old@example.com", "new@example.com"])
+      expect(reloaded.excluded).to be true
     end
   end
 

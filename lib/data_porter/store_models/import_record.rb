@@ -19,10 +19,13 @@ module DataPorter
       attribute :warnings, Error.to_array_type, default: -> { [] }
       attribute :target_id, :integer
       attribute :dry_run_passed, :boolean, default: false
+      attribute :action, :string
+      attribute :diff, default: -> { {} }
+      attribute :excluded, :boolean, default: false
 
       def complete? = status == "complete"
 
-      def importable? = status == "complete"
+      def importable? = complete? && !excluded
 
       def add_error(message)
         errors_list << Error.new(message: message)
