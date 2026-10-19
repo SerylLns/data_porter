@@ -108,6 +108,20 @@ RSpec.describe DataPorter::Target do
     end
   end
 
+  describe "default diff_attributes" do
+    it "returns the existing attributes matching declared columns" do
+      klass = Class.new(described_class) do
+        columns do
+          column :email, type: :email
+          column :nickname, type: :string
+        end
+      end
+      existing = Contact.new(email: "alice@example.com", first_name: "Alice")
+
+      expect(klass.new.diff_attributes(existing)).to eq("email" => "alice@example.com")
+    end
+  end
+
   describe "default update" do
     it "updates the existing record with the record attributes" do
       existing = User.create!

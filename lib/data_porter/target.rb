@@ -133,6 +133,10 @@ module DataPorter
       model_class("existing_scope").all
     end
 
+    def diff_attributes(existing)
+      existing.attributes.slice(*(self.class._columns || []).map { |column| column.name.to_s })
+    end
+
     def update(record, existing, context:) # rubocop:disable Lint/UnusedMethodArgument
       existing.update!(record.attributes)
     end

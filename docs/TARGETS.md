@@ -297,6 +297,16 @@ def existing_scope
 end
 ```
 
+### `diff_attributes(existing)`
+
+Values of an existing record compared against the incoming record to build the diff preview. Defaults to the existing record's attributes whose names match declared columns. Values are cast by column type before comparison, and `nil` incoming values are ignored. Override it when column names differ from model attributes:
+
+```ruby
+def diff_attributes(existing)
+  { "email" => existing.email_address, "full_name" => existing.name }
+end
+```
+
 ### `update(record, existing, context:)`
 
 Called instead of `persist` for records matched by `match_by`. Defaults to `existing.update!(record.attributes)`.
