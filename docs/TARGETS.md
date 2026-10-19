@@ -195,6 +195,8 @@ Can also be set at runtime via import config (takes priority over the DSL):
 import.config = { "header_row" => 2 }
 ```
 
+The import form (both the modal and the standalone `new` page) shows a **Header row** field for CSV and XLSX sources. Users enter a 1-based row number; it is stored as a 0-based `config["header_row"]`. The field is pre-filled from the selected Target's DSL value (`header_row 2` shows `3`), so the DSL default is preserved unless the user changes it.
+
 ### `dry_run_enabled`
 
 Enables dry run mode for this target. A "Dry Run" button appears in the preview step. Dry run executes the full import pipeline (transform, validate, persist) inside a rolled-back transaction, giving a validation report without modifying the database.

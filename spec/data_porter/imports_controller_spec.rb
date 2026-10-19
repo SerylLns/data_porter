@@ -357,6 +357,74 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
+  describe "#merge_header_row" do
+    let(:controller) { described_class.new }
+
+    def permit_and_merge(data_import_params)
+      raw = ActionController::Parameters.new(data_import: data_import_params)
+      controller.params = raw
+      permitted = raw.require(:data_import).permit(:target_key, :source_type, :file, config: {})
+      controller.send(:merge_header_row, permitted)
+    end
+
+    it "converts 1-based form value to 0-based config value" do
+      result = permit_and_merge(target_key: "test_import", source_type: "csv", header_row: "3")
+      expect(result[:config]["header_row"]).to eq(2)
+    end
+
+    it "stores 0 when header_row is 1" do
+      result = permit_and_merge(target_key: "test_import", source_type: "csv", header_row: "1")
+      expect(result[:config]["header_row"]).to eq(0)
+    end
+
+    it "clamps values below 1 to 0" do
+      result = permit_and_merge(target_key: "test_import", source_type: "csv", header_row: "-5")
+      expect(result[:config]["header_row"]).to eq(0)
+    end
+
+    it "returns permitted unchanged when header_row is blank" do
+      result = permit_and_merge(target_key: "test_import", source_type: "csv")
+      expect(result[:config]).to be_nil
+    end
+
+    it "preserves existing config keys when adding header_row" do
+      result = permit_and_merge(
+        target_key: "test_import",
+        source_type: "csv",
+        header_row: "2",
+        config: { "sheet_index" => "1" }
+      )
+      expect(result[:config]["header_row"]).to eq(1)
+      expect(result[:config]["sheet_index"]).to eq("1")
+    end
+  end
+
+  describe "#import_params" do
+    let(:controller) { described_class.new }
+
+    it "stores header_row (0-based) alongside import_params in config" do
+      params_target = Class.new(DataPorter::Target) do
+        label "WithParams"
+        model_name "WithParams"
+        params { param :hotel_id, type: :text, required: true }
+      end
+      DataPorter::Registry.register(:with_params, params_target)
+
+      controller.params = ActionController::Parameters.new(
+        data_import: {
+          target_key: "with_params",
+          source_type: "csv",
+          header_row: "3",
+          config: { import_params: { hotel_id: "42" } }
+        }
+      )
+      result = controller.send(:import_params)
+
+      expect(result[:config]["header_row"]).to eq(2)
+      expect(result[:config]["import_params"]["hotel_id"]).to eq("42")
+    end
+  end
+
   describe "#scoped_imports" do
     let(:controller) { described_class.new }
 

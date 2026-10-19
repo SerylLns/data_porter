@@ -15,7 +15,7 @@ RSpec.describe "data_porter/imports/index.html.erb" do
   end
 
   let(:targets) do
-    [{ key: :guests, label: "Guests", icon: "fas fa-users", params: [] }]
+    [{ key: :guests, label: "Guests", icon: "fas fa-users", params: [], header_row: 3 }]
   end
 
   let(:imports) do
@@ -82,6 +82,16 @@ RSpec.describe "data_porter/imports/index.html.erb" do
 
   it "includes params data value" do
     expect(html).to include("params-value")
+  end
+
+  it "includes the header row field in the modal" do
+    expect(html).to include('name="data_import[header_row]"')
+    expect(html).to include("headerRowField")
+  end
+
+  it "includes per-target header row defaults" do
+    expect(html).to include("header-rows-value")
+    expect(html).to include("&quot;guests&quot;:3")
   end
 
   it "displays the target icon" do

@@ -43,6 +43,8 @@ fr:
         dropzone_text: "Déposez votre fichier ici ou <strong>parcourir</strong>"
         dropzone_hint: "Fichiers CSV, JSON ou XLSX acceptés"
         select_prompt: "Sélectionner..."
+        header_row_label: "Ligne des en-têtes"
+        header_row_hint: "Numéro de la ligne (à partir de 1) contenant les en-têtes de colonnes. Laissez 1 sauf si votre fichier a des lignes de description avant les en-têtes."
     mapping:
       load_template: "Charger un modèle"
       save_as_template: "Sauvegarder comme modèle"

@@ -9,7 +9,7 @@ RSpec.describe "data_porter/imports/new.html.erb" do
   let(:import) { DataPorter::DataImport.new }
 
   let(:targets) do
-    [{ key: :guests, label: "Guests", icon: "fas fa-users", params: [] }]
+    [{ key: :guests, label: "Guests", icon: "fas fa-users", params: [], header_row: 3 }]
   end
 
   subject(:html) do
@@ -44,6 +44,15 @@ RSpec.describe "data_porter/imports/new.html.erb" do
 
   it "includes params data attribute" do
     expect(html).to include("data-params=")
+  end
+
+  it "includes the header row field" do
+    expect(html).to include('name="data_import[header_row]"')
+  end
+
+  it "includes per-target header row defaults" do
+    expect(html).to include("data-header-rows=")
+    expect(html).to include("&quot;guests&quot;:3")
   end
 
   context "with errors" do

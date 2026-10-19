@@ -21,7 +21,8 @@
             class: "dp-select",
             data: {
               sources: @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json,
-              params: @targets.map { |t| [t[:key], t[:params]] }.to_h.to_json
+              params: @targets.map { |t| [t[:key], t[:params]] }.to_h.to_json,
+              header_rows: @targets.map { |t| [t[:key], t[:header_row]] }.to_h.to_json
             } %>
     </div>
 
@@ -49,6 +50,12 @@
       </label>
     </div>
 
+    <div id="dp-header-row-field-new" class="dp-field">
+      <%= label_tag "dp-header-row-input-new", t("data_porter.imports.form.header_row_label"), class: "dp-label" %>
+      <input type="number" name="data_import[header_row]" id="dp-header-row-input-new" class="dp-input" value="1" min="1" step="1" />
+      <small class="dp-hint"><%= t("data_porter.imports.form.header_row_hint") %></small>
+    </div>
+
     <div class="dp-actions">
       <%= f.submit t("data_porter.imports.start_import"), class: "dp-btn dp-btn--primary" %>
       <%= link_to t("data_porter.imports.cancel"), imports_path, class: "dp-btn dp-btn--secondary" %>
@@ -64,8 +71,23 @@
     var fileInput = document.getElementById("dp-file-input-new");
     var dropzone = document.getElementById("dp-dropzone-new");
     var fileName = document.getElementById("dp-file-name-new");
+    var headerRowField = document.getElementById("dp-header-row-field-new");
     var paramsContainer = document.getElementById("dp-params-container");
     var paramsData = JSON.parse((targetSelect && targetSelect.dataset.params) || "{}");
+    var HEADER_ROW_SOURCES = ["csv", "xlsx"];
+
+    var headerRowInput = document.getElementById("dp-header-row-input-new");
+    var headerRowsData = JSON.parse((targetSelect && targetSelect.dataset.headerRows) || "{}");
+
+    function toggleHeaderRow() {
+      if (!headerRowField || !sourceSelect) return;
+      headerRowField.style.display = HEADER_ROW_SOURCES.indexOf(sourceSelect.value) === -1 ? "none" : "";
+    }
+
+    function applyHeaderRowDefault() {
+      if (!headerRowInput || !targetSelect) return;
+      headerRowInput.value = headerRowsData[targetSelect.value] || 1;
+    }
 
     function renderParams() {
       if (!paramsContainer || !targetSelect) return;
@@ -124,13 +146,16 @@
       targetSelect.addEventListener("change", function() {
         filterSources();
         renderParams();
+        applyHeaderRowDefault();
       });
     }
 
     if (sourceSelect) {
       sourceSelect.addEventListener("change", function() {
         fileField.style.display = this.value === "api" ? "none" : "";
+        toggleHeaderRow();
       });
+      toggleHeaderRow();
     }
 
     if (fileInput) {

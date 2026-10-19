@@ -1,6 +1,7 @@
 <div class="data-porter" data-controller="data-porter--import-form"
      data-data-porter--import-form-sources-value="<%= @targets.map { |t| [t[:key], t[:sources]] }.to_h.to_json %>"
      data-data-porter--import-form-params-value="<%= @targets.map { |t| [t[:key], t[:params]] }.to_h.to_json %>"
+     data-data-porter--import-form-header-rows-value="<%= @targets.map { |t| [t[:key], t[:header_row]] }.to_h.to_json %>"
      data-action="keydown@document->data-porter--import-form#closeModal">
   <div class="dp-header">
     <h1 class="dp-title"><%= t("data_porter.imports.title") %></h1>
@@ -103,6 +104,13 @@
             </div>
             <div class="dp-dropzone__selected" data-data-porter--import-form-target="fileName" style="display: none;"></div>
           </label>
+        </div>
+
+        <div class="dp-field" data-data-porter--import-form-target="headerRowField">
+          <%= label_tag "dp-header-row-input-modal", t("data_porter.imports.form.header_row_label"), class: "dp-label" %>
+          <input type="number" name="data_import[header_row]" id="dp-header-row-input-modal" class="dp-input" value="1" min="1" step="1"
+                 data-data-porter--import-form-target="headerRowInput" />
+          <small class="dp-hint"><%= t("data_porter.imports.form.header_row_hint") %></small>
         </div>
 
         <div class="dp-modal__footer">

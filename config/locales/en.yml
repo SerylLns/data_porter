@@ -43,6 +43,8 @@ en:
         dropzone_text: "Drop your file here or <strong>browse</strong>"
         dropzone_hint: "CSV, JSON, or XLSX files accepted"
         select_prompt: "Select..."
+        header_row_label: "Header row"
+        header_row_hint: "Row number (starting at 1) containing the column headers. Leave at 1 unless your file has description rows above the headers."
     mapping:
       load_template: "Load Template"
       save_as_template: "Save as template"

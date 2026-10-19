@@ -1,12 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["targetSelect", "sourceSelect", "fileField", "fileInput", "dropzone", "fileName", "modal", "paramsContainer"]
-  static values = { sources: Object, params: Object }
+  static targets = ["targetSelect", "sourceSelect", "fileField", "fileInput", "dropzone", "fileName", "modal", "paramsContainer", "headerRowField", "headerRowInput"]
+  static values = { sources: Object, params: Object, headerRows: Object }
 
   connect() {
     this.filterSources()
     this.renderParams()
+    this.toggleHeaderRow()
   }
 
   filterSources() {
@@ -21,6 +22,19 @@ export default class extends Controller {
       this.fileFieldTarget.style.display = ""
     }
     this.renderParams()
+    this.applyHeaderRowDefault()
+    this.toggleHeaderRow()
+  }
+
+  applyHeaderRowDefault() {
+    if (!this.hasHeaderRowInputTarget || !this.hasTargetSelectTarget) return
+    this.headerRowInputTarget.value = this.headerRowsValue[this.targetSelectTarget.value] || 1
+  }
+
+  toggleHeaderRow() {
+    if (!this.hasHeaderRowFieldTarget || !this.hasSourceSelectTarget) return
+    var visible = ["csv", "xlsx"].indexOf(this.sourceSelectTarget.value) !== -1
+    this.headerRowFieldTarget.style.display = visible ? "" : "none"
   }
 
   renderParams() {
@@ -83,6 +97,7 @@ export default class extends Controller {
 
   toggleFileField() {
     this.fileFieldTarget.style.display = this.sourceSelectTarget.value === "api" ? "none" : ""
+    this.toggleHeaderRow()
   }
 
   handleFile() {
