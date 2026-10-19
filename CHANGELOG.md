@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-10-19
+
+### Added
+
+- **Header row field in import form** -- The modal and standalone `new` import forms show a "Header row" input for CSV and XLSX sources. Users enter a 1-based row number, stored as a 0-based `config["header_row"]`. The field is pre-filled from the Target's `header_row` DSL value, exposed by `Registry.available` as `header_row`
+
+### Fixed
+
+- **Import params on inline edit** -- `RecordUpdater` now hydrates `import_params` on the target before revalidating, so validations depending on them no longer fail on valid records (#3)
+- **File extension validation** -- The uploaded file extension is cross-checked against the selected source type before saving, surfacing mismatches as a form error instead of crashing the parser (#4)
+
 ## [2.9.1] - 2026-03-11
 
 ### Changed
