@@ -127,3 +127,5 @@ en:
       file_too_large: "is too large (max %{max} MB)"
       invalid_content_type: "has an invalid content type (%{type})"
       file_extension_mismatch: "expected a %{expected} file but got %{actual}"
+      duplicate_match_key: "Duplicate %{keys} with line %{line}"
+      ambiguous_match: "%{keys} matches %{count} existing records"

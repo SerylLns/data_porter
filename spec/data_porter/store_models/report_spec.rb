@@ -19,6 +19,10 @@ RSpec.describe DataPorter::StoreModels::Report do
     expect(report.missing_count).to eq(0)
   end
 
+  it "defaults action counts to 0" do
+    expect([report.create_count, report.update_count, report.unchanged_count]).to eq([0, 0, 0])
+  end
+
   it "defaults duplicate_count to 0" do
     expect(report.duplicate_count).to eq(0)
   end

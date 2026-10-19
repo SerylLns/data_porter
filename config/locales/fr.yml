@@ -127,3 +127,5 @@ fr:
       file_too_large: "est trop volumineux (max %{max} Mo)"
       invalid_content_type: "a un type de contenu invalide (%{type})"
       file_extension_mismatch: "fichier %{expected} attendu mais %{actual} reçu"
+      duplicate_match_key: "Doublon de %{keys} avec la ligne %{line}"
+      ambiguous_match: "%{keys} correspond à %{count} enregistrements existants"
