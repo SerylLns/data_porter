@@ -132,6 +132,17 @@ RSpec.describe DataPorter::Orchestrator, "update mode" do
       expect(Contact.find_by(email: "alice@example.com").first_name).to eq("Alice")
     end
 
+    it "refuses a second write on the same key within a run" do
+      records = data_import.records
+      records.first.data["email"] = "carol@example.com"
+      data_import.update!(records: records)
+
+      report = import!.report
+
+      expect(Contact.where(email: "carol@example.com").count).to eq(1)
+      expect(report.errored_count).to eq(1)
+    end
+
     it "fails with an explicit error when combined with bulk_mode" do
       target_class.bulk_mode
 
