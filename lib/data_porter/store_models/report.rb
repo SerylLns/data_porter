@@ -17,6 +17,8 @@ module DataPorter
       attribute :update_count, :integer, default: 0
       attribute :unchanged_count, :integer, default: 0
       attribute :imported_count, :integer, default: 0
+      attribute :updated_count, :integer, default: 0
+      attribute :skipped_count, :integer, default: 0
       attribute :errored_count, :integer, default: 0
       attribute :error_reports, Error.to_array_type, default: []
     end

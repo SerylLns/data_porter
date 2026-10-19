@@ -6,6 +6,7 @@ module DataPorter
       private
 
       def import_records
+        prepare_writes(@data_import.importable_records)
         if @target.class._bulk_config
           import_bulk
         elsif DataPorter.configuration.transaction_mode == :all
@@ -34,16 +35,16 @@ module DataPorter
       def import_all_or_nothing
         importable = @data_import.importable_records
         context = build_context
-        total = importable.size
+        results = empty_results
 
         ActiveRecord::Base.transaction do
           importable.each_with_index do |record, index|
-            @target.persist(record, context: context)
-            broadcast_progress(index + 1, total)
+            results[write_record(record, context)] += 1
+            broadcast_progress(index + 1, importable.size)
           end
         end
 
-        finalize_import(created: total, errored: 0)
+        finalize_import(results)
       end
 
       def finalize_import(results)
@@ -55,8 +56,7 @@ module DataPorter
       end
 
       def persist_record(record, context, results)
-        @target.persist(record, context: context)
-        results[:created] += 1
+        results[write_record(record, context)] += 1
       rescue StandardError => e
         record.add_error(e.message)
         @target.on_error(record, e, context: context)
@@ -66,21 +66,19 @@ module DataPorter
       def update_import_report(results)
         report = @data_import.report || StoreModels::Report.new
         report.imported_count = results[:created]
+        report.updated_count = results[:updated]
+        report.skipped_count = results[:skipped]
         report.errored_count = results[:errored]
         @data_import.update!(report: report)
       end
 
       def load_checkpoint
         cp = @data_import.config&.dig("checkpoint") || {}
-        {
-          processed: cp["processed"].to_i,
-          created: cp["created"].to_i,
-          errored: cp["errored"].to_i
-        }
+        { processed: cp["processed"].to_i }.merge(RecordWriter::RESULT_KEYS.to_h { |key| [key, cp[key.to_s].to_i] })
       end
 
       def seed_results(checkpoint)
-        { created: checkpoint[:created], errored: checkpoint[:errored] }
+        checkpoint.slice(*RecordWriter::RESULT_KEYS)
       end
 
       def clear_checkpoint

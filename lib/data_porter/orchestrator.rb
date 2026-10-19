@@ -5,6 +5,7 @@ require_relative "orchestrator/importer"
 require_relative "orchestrator/bulk_importer"
 require_relative "orchestrator/dry_runner"
 require_relative "orchestrator/action_resolution"
+require_relative "orchestrator/record_writer"
 
 module DataPorter
   class Orchestrator
@@ -13,6 +14,7 @@ module DataPorter
     include BulkImporter
     include DryRunner
     include ActionResolution
+    include RecordWriter
 
     def initialize(data_import, content: nil)
       @data_import = data_import
@@ -113,11 +115,7 @@ module DataPorter
     end
 
     def save_checkpoint(config, processed, results)
-      config["checkpoint"] = {
-        "processed" => processed,
-        "created" => results[:created],
-        "errored" => results[:errored]
-      }
+      config["checkpoint"] = { "processed" => processed }.merge(results.transform_keys(&:to_s))
     end
 
     def clear_stale_import_data

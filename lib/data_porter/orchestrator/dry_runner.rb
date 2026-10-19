@@ -9,6 +9,7 @@ module DataPorter
         records = @data_import.records
         importable = records.select(&:importable?)
         context = build_context
+        prepare_writes(importable)
 
         importable.each do |record|
           dry_run_record(record, context)
@@ -20,7 +21,7 @@ module DataPorter
 
       def dry_run_record(record, context)
         ActiveRecord::Base.transaction do
-          @target.persist(record, context: context)
+          write_record(record, context)
           record.dry_run_passed = true
           raise ActiveRecord::Rollback
         end
