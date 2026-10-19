@@ -18,8 +18,6 @@ RSpec.describe DataPorter::Target do
         map "Prenom" => :first_name
         map "Nom"    => :last_name
       end
-
-      deduplicate_by :email
     end
   end
 
@@ -58,9 +56,67 @@ RSpec.describe DataPorter::Target do
         "Nom" => :last_name
       )
     end
+  end
 
-    it "stores dedup keys" do
-      expect(target_class._dedup_keys).to eq([:email])
+  describe "deduplicate_by DSL" do
+    it "emits a deprecation warning" do
+      allow(DataPorter.deprecator).to receive(:warn)
+
+      Class.new(described_class) { deduplicate_by :email }
+
+      expect(DataPorter.deprecator).to have_received(:warn).with(/match_by/)
+    end
+
+    it "still stores dedup keys" do
+      allow(DataPorter.deprecator).to receive(:warn)
+
+      klass = Class.new(described_class) { deduplicate_by :email }
+
+      expect(klass._dedup_keys).to eq([:email])
+    end
+  end
+
+  describe "match_by DSL" do
+    it "stores a single match key" do
+      klass = Class.new(described_class) { match_by :email }
+
+      expect(klass._match_keys).to eq([:email])
+    end
+
+    it "stores composite match keys as symbols" do
+      klass = Class.new(described_class) { match_by "first_name", :last_name }
+
+      expect(klass._match_keys).to eq(%i[first_name last_name])
+    end
+
+    it "is nil when not declared" do
+      expect(target_class._match_keys).to be_nil
+    end
+  end
+
+  describe "default existing_scope" do
+    it "returns all records of the model" do
+      klass = Class.new(described_class) { model_name "User" }
+
+      expect(klass.new.existing_scope.to_sql).to eq(User.all.to_sql)
+    end
+
+    it "raises Error when model_name is not defined" do
+      target = Class.new(described_class).new
+
+      expect { target.existing_scope }.to raise_error(DataPorter::Error, /model_name is required/)
+    end
+  end
+
+  describe "default update" do
+    it "updates the existing record with the record attributes" do
+      existing = User.create!
+      allow(existing).to receive(:update!)
+      record = DataPorter::StoreModels::ImportRecord.new(data: { "name" => "Alice" })
+
+      target_class.new.update(record, existing, context: nil)
+
+      expect(existing).to have_received(:update!).with(record.attributes)
     end
   end
 

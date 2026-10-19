@@ -58,7 +58,7 @@ class OrderTarget < DataPorter::Target
     response_root "data.orders"
   end
 
-  deduplicate_by :order_number
+  match_by :order_number
 
   dry_run_enabled
 
@@ -158,14 +158,18 @@ Given `{ "data": { "users": [...] } }`, records are extracted from `data.users`.
 
 See [Sources: API](SOURCES.md#api) for full documentation.
 
-### `deduplicate_by(*keys)`
+### `match_by(*keys)`
 
-Skip records that share the same value(s) for the given column(s):
+Enables update mode: incoming records are matched against existing records of `existing_scope` by the given column(s). Matched records are updated through `update`, unmatched ones are created through `persist`.
 
 ```ruby
-deduplicate_by :email
-deduplicate_by :first_name, :last_name
+match_by :email
+match_by :first_name, :last_name
 ```
+
+### `deduplicate_by(*keys)` (deprecated)
+
+Never had any effect and emits a deprecation warning. Use `match_by` instead. Will be removed in 3.0.
 
 ### `header_row(value)`
 
@@ -280,6 +284,26 @@ end
 ```ruby
 def persist(record, context:)
   User.create!(record.attributes)
+end
+```
+
+### `existing_scope`
+
+Relation used by `match_by` to look up existing records. Defaults to `model_name.constantize.all`. Override it to scope the lookup, e.g. with import params:
+
+```ruby
+def existing_scope
+  Contact.where(hotel_id: import_params["hotel_id"])
+end
+```
+
+### `update(record, existing, context:)`
+
+Called instead of `persist` for records matched by `match_by`. Defaults to `existing.update!(record.attributes)`.
+
+```ruby
+def update(record, existing, context:)
+  existing.update!(record.attributes.except("email"))
 end
 ```
 

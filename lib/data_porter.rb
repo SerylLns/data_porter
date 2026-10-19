@@ -35,4 +35,8 @@ module DataPorter
   def self.configure
     yield(configuration)
   end
+
+  def self.deprecator
+    @deprecator ||= ActiveSupport::Deprecation.new("3.0", "DataPorter")
+  end
 end
