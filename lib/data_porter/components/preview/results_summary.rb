@@ -4,10 +4,11 @@ module DataPorter
   module Components
     module Preview
       class ResultsSummary < Base
-        def initialize(report:, duration: nil)
+        def initialize(report:, duration: nil, update_mode: false)
           super()
           @report = report
           @duration = duration
+          @update_mode = update_mode
         end
 
         def view_template
@@ -32,15 +33,20 @@ module DataPorter
 
         def render_stats
           div(class: "dp-results__cards") do
-            stat("dp-results__stat--success", @report.imported_count,
-                 I18n.t("data_porter.components.results_summary.imported"))
-            stat("dp-results__stat--error", @report.errored_count,
-                 I18n.t("data_porter.components.results_summary.errors"))
-            if skipped_count.positive?
-              stat("dp-results__stat--warning", skipped_count,
-                   I18n.t("data_porter.components.results_summary.skipped"))
-            end
+            stat("dp-results__stat--success", @report.imported_count, label(@update_mode ? "created" : "imported"))
+            render_update_stats if @update_mode
+            stat("dp-results__stat--error", @report.errored_count, label("errors"))
+            stat("dp-results__stat--warning", skipped_count, label("skipped")) if skipped_count.positive?
           end
+        end
+
+        def render_update_stats
+          stat("dp-results__stat--updated", @report.updated_count, label("updated"))
+          stat("dp-results__stat--untouched", @report.skipped_count, label("untouched"))
+        end
+
+        def label(key)
+          I18n.t("data_porter.components.results_summary.#{key}")
         end
 
         def render_duration

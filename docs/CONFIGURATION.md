@@ -189,7 +189,7 @@ end
 |---|---|---|
 | `import.started` | Import begins (`importing!`) | `records_count` |
 | `import.parsed` | Parse completes (`previewing`) | `records_count`, `complete_count`, `partial_count` |
-| `import.completed` | Import succeeds | `imported_count`, `errored_count` |
+| `import.completed` | Import succeeds | `imported_count`, `updated_count`, `skipped_count`, `errored_count` |
 | `import.failed` | Import fails | `error_message` |
 
 ### Options

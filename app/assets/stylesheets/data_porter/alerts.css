@@ -61,6 +61,8 @@
 .dp-results__stat--success strong { color: var(--dp-success); }
 .dp-results__stat--error strong { color: var(--dp-danger); }
 .dp-results__stat--warning strong { color: var(--dp-warning); }
+.dp-results__stat--updated strong { color: var(--dp-purple); }
+.dp-results__stat--untouched strong { color: var(--dp-gray-500); }
 
 .dp-results__duration {
   margin-top: 1rem;

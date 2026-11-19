@@ -35,6 +35,8 @@ RSpec.describe DataPorter::WebhookNotifier do
         complete_count: 80,
         partial_count: 20,
         imported_count: 95,
+        updated_count: 4,
+        skipped_count: 2,
         errored_count: 5
       )
     )
@@ -120,6 +122,13 @@ RSpec.describe DataPorter::WebhookNotifier do
       import_data = payload["import"]
       expect(import_data["imported_count"]).to eq(95)
       expect(import_data["errored_count"]).to eq(5)
+    end
+
+    it "includes updated/skipped counts for completed event" do
+      described_class.notify(data_import, "import.completed")
+
+      import_data = JSON.parse(enqueued_jobs.first["arguments"][1])["import"]
+      expect(import_data.slice("updated_count", "skipped_count")).to eq("updated_count" => 4, "skipped_count" => 2)
     end
 
     it "includes error_message for failed event" do

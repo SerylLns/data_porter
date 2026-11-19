@@ -113,7 +113,9 @@
 
   <% if @import.completed? %>
     <% duration = @import.updated_at && @import.created_at ? distance_of_time_in_words(@import.created_at, @import.updated_at) : nil %>
-    <%= raw DataPorter::Components::Preview::ResultsSummary.new(report: @import.report, duration: duration).call %>
+    <%= raw DataPorter::Components::Preview::ResultsSummary.new(
+          report: @import.report, duration: duration, update_mode: @target._match_keys.present?
+        ).call %>
     <% if @records.any? %>
       <div id="records">
       <%= raw DataPorter::Components::Preview::Table.new(

@@ -258,6 +258,24 @@ RSpec.describe "data_porter/imports/show.html.erb" do
     it "renders the results summary" do
       expect(html).to include("dp-results")
     end
+
+    context "with match_by" do
+      let(:target_class) do
+        Class.new(DataPorter::Target) do
+          label "Guests"
+          model_name "Guest"
+          match_by :email
+
+          columns do
+            column :email, type: :email
+          end
+        end
+      end
+
+      it "renders update mode results" do
+        expect(html).to include("dp-results__stat--updated")
+      end
+    end
   end
 
   context "when failed" do
