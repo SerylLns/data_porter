@@ -75,6 +75,11 @@ RSpec.describe "inline_edit_controller.js" do
     expect(content).to include("updateSummary")
   end
 
+  it "looks up summary counts outside the table element" do
+    expect(content).to include('closest(".data-porter")')
+    expect(content).to include("[data-count-key]")
+  end
+
   it "includes CSRF token in headers" do
     expect(content).to include("csrf-token")
   end

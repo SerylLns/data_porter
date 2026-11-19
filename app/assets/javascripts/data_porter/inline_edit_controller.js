@@ -210,7 +210,8 @@ export default class extends Controller {
   updateSummary(report) {
     if (!report) return
 
-    this.summaryTargets.forEach(function(el) {
+    var root = this.element.closest(".data-porter") || document
+    root.querySelectorAll("[data-count-key]").forEach(function(el) {
       var key = el.dataset.countKey
       if (key && report[key] !== undefined) {
         el.textContent = String(report[key])

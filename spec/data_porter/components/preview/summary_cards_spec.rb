@@ -81,15 +81,15 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
     end
 
     it "adds count_key for status counts" do
-      expect(html).to include("complete-count")
-      expect(html).to include("partial-count")
-      expect(html).to include("missing-count")
+      expect(html).to include('data-count-key="complete_count"')
+      expect(html).to include('data-count-key="partial_count"')
+      expect(html).to include('data-count-key="missing_count"')
     end
 
     it "adds count_key for action counts" do
-      expect(html).to include("create-count")
-      expect(html).to include("update-count")
-      expect(html).to include("unchanged-count")
+      expect(html).to include('data-count-key="create_count"')
+      expect(html).to include('data-count-key="update_count"')
+      expect(html).to include('data-count-key="unchanged_count"')
     end
   end
 end

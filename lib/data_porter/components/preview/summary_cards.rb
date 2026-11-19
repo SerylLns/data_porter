@@ -48,7 +48,7 @@ module DataPorter
         def count_attrs(key)
           return {} unless @editable
 
-          { data: { "data-porter--inline-edit-target": "summary", count_key: key } }
+          { data: { "data-porter--inline-edit-target": "summary", count_key: key.to_s } }
         end
       end
     end
