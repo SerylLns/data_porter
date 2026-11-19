@@ -101,6 +101,12 @@ RSpec.describe DataPorter::RecordActionResolver do
     expect(record.action).to eq("unchanged")
   end
 
+  it "raises Error when a match key is not a declared column" do
+    target_class.match_by :emial
+
+    expect { resolver }.to raise_error(DataPorter::Error, /match_by.*emial/)
+  end
+
   it "resets a previous diff when resolving again" do
     record = build_record(1, "email" => "new@example.com")
     record.diff = { "first_name" => %w[Old New] }

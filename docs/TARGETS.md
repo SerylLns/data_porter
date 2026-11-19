@@ -167,6 +167,14 @@ match_by :email
 match_by :first_name, :last_name
 ```
 
+Matching rules:
+
+- Every key must be a declared column, and its name must match the model attribute and database column used for the lookup. An unknown key fails the import with an error.
+- Keys are compared by their column type: `integer`, `decimal`, `boolean` and `date` columns are cast on both sides, so `"007"` matches `7` and `"1.50"` matches `1.5`. Declare the key column with the type of the database column.
+- Other columns are compared as exact strings: case and whitespace matter. Normalize the file side with `transform` (e.g. `column :email, type: :email, transform: %i[strip downcase]`) and make sure stored values follow the same normalization, otherwise existing records are not found and are created again.
+- With a case-insensitive database collation (e.g. MySQL defaults), normalize both sides the same way too: the database may return a record that the exact comparison then rejects.
+- A record with a blank key value is always created.
+
 ### `deduplicate_by(*keys)` (deprecated)
 
 Never had any effect and emits a deprecation warning. Use `match_by` instead. Will be removed in 3.0.

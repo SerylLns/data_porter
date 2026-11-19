@@ -7,6 +7,9 @@ module DataPorter
     def self.for(target)
       keys = target.class._match_keys
       columns = target.class._columns || []
+      unknown = keys.map(&:to_s) - columns.map { |column| column.name.to_s }
+      raise Error, "match_by references undeclared column(s): #{unknown.join(", ")}" if unknown.any?
+
       new(target.existing_scope, keys, caster: ValueCaster.new(columns))
     end
 

@@ -162,5 +162,11 @@ RSpec.describe DataPorter::ExistingRecordMatcher do
 
       expect(result).to eq([7] => [contact])
     end
+
+    it "raises Error when a match key is not a declared column" do
+      target_class.match_by :emial
+
+      expect { described_class.for(target_class.new) }.to raise_error(DataPorter::Error, /match_by.*emial/)
+    end
   end
 end
