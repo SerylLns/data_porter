@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["cell", "errors", "summary"]
-  static values = { updateUrl: String, actionLabels: Object }
+  static values = { updateUrl: String, excludeUrl: String, actionLabels: Object }
 
   edit(event) {
     var cell = event.currentTarget
@@ -94,18 +94,45 @@ export default class extends Controller {
     })
   }
 
+  requestHeaders() {
+    var csrfMeta = document.querySelector("meta[name='csrf-token']")
+    var headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    }
+    if (csrfMeta) headers["X-CSRF-Token"] = csrfMeta.content
+    return headers
+  }
+
+  async toggleExclude(event) {
+    var checkbox = event.currentTarget
+    var lineNumber = checkbox.dataset.lineNumber
+    checkbox.disabled = true
+
+    try {
+      var response = await fetch(this.excludeUrlValue, {
+        method: "PATCH",
+        headers: this.requestHeaders(),
+        body: JSON.stringify({ line_number: parseInt(lineNumber, 10), excluded: !checkbox.checked })
+      })
+      if (!response.ok) throw new Error("Request failed")
+
+      var data = await response.json()
+      var row = checkbox.closest("tr")
+      if (row) row.classList.toggle("dp-excluded", data.excluded)
+      this.updateSummary(data.report)
+    } catch (e) {
+      checkbox.checked = !checkbox.checked
+    } finally {
+      checkbox.disabled = false
+    }
+  }
+
   async patch(cell, body) {
     try {
-      var csrfMeta = document.querySelector("meta[name='csrf-token']")
-      var headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      }
-      if (csrfMeta) headers["X-CSRF-Token"] = csrfMeta.content
-
       var response = await fetch(this.updateUrlValue, {
         method: "PATCH",
-        headers: headers,
+        headers: this.requestHeaders(),
         body: JSON.stringify(body)
       })
 

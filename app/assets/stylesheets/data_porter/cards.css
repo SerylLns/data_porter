@@ -70,3 +70,10 @@
   background: var(--dp-gray-50);
 }
 .dp-card--unchanged strong { color: var(--dp-gray-500); }
+
+.dp-card--excluded {
+  border-color: var(--dp-gray-300);
+  border-style: dashed;
+  background: var(--dp-bg);
+}
+.dp-card--excluded strong { color: var(--dp-gray-500); }

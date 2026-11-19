@@ -12,9 +12,9 @@ module DataPorter
     layout "data_porter/application"
 
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping
-                                        update_record status export_rejects destroy
+                                        update_record exclude_record status export_rejects destroy
                                         back_to_mapping resume]
-    before_action :ensure_previewing, only: :update_record
+    before_action :ensure_previewing, only: %i[update_record exclude_record]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -92,6 +92,14 @@ module DataPorter
         line_number: params[:line_number].to_i,
         column: params[:column],
         value: params[:value]
+      )
+      render json: result
+    end
+
+    def exclude_record
+      result = RecordExcluder.new(@import).call(
+        line_number: params[:line_number].to_i,
+        excluded: ActiveModel::Type::Boolean.new.cast(params[:excluded]) == true
       )
       render json: result
     end

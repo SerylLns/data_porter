@@ -12,7 +12,8 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
       missing_count: 2,
       create_count: 7,
       update_count: 4,
-      unchanged_count: 5
+      unchanged_count: 5,
+      excluded_count: 1
     )
   end
 
@@ -57,6 +58,7 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
       expect(doc.at_css(".dp-card--create strong").text).to eq("7")
       expect(doc.at_css(".dp-card--update strong").text).to eq("4")
       expect(doc.at_css(".dp-card--unchanged strong").text).to eq("5")
+      expect(doc.at_css(".dp-card--excluded strong").text).to eq("1")
     end
 
     it "labels the action cards" do
@@ -90,6 +92,7 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
       expect(html).to include('data-count-key="create_count"')
       expect(html).to include('data-count-key="update_count"')
       expect(html).to include('data-count-key="unchanged_count"')
+      expect(html).to include('data-count-key="excluded_count"')
     end
   end
 end

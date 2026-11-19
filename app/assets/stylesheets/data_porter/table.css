@@ -148,3 +148,15 @@
   display: block;
   font-weight: 600;
 }
+
+.dp-cell--include {
+  text-align: center;
+}
+
+.dp-exclude-toggle {
+  cursor: pointer;
+}
+
+.dp-excluded > td:not(.dp-cell--include) {
+  opacity: 0.45;
+}

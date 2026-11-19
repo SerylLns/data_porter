@@ -54,7 +54,7 @@ module DataPorter
 
     def update_report(old_status, old_action, record)
       shift_count(STATUS_COUNTS.fetch(old_status, :partial_count), STATUS_COUNTS.fetch(record.status, :partial_count))
-      shift_count(ACTION_COUNTS[old_action], ACTION_COUNTS[record.action])
+      shift_count(ACTION_COUNTS[old_action], ACTION_COUNTS[record.action]) unless record.excluded
     end
 
     def shift_count(from, to)
@@ -80,19 +80,7 @@ module DataPorter
         diff: record.diff,
         value: record.data[key].to_s,
         errors: record.errors_list.map(&:message),
-        report: report_hash
-      }
-    end
-
-    def report_hash
-      r = @data_import.report
-      {
-        complete_count: r.complete_count,
-        partial_count: r.partial_count,
-        missing_count: r.missing_count,
-        create_count: r.create_count,
-        update_count: r.update_count,
-        unchanged_count: r.unchanged_count
+        report: @data_import.report.preview_counts
       }
     end
   end

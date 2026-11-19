@@ -162,5 +162,24 @@ RSpec.describe DataPorter::Orchestrator, "update mode" do
       expect(Contact.find_by(email: "alice@example.com").first_name).to eq("Alicia")
       expect(data_import.reload.records.first.dry_run_passed).to be true
     end
+
+    it "keeps excluded records out of the action counts" do
+      DataPorter::RecordExcluder.new(data_import.reload).call(line_number: 1, excluded: true)
+
+      described_class.new(data_import.reload).dry_run!
+
+      report = data_import.reload.report
+      expect([report.update_count, report.excluded_count]).to eq([0, 1])
+    end
+  end
+
+  describe "#import! with excluded records" do
+    it "does not write excluded records" do
+      DataPorter::RecordExcluder.new(data_import.reload).call(line_number: 3, excluded: true)
+
+      import!
+
+      expect(Contact.find_by(email: "carol@example.com")).to be_nil
+    end
   end
 end

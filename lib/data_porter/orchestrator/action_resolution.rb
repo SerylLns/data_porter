@@ -12,11 +12,13 @@ module DataPorter
       end
 
       def action_counts
-        actions = @data_import.records.group_by(&:action).transform_values(&:count)
+        excluded, included = @data_import.records.partition(&:excluded)
+        actions = included.group_by(&:action).transform_values(&:count)
         {
           create_count: actions["create"] || 0,
           update_count: actions["update"] || 0,
-          unchanged_count: actions["unchanged"] || 0
+          unchanged_count: actions["unchanged"] || 0,
+          excluded_count: excluded.size
         }
       end
     end

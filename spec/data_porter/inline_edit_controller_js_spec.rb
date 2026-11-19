@@ -16,8 +16,17 @@ RSpec.describe "inline_edit_controller.js" do
     expect(content).to include('static targets = ["cell", "errors", "summary"]')
   end
 
-  it "defines updateUrl and actionLabels values" do
-    expect(content).to include("static values = { updateUrl: String, actionLabels: Object }")
+  it "defines updateUrl, excludeUrl and actionLabels values" do
+    expect(content).to include("static values = { updateUrl: String, excludeUrl: String, actionLabels: Object }")
+  end
+
+  it "sends the exclusion to excludeUrl" do
+    expect(content).to include("toggleExclude")
+    expect(content).to include("this.excludeUrlValue")
+  end
+
+  it "reverts the checkbox when the exclusion fails" do
+    expect(content).to include("checkbox.checked = !checkbox.checked")
   end
 
   it "updates the row action from response" do

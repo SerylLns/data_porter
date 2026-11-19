@@ -88,6 +88,7 @@ en:
         to_create: "To create"
         to_update: "To update"
         unchanged: "Unchanged"
+        excluded: "Excluded"
       action_filter:
         all: "All"
         to_create: "To create"
@@ -105,6 +106,7 @@ en:
         line_number: "#"
         status: "Status"
         action: "Action"
+        include: "Import"
         errors: "Errors"
         actions:
           create: "Create"

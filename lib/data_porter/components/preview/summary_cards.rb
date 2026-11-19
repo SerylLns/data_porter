@@ -13,7 +13,8 @@ module DataPorter
         ACTION_CARDS = [
           { css: "dp-card--create", key: :create_count, i18n: "to_create" },
           { css: "dp-card--update", key: :update_count, i18n: "to_update" },
-          { css: "dp-card--unchanged", key: :unchanged_count, i18n: "unchanged" }
+          { css: "dp-card--unchanged", key: :unchanged_count, i18n: "unchanged" },
+          { css: "dp-card--excluded", key: :excluded_count, i18n: "excluded" }
         ].freeze
 
         def initialize(report:, editable: false, update_mode: false)

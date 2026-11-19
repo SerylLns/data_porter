@@ -52,6 +52,15 @@ RSpec.describe DataPorter::RecordUpdater, "update mode" do
     expect(record(1).diff).to eq({})
   end
 
+  it "keeps action counts unchanged when editing an excluded record" do
+    DataPorter::RecordExcluder.new(data_import.reload).call(line_number: 1, excluded: true)
+
+    described_class.new(data_import.reload).call(line_number: 1, column: "first_name", value: "Alicia")
+
+    report = data_import.reload.report
+    expect([report.update_count, report.unchanged_count, report.excluded_count]).to eq([0, 0, 1])
+  end
+
   it "resolves the record again when its match key is edited" do
     updater.call(line_number: 1, column: "email", value: "new@example.com")
 

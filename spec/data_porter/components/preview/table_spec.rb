@@ -85,7 +85,7 @@ RSpec.describe DataPorter::Components::Preview::Table do
                columns: target_class._columns,
                records: [record, error_record],
                editable: true,
-               update_url: update_url
+               urls: { update: update_url }
              ))
     end
 
@@ -184,10 +184,14 @@ RSpec.describe DataPorter::Components::Preview::Table do
       it "renders other cells as plain values" do
         expect(doc.css("td.dp-cell--changed").size).to eq(1)
       end
+
+      it "does not render include checkboxes when not editable" do
+        expect(doc.css("input.dp-exclude-toggle")).to be_empty
+      end
     end
 
     context "when editable and update_mode: true" do
-      let(:doc) { render_doc(update_mode: true, editable: true, update_url: "/u") }
+      let(:doc) { render_doc(update_mode: true, editable: true, urls: { update: "/u", exclude: "/x" }) }
 
       it "keeps the new value as the editable value of changed cells" do
         expect(doc.at_css("td.dp-cell--changed")["data-value"]).to eq("Alice")
@@ -195,6 +199,30 @@ RSpec.describe DataPorter::Components::Preview::Table do
 
       it "exposes the old value of changed cells" do
         expect(doc.at_css("td.dp-cell--changed")["data-old-value"]).to eq("Alicia")
+      end
+
+      it "renders an include checkbox checked for included records" do
+        checkbox = doc.at_css("tr[data-line-number='3'] input.dp-exclude-toggle")
+
+        expect([checkbox["type"], checkbox.has_attribute?("checked")]).to eq(["checkbox", true])
+      end
+
+      it "wires the include checkbox to the inline edit controller" do
+        checkbox = doc.at_css("input.dp-exclude-toggle")
+
+        expect(checkbox["data-action"]).to eq("change->data-porter--inline-edit#toggleExclude")
+        expect(checkbox["data-line-number"]).to eq("3")
+      end
+
+      it "marks excluded rows and unchecks their include checkbox" do
+        changed_record.excluded = true
+        row = doc.at_css("tr.dp-excluded")
+
+        expect(row.at_css("input.dp-exclude-toggle").has_attribute?("checked")).to be(false)
+      end
+
+      it "exposes the exclude URL" do
+        expect(doc.at_css(".dp-preview-table")["data-data-porter--inline-edit-exclude-url-value"]).to eq("/x")
       end
 
       it "exposes action labels to the inline edit controller" do

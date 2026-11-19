@@ -6,13 +6,13 @@ module DataPorter
       class Table < Base
         ACTIONS = %w[create update unchanged].freeze
 
-        def initialize(columns:, records:, editable: false, update_url: nil, update_mode: false)
+        def initialize(columns:, records:, editable: false, update_mode: false, urls: {})
           super()
           @columns = columns
           @records = records
           @editable = editable
-          @update_url = update_url
           @update_mode = update_mode
+          @urls = urls
         end
 
         def view_template
@@ -32,10 +32,17 @@ module DataPorter
 
           attrs[:data] = {
             controller: "data-porter--inline-edit",
-            "data-porter--inline-edit-update-url-value": @update_url
+            "data-porter--inline-edit-update-url-value": @urls[:update]
           }
-          attrs[:data]["data-porter--inline-edit-action-labels-value"] = action_labels.to_json if @update_mode
+          attrs[:data].merge!(update_mode_data) if @update_mode
           attrs
+        end
+
+        def update_mode_data
+          {
+            "data-porter--inline-edit-action-labels-value" => action_labels.to_json,
+            "data-porter--inline-edit-exclude-url-value" => @urls[:exclude]
+          }.compact
         end
 
         def action_labels
@@ -52,6 +59,7 @@ module DataPorter
               th { I18n.t("data_porter.components.table.line_number") }
               th { I18n.t("data_porter.components.table.status") }
               th { I18n.t("data_porter.components.table.action") } if @update_mode
+              th { I18n.t("data_porter.components.table.include") } if exclusion?
               @columns.each { |col| th { col.label } }
               th { I18n.t("data_porter.components.table.errors") }
             end
@@ -69,6 +77,7 @@ module DataPorter
             td { record.line_number.to_s }
             td { record.status }
             render_action_cell(record) if @update_mode
+            render_include_cell(record) if exclusion?
             @columns.each { |col| render_cell(record, col) }
             render_errors_cell(record)
           end
@@ -77,6 +86,18 @@ module DataPorter
         def render_action_cell(record)
           td(class: "dp-cell--action") do
             span(class: "dp-action dp-action--#{record.action}") { action_label(record.action) } if record.action
+          end
+        end
+
+        def exclusion?
+          @update_mode && @editable
+        end
+
+        def render_include_cell(record)
+          td(class: "dp-cell--include") do
+            input(type: "checkbox", class: "dp-exclude-toggle", checked: !record.excluded,
+                  aria_label: I18n.t("data_porter.components.table.include"),
+                  data: { action: "change->data-porter--inline-edit#toggleExclude", line_number: record.line_number })
           end
         end
 
@@ -108,7 +129,7 @@ module DataPorter
         end
 
         def row_attrs(record)
-          attrs = { class: "dp-row--#{record.status}" }
+          attrs = { class: ["dp-row--#{record.status}", ("dp-excluded" if record.excluded)].compact.join(" ") }
           return attrs unless @editable
 
           attrs[:data] = { line_number: record.line_number }
