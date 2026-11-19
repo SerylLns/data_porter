@@ -90,6 +90,17 @@ RSpec.describe DataPorter::RecordActionResolver do
     expect(record.action).to eq("create")
   end
 
+  it "matches typed keys regardless of their textual format" do
+    Contact.create!(email: "alice@example.com", external_id: 7)
+    target_class.match_by :external_id
+    target_class.columns { column :external_id, type: :integer }
+    record = build_record(1, "external_id" => "007", "email" => "alice@example.com")
+
+    resolver.call([record])
+
+    expect(record.action).to eq("unchanged")
+  end
+
   it "resets a previous diff when resolving again" do
     record = build_record(1, "email" => "new@example.com")
     record.diff = { "first_name" => %w[Old New] }

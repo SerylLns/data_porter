@@ -11,7 +11,7 @@ module DataPorter
         return unless @target.class._match_keys
         raise Error, "bulk_mode is not supported with match_by yet" if @target.class._bulk_config
 
-        @matcher = ExistingRecordMatcher.new(@target.existing_scope, @target.class._match_keys)
+        @matcher = ExistingRecordMatcher.for(@target)
         @existing_index = @matcher.call(records)
         @differ = RecordDiffer.new(@target)
         @written_lines = {}
@@ -27,7 +27,7 @@ module DataPorter
       end
 
       def claim_key!(key, record)
-        return if key.any?(&:blank?)
+        return if @matcher.blank_key?(key)
 
         first_line = @written_lines[key]
         return @written_lines[key] = record.line_number unless first_line

@@ -91,6 +91,35 @@ RSpec.describe DataPorter::ExistingRecordMatcher do
 
       expect(queries).to eq(3)
     end
+
+    context "with typed columns" do
+      let(:caster) do
+        DataPorter::ValueCaster.new(
+          [
+            DataPorter::DSL::Column.new(name: :external_id, type: :integer),
+            DataPorter::DSL::Column.new(name: :score, type: :decimal)
+          ]
+        )
+      end
+
+      it "matches integer keys regardless of their textual format" do
+        contact = Contact.create!(external_id: 7)
+        matcher = described_class.new(Contact.all, [:external_id], caster: caster)
+
+        result = matcher.call([build_record("external_id" => "007")])
+
+        expect(result).to eq([7] => [contact])
+      end
+
+      it "matches decimal keys regardless of trailing zeros" do
+        contact = Contact.create!(score: 1.5)
+        matcher = described_class.new(Contact.all, [:score], caster: caster)
+
+        result = matcher.call([build_record("score" => "1.50")])
+
+        expect(result.values).to eq([[contact]])
+      end
+    end
   end
 
   describe "#key_for" do
@@ -98,6 +127,40 @@ RSpec.describe DataPorter::ExistingRecordMatcher do
       matcher = described_class.new(Contact.all, %i[first_name external_id])
 
       expect(matcher.key_for(build_record("first_name" => "Alice", "external_id" => 7))).to eq(%w[Alice 7])
+    end
+  end
+
+  describe "#blank_key?" do
+    let(:matcher) { described_class.new(Contact.all, %i[first_name last_name]) }
+
+    it "is true when any key value is nil or blank" do
+      expect([matcher.blank_key?(["Alice", nil]), matcher.blank_key?(["Alice", "  "])]).to eq([true, true])
+    end
+
+    it "is false when every key value is present" do
+      expect(matcher.blank_key?(["Alice", 0])).to be(false)
+    end
+  end
+
+  describe ".for" do
+    let(:target_class) do
+      Class.new(DataPorter::Target) do
+        match_by :external_id
+
+        def existing_scope = Contact.all
+
+        columns do
+          column :external_id, type: :integer
+        end
+      end
+    end
+
+    it "casts keys with the target column types" do
+      contact = Contact.create!(external_id: 7)
+
+      result = described_class.for(target_class.new).call([build_record("external_id" => "007")])
+
+      expect(result).to eq([7] => [contact])
     end
   end
 end

@@ -2,16 +2,9 @@
 
 module DataPorter
   class RecordDiffer
-    CASTERS = {
-      integer: ActiveModel::Type::Integer.new,
-      decimal: ActiveModel::Type::Decimal.new,
-      boolean: ActiveModel::Type::Boolean.new,
-      date: ActiveModel::Type::Date.new
-    }.freeze
-
     def initialize(target)
       @target = target
-      @types = (target.class._columns || []).to_h { |column| [column.name.to_s, column.type] }
+      @caster = ValueCaster.new(target.class._columns || [])
     end
 
     def call(record, existing)
@@ -26,14 +19,7 @@ module DataPorter
     private
 
     def same?(field, old_value, new_value)
-      normalize(field, old_value) == normalize(field, new_value)
-    end
-
-    def normalize(field, value)
-      return nil if value.nil? || value == ""
-
-      caster = CASTERS[@types[field]]
-      caster ? caster.cast(value) : value.to_s
+      @caster.call(field, old_value) == @caster.call(field, new_value)
     end
   end
 end

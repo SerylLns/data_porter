@@ -4,7 +4,7 @@ module DataPorter
   class RecordActionResolver
     def initialize(target)
       @keys = target.class._match_keys
-      @matcher = ExistingRecordMatcher.new(target.existing_scope, @keys)
+      @matcher = ExistingRecordMatcher.for(target)
       @differ = RecordDiffer.new(target)
     end
 
@@ -30,7 +30,7 @@ module DataPorter
     def resolve(record, index)
       record.diff = {}
       key = @matcher.key_for(record)
-      if key.any?(&:blank?)
+      if @matcher.blank_key?(key)
         record.action = "create"
       else
         flag_duplicate(record, key)
