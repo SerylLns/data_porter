@@ -123,14 +123,18 @@ module DataPorter
     end
 
     def persist_batch(records, context: nil) # rubocop:disable Lint/UnusedMethodArgument
+      raise Error, "model_name is required for default persist_batch" unless self.class._model_name
+
       now = Time.current
-      model_class("persist_batch").insert_all(
+      self.class._model_name.constantize.insert_all(
         records.map { |r| r.data.merge("created_at" => now, "updated_at" => now) }
       )
     end
 
     def existing_scope
-      model_class("existing_scope").all
+      raise Error, "model_name is required for default existing_scope" unless self.class._model_name
+
+      self.class._model_name.constantize.all
     end
 
     def diff_attributes(existing)
@@ -144,13 +148,5 @@ module DataPorter
     def after_import(_results, context:); end
 
     def on_error(_record, _error, context:); end
-
-    private
-
-    def model_class(hook)
-      raise Error, "model_name is required for default #{hook}" unless self.class._model_name
-
-      self.class._model_name.constantize
-    end
   end
 end

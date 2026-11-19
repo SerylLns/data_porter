@@ -288,6 +288,19 @@ RSpec.describe DataPorter::Target do
       end
     end
 
+    it "does not collide with a host-defined model_class method" do
+      klass = Class.new(described_class) do
+        model_name "Guest"
+        bulk_mode
+        define_method(:model_class) { Guest }
+      end
+      allow(model_class).to receive(:insert_all)
+
+      klass.new.persist_batch([], context: nil)
+
+      expect(model_class).to have_received(:insert_all)
+    end
+
     it "raises Error when model_name is not defined" do
       klass = Class.new(described_class) do
         bulk_mode
