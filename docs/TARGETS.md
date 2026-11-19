@@ -160,7 +160,7 @@ See [Sources: API](SOURCES.md#api) for full documentation.
 
 ### `match_by(*keys)`
 
-Enables update mode: incoming records are matched against existing records of `existing_scope` by the given column(s). Matched records are updated through `update`, unmatched ones are created through `persist`.
+Enables update mode: incoming records are matched against existing records of `existing_scope` by the given column(s). Matched records are updated through `update`, unmatched ones are created through `persist`. Requires `existing_scope` to be defined.
 
 ```ruby
 match_by :email
@@ -289,12 +289,18 @@ end
 
 ### `existing_scope`
 
-Relation used by `match_by` to look up existing records. Defaults to `model_name.constantize.all`. Override it to scope the lookup, e.g. with import params:
+Relation used by `match_by` to look up existing records. Required when `match_by` is declared: there is no default, so that a multi-tenant app cannot match or update records belonging to another tenant by accident. Scope it to what the importing user may touch, e.g. with import params:
 
 ```ruby
 def existing_scope
   Contact.where(hotel_id: import_params["hotel_id"])
 end
+```
+
+A single-tenant app can return the whole model explicitly:
+
+```ruby
+def existing_scope = Contact.all
 ```
 
 ### `diff_attributes(existing)`

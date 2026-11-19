@@ -132,9 +132,7 @@ module DataPorter
     end
 
     def existing_scope
-      raise Error, "model_name is required for default existing_scope" unless self.class._model_name
-
-      self.class._model_name.constantize.all
+      raise Error, "match_by requires existing_scope to be defined on #{self.class}"
     end
 
     def diff_attributes(existing)

@@ -6,6 +6,8 @@ RSpec.describe DataPorter::RecordActionResolver do
       model_name "Contact"
       match_by :email
 
+      def existing_scope = Contact.all
+
       columns do
         column :email,      type: :email
         column :first_name, type: :string

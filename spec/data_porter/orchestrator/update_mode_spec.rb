@@ -10,6 +10,8 @@ RSpec.describe DataPorter::Orchestrator, "update mode" do
       sources :csv
       match_by :email
 
+      def existing_scope = Contact.all
+
       columns do
         column :first_name, type: :string
         column :email, type: :email

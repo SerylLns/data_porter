@@ -95,16 +95,13 @@ RSpec.describe DataPorter::Target do
   end
 
   describe "default existing_scope" do
-    it "returns all records of the model" do
-      klass = Class.new(described_class) { model_name "User" }
+    it "raises Error asking the host to define it" do
+      klass = Class.new(described_class) do
+        model_name "User"
+        match_by :email
+      end
 
-      expect(klass.new.existing_scope.to_sql).to eq(User.all.to_sql)
-    end
-
-    it "raises Error when model_name is not defined" do
-      target = Class.new(described_class).new
-
-      expect { target.existing_scope }.to raise_error(DataPorter::Error, /model_name is required/)
+      expect { klass.new.existing_scope }.to raise_error(DataPorter::Error, /match_by requires existing_scope/)
     end
   end
 
