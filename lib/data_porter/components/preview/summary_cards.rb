@@ -4,26 +4,37 @@ module DataPorter
   module Components
     module Preview
       class SummaryCards < Base
-        CARDS = [
+        STATUS_CARDS = [
           { css: "dp-card--complete", key: :complete_count, i18n: "ready" },
           { css: "dp-card--partial", key: :partial_count, i18n: "incomplete" },
-          { css: "dp-card--missing", key: :missing_count, i18n: "missing" },
-          { css: "dp-card--duplicate", key: :duplicate_count, i18n: "duplicates" }
+          { css: "dp-card--missing", key: :missing_count, i18n: "missing" }
         ].freeze
 
-        def initialize(report:, editable: false)
+        ACTION_CARDS = [
+          { css: "dp-card--create", key: :create_count, i18n: "to_create" },
+          { css: "dp-card--update", key: :update_count, i18n: "to_update" },
+          { css: "dp-card--unchanged", key: :unchanged_count, i18n: "unchanged" },
+          { css: "dp-card--excluded", key: :excluded_count, i18n: "excluded" }
+        ].freeze
+
+        def initialize(report:, editable: false, update_mode: false)
           super()
           @report = report
           @editable = editable
+          @update_mode = update_mode
         end
 
         def view_template
           div(class: "dp-summary-cards") do
-            CARDS.each { |card_def| card(card_def) }
+            cards.each { |card_def| card(card_def) }
           end
         end
 
         private
+
+        def cards
+          @update_mode ? STATUS_CARDS + ACTION_CARDS : STATUS_CARDS
+        end
 
         def card(card_def)
           count = @report.send(card_def[:key])
@@ -38,7 +49,7 @@ module DataPorter
         def count_attrs(key)
           return {} unless @editable
 
-          { data: { "data-porter--inline-edit-target": "summary", count_key: key } }
+          { data: { "data-porter--inline-edit-target": "summary", count_key: key.to_s } }
         end
       end
     end

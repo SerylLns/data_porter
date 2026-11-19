@@ -104,3 +104,59 @@
   color: var(--dp-gray-500);
   font-weight: 500;
 }
+
+.dp-action {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--dp-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dp-action--create {
+  border-color: var(--dp-info-border);
+  background: var(--dp-info-light);
+  color: var(--dp-info);
+}
+
+.dp-action--update {
+  border-color: var(--dp-purple-border);
+  background: var(--dp-purple-light);
+  color: var(--dp-purple);
+}
+
+.dp-action--unchanged {
+  border-color: var(--dp-gray-300);
+  background: var(--dp-gray-50);
+  color: var(--dp-gray-500);
+}
+
+.dp-cell--changed {
+  background: var(--dp-purple-light);
+}
+
+.dp-diff__old {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--dp-text-muted);
+  text-decoration: line-through;
+}
+
+.dp-diff__new {
+  display: block;
+  font-weight: 600;
+}
+
+.dp-cell--include {
+  text-align: center;
+}
+
+.dp-exclude-toggle {
+  cursor: pointer;
+}
+
+.dp-excluded > td:not(.dp-cell--include) {
+  opacity: 0.45;
+}

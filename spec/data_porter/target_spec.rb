@@ -18,8 +18,6 @@ RSpec.describe DataPorter::Target do
         map "Prenom" => :first_name
         map "Nom"    => :last_name
       end
-
-      deduplicate_by :email
     end
   end
 
@@ -58,9 +56,88 @@ RSpec.describe DataPorter::Target do
         "Nom" => :last_name
       )
     end
+  end
 
-    it "stores dedup keys" do
-      expect(target_class._dedup_keys).to eq([:email])
+  describe "deduplicate_by DSL" do
+    it "emits a deprecation warning" do
+      allow(DataPorter.deprecator).to receive(:warn)
+
+      Class.new(described_class) { deduplicate_by :email }
+
+      expect(DataPorter.deprecator).to have_received(:warn).with(/match_by/)
+    end
+
+    it "still stores dedup keys" do
+      allow(DataPorter.deprecator).to receive(:warn)
+
+      klass = Class.new(described_class) { deduplicate_by :email }
+
+      expect(klass._dedup_keys).to eq([:email])
+    end
+  end
+
+  describe "match_by DSL" do
+    it "stores a single match key" do
+      klass = Class.new(described_class) { match_by :email }
+
+      expect(klass._match_keys).to eq([:email])
+    end
+
+    it "stores composite match keys as symbols" do
+      klass = Class.new(described_class) { match_by "first_name", :last_name }
+
+      expect(klass._match_keys).to eq(%i[first_name last_name])
+    end
+
+    it "is nil when not declared" do
+      expect(target_class._match_keys).to be_nil
+    end
+  end
+
+  describe "default existing_scope" do
+    it "raises Error asking the host to define it" do
+      klass = Class.new(described_class) do
+        model_name "User"
+        match_by :email
+      end
+
+      expect { klass.new.existing_scope }.to raise_error(DataPorter::Error, /match_by requires existing_scope/)
+    end
+  end
+
+  describe "default diff_attributes" do
+    it "returns the existing attributes matching declared columns" do
+      klass = Class.new(described_class) do
+        columns do
+          column :email, type: :email
+          column :nickname, type: :string
+        end
+      end
+      existing = Contact.new(email: "alice@example.com", first_name: "Alice")
+
+      expect(klass.new.diff_attributes(existing)).to eq("email" => "alice@example.com")
+    end
+  end
+
+  describe "default update" do
+    it "updates the existing record with the record attributes" do
+      existing = User.create!
+      allow(existing).to receive(:update!)
+      record = DataPorter::StoreModels::ImportRecord.new(data: { "name" => "Alice" })
+
+      target_class.new.update(record, existing, context: nil)
+
+      expect(existing).to have_received(:update!).with(record.attributes)
+    end
+
+    it "does not overwrite existing values with blank ones" do
+      existing = User.create!
+      allow(existing).to receive(:update!)
+      record = DataPorter::StoreModels::ImportRecord.new(data: { "name" => "Alice", "email" => "" })
+
+      target_class.new.update(record, existing, context: nil)
+
+      expect(existing).to have_received(:update!).with({ "name" => "Alice" })
     end
   end
 
@@ -216,6 +293,19 @@ RSpec.describe DataPorter::Target do
         expect(rows.first).to have_key("created_at")
         expect(rows.first).to have_key("updated_at")
       end
+    end
+
+    it "does not collide with a host-defined model_class method" do
+      klass = Class.new(described_class) do
+        model_name "Guest"
+        bulk_mode
+        define_method(:model_class) { Guest }
+      end
+      allow(model_class).to receive(:insert_all)
+
+      klass.new.persist_batch([], context: nil)
+
+      expect(model_class).to have_received(:insert_all)
     end
 
     it "raises Error when model_name is not defined" do

@@ -40,6 +40,18 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  create_table :contacts, force: true do |t|
+    t.string  :email
+    t.string  :first_name
+    t.string  :last_name
+    t.integer :external_id
+    t.integer :age
+    t.decimal :score, precision: 8, scale: 2
+    t.boolean :active, default: true
+    t.date    :born_on
+    t.timestamps
+  end
+
   create_table :data_porter_imports, force: true do |t|
     t.string  :target_key,  null: false, default: ""
     t.string  :source_type, null: false, default: "csv"
@@ -105,6 +117,7 @@ ActiveRecord::Schema.define do
 end
 
 class User < ActiveRecord::Base; end unless defined?(User)
+class Contact < ActiveRecord::Base; end unless defined?(Contact)
 
 %w[models jobs].each do |dir|
   $LOAD_PATH.unshift File.expand_path("../app/#{dir}", __dir__)

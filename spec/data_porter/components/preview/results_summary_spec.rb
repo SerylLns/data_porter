@@ -72,4 +72,36 @@ RSpec.describe DataPorter::Components::Preview::ResultsSummary do
 
     expect(html).to include("dp-results--partial")
   end
+
+  context "when update_mode: true" do
+    let(:update_report) do
+      DataPorter::StoreModels::Report.new(imported_count: 7, updated_count: 4, skipped_count: 5, errored_count: 0)
+    end
+    let(:doc) { Nokogiri::HTML(render(described_class.new(report: update_report, update_mode: true))) }
+
+    def stat(css)
+      doc.at_css(".#{css}")&.text
+    end
+
+    it "labels created records as created" do
+      expect(stat("dp-results__stat--success")).to eq("7Created")
+    end
+
+    it "renders the updated count" do
+      expect(stat("dp-results__stat--updated")).to eq("4Updated")
+    end
+
+    it "renders records left untouched" do
+      expect(stat("dp-results__stat--untouched")).to eq("5Left untouched")
+    end
+  end
+
+  context "when update_mode: false (default)" do
+    it "does not render update mode stats" do
+      html = render(described_class.new(report: report))
+
+      expect(html).not_to include("dp-results__stat--updated")
+      expect(html).not_to include("dp-results__stat--untouched")
+    end
+  end
 end

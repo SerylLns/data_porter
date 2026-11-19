@@ -138,6 +138,66 @@ RSpec.describe DataPorter::Orchestrator do
     end
   end
 
+  describe "#parse! with match_by" do
+    let(:target_class) do
+      Class.new(DataPorter::Target) do
+        label "Contacts"
+        model_name "Contact"
+        sources :csv
+        match_by :email
+
+        def existing_scope = Contact.all
+
+        columns do
+          column :first_name, type: :string
+          column :email, type: :email
+        end
+
+        csv_mapping do
+          map "First Name" => :first_name
+          map "Email" => :email
+        end
+      end
+    end
+
+    let(:csv_content) do
+      "First Name,Email\nAlice,alice@example.com\nBob,bob@example.com\nCarol,carol@example.com\n"
+    end
+
+    before do
+      Contact.delete_all
+      Contact.create!(first_name: "Alicia", email: "alice@example.com")
+      Contact.create!(first_name: "Bob", email: "bob@example.com")
+    end
+
+    it "assigns an action to each record" do
+      described_class.new(data_import, content: csv_content).parse!
+
+      expect(data_import.reload.records.map(&:action)).to eq(%w[update unchanged create])
+    end
+
+    it "stores the diff of updated records" do
+      described_class.new(data_import, content: csv_content).parse!
+
+      expect(data_import.reload.records.first.diff).to eq("first_name" => %w[Alicia Alice])
+    end
+
+    it "counts actions in the report" do
+      described_class.new(data_import, content: csv_content).parse!
+
+      report = data_import.reload.report
+      expect([report.create_count, report.update_count, report.unchanged_count]).to eq([1, 1, 1])
+    end
+  end
+
+  describe "#parse! without match_by" do
+    it "leaves actions unset" do
+      described_class.new(data_import, content: csv_content).parse!
+
+      expect(data_import.reload.records.map(&:action)).to all(be_nil)
+    end
+  end
+
   describe "#extract_headers!" do
     it "transitions to mapping" do
       orchestrator = described_class.new(data_import, content: csv_content)

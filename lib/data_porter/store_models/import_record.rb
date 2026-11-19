@@ -2,6 +2,7 @@
 
 require "store_model"
 require_relative "error"
+require_relative "../value_caster"
 
 module DataPorter
   module StoreModels
@@ -19,10 +20,13 @@ module DataPorter
       attribute :warnings, Error.to_array_type, default: -> { [] }
       attribute :target_id, :integer
       attribute :dry_run_passed, :boolean, default: false
+      attribute :action, :string
+      attribute :diff, default: -> { {} }
+      attribute :excluded, :boolean, default: false
 
       def complete? = status == "complete"
 
-      def importable? = status == "complete"
+      def importable? = complete? && !excluded
 
       def add_error(message)
         errors_list << Error.new(message: message)
@@ -34,6 +38,10 @@ module DataPorter
 
       def attributes
         data.stringify_keys.compact.with_indifferent_access
+      end
+
+      def present_attributes
+        attributes.reject { |_key, value| ValueCaster.blank?(value) }
       end
 
       def determine_status!

@@ -22,3 +22,51 @@
   font-size: 0.8rem;
   font-weight: 500;
 }
+
+.dp-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dp-filter {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--dp-border);
+  border-radius: var(--dp-radius-md);
+  font-size: 0.8rem;
+  color: var(--dp-text-muted);
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.dp-filter:hover {
+  background: var(--dp-bg-subtle);
+}
+
+.dp-filter--active {
+  border-color: var(--dp-primary);
+  background: var(--dp-primary-light);
+  color: var(--dp-primary);
+  font-weight: 600;
+}
+
+.dp-confirm-form {
+  margin-bottom: 0.75rem;
+}
+
+.dp-apply-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.dp-apply-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--dp-text);
+  cursor: pointer;
+}

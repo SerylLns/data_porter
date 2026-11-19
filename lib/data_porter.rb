@@ -19,6 +19,11 @@ require_relative "data_porter/sources"
 require_relative "data_porter/record_validator"
 require_relative "data_porter/record_revalidator"
 require_relative "data_porter/record_updater"
+require_relative "data_porter/record_excluder"
+require_relative "data_porter/value_caster"
+require_relative "data_porter/existing_record_matcher"
+require_relative "data_porter/record_differ"
+require_relative "data_porter/record_action_resolver"
 require_relative "data_porter/broadcaster"
 require_relative "data_porter/webhook_notifier"
 require_relative "data_porter/orchestrator"
@@ -34,5 +39,9 @@ module DataPorter
 
   def self.configure
     yield(configuration)
+  end
+
+  def self.deprecator
+    @deprecator ||= ActiveSupport::Deprecation.new("3.0", "DataPorter")
   end
 end

@@ -4,6 +4,8 @@ require_relative "orchestrator/record_builder"
 require_relative "orchestrator/importer"
 require_relative "orchestrator/bulk_importer"
 require_relative "orchestrator/dry_runner"
+require_relative "orchestrator/action_resolution"
+require_relative "orchestrator/record_writer"
 
 module DataPorter
   class Orchestrator
@@ -11,6 +13,8 @@ module DataPorter
     include Importer
     include BulkImporter
     include DryRunner
+    include ActionResolution
+    include RecordWriter
 
     def initialize(data_import, content: nil)
       @data_import = data_import
@@ -31,7 +35,7 @@ module DataPorter
 
     def parse!
       @data_import.parsing!
-      records = build_records
+      records = resolve_actions(build_records)
       clear_stale_import_data
       @data_import.update!(records: records, status: :previewing)
       build_report
@@ -44,7 +48,6 @@ module DataPorter
       @data_import.importing!
       WebhookNotifier.notify(@data_import, "import.started")
       results = import_records
-      update_import_report(results)
       @target.after_import(results, context: build_context)
     rescue StandardError => e
       handle_failure(e)
@@ -79,14 +82,19 @@ module DataPorter
     end
 
     def build_report
-      summary = @data_import.records_summary
       report = StoreModels::Report.new(
-        records_count: @data_import.records.size,
+        records_count: @data_import.records.size, **status_counts, **action_counts
+      )
+      @data_import.update!(report: report)
+    end
+
+    def status_counts
+      summary = @data_import.records_summary
+      {
         complete_count: summary["complete"] || 0,
         partial_count: summary["partial"] || 0,
         missing_count: summary["missing"] || 0
-      )
-      @data_import.update!(report: report)
+      }
     end
 
     def build_context
@@ -106,17 +114,12 @@ module DataPorter
     end
 
     def save_checkpoint(config, processed, results)
-      config["checkpoint"] = {
-        "processed" => processed,
-        "created" => results[:created],
-        "errored" => results[:errored]
-      }
+      config["checkpoint"] = { "processed" => processed }.merge(results.transform_keys(&:to_s))
     end
 
     def clear_stale_import_data
       config = @data_import.config || {}
-      config.delete("checkpoint")
-      config.delete("progress")
+      config.except!("checkpoint", "progress", "apply_creates", "apply_updates")
       @data_import.config = config
     end
 

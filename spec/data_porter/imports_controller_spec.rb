@@ -39,7 +39,7 @@ RSpec.describe DataPorter::ImportsController do
   describe "action methods" do
     it "defines all public actions including export_rejects, resume, and update_record" do
       actions = %i[index new create show parse confirm cancel dry_run update_mapping
-                   update_record status export_rejects destroy back_to_mapping resume]
+                   update_record exclude_record status export_rejects destroy back_to_mapping resume]
       actions.each do |action|
         expect(described_class.instance_method(action)).to be_a(UnboundMethod)
       end
@@ -104,6 +104,105 @@ RSpec.describe DataPorter::ImportsController do
       controller.send(:paginate_records)
 
       expect(controller.instance_variable_get(:@total_pages)).to eq(1)
+    end
+  end
+
+  describe "#filter_records" do
+    let(:controller) { described_class.new }
+    let(:target_class) do
+      Class.new(DataPorter::Target) do
+        match_by :email
+
+        columns do
+          column :email, type: :email
+        end
+      end
+    end
+    let(:records) do
+      [
+        DataPorter::StoreModels::ImportRecord.new(line_number: 1, action: "create"),
+        DataPorter::StoreModels::ImportRecord.new(line_number: 2, action: "update"),
+        DataPorter::StoreModels::ImportRecord.new(line_number: 3, action: "update", excluded: true),
+        DataPorter::StoreModels::ImportRecord.new(line_number: 4, action: "unchanged")
+      ]
+    end
+
+    def filtered_lines(filter, target: target_class)
+      controller.instance_variable_set(:@target, target)
+      controller.instance_variable_set(:@records, records)
+      controller.params = ActionController::Parameters.new(filter: filter)
+      controller.send(:filter_records)
+      controller.instance_variable_get(:@records).map(&:line_number)
+    end
+
+    it "keeps records with the requested action" do
+      expect(filtered_lines("update")).to eq([2, 3])
+    end
+
+    it "keeps excluded records with the excluded filter" do
+      expect(filtered_lines("excluded")).to eq([3])
+    end
+
+    it "keeps every record without a filter" do
+      expect(filtered_lines(nil)).to eq([1, 2, 3, 4])
+    end
+
+    it "ignores unknown filters" do
+      expect(filtered_lines("destroy")).to eq([1, 2, 3, 4])
+    end
+
+    it "ignores filters when the target has no match_by" do
+      expect(filtered_lines("update", target: Class.new(DataPorter::Target))).to eq([1, 2, 3, 4])
+    end
+
+    it "exposes the applied filter" do
+      filtered_lines("unchanged")
+
+      expect(controller.instance_variable_get(:@filter)).to eq("unchanged")
+    end
+  end
+
+  describe "#store_apply_options" do
+    let(:controller) { described_class.new }
+    let(:match_target) do
+      Class.new(DataPorter::Target) do
+        match_by :email
+
+        columns do
+          column :email, type: :email
+        end
+      end
+    end
+
+    after { DataPorter::Registry.clear }
+
+    def store(params, target: match_target)
+      DataPorter::Registry.clear
+      DataPorter::Registry.register(:contacts, target)
+      import = DataPorter::DataImport.create!(target_key: "contacts", source_type: "csv",
+                                              config: { "import_params" => { "hotel_id" => "1" } })
+      controller.instance_variable_set(:@import, import)
+      controller.params = ActionController::Parameters.new(params)
+      controller.send(:store_apply_options)
+      import.reload.config
+    end
+
+    it "stores checked and unchecked options" do
+      config = store({ apply_creates: "1", apply_updates: "0" })
+
+      expect(config).to include("apply_creates" => true, "apply_updates" => false)
+    end
+
+    it "applies everything when options are missing" do
+      expect(store({})).to include("apply_creates" => true, "apply_updates" => true)
+    end
+
+    it "keeps the existing config" do
+      expect(store({ apply_creates: "0" })).to include("import_params" => { "hotel_id" => "1" })
+    end
+
+    it "does nothing when the target has no match_by" do
+      expect(store({ apply_creates: "0" }, target: Class.new(DataPorter::Target))).not_to have_key("apply_creates")
     end
   end
 

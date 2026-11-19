@@ -70,6 +70,8 @@ module DataPorter
       report = data_import.report
       base.merge(
         "imported_count" => report&.imported_count.to_i,
+        "updated_count" => report&.updated_count.to_i,
+        "skipped_count" => report&.skipped_count.to_i,
         "errored_count" => report&.errored_count.to_i
       )
     end

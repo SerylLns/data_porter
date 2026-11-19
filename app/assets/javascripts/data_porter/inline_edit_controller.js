@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["cell", "errors", "summary"]
-  static values = { updateUrl: String }
+  static values = { updateUrl: String, excludeUrl: String, actionLabels: Object }
 
   edit(event) {
     var cell = event.currentTarget
@@ -57,8 +57,7 @@ export default class extends Controller {
     input.removeEventListener("blur", input._blurHandler)
     input.removeEventListener("keydown", input._keyHandler)
     cell.classList.remove("dp-cell--editing")
-    var original = cell.dataset.originalValue || ""
-    cell.textContent = original
+    this.renderCell(cell)
     delete cell.dataset.originalValue
     cell.blur()
   }
@@ -77,7 +76,7 @@ export default class extends Controller {
     cell.classList.remove("dp-cell--editing")
 
     if (newValue === original) {
-      cell.textContent = original
+      this.renderCell(cell)
       delete cell.dataset.originalValue
       cell.blur()
       return
@@ -95,18 +94,45 @@ export default class extends Controller {
     })
   }
 
+  requestHeaders() {
+    var csrfMeta = document.querySelector("meta[name='csrf-token']")
+    var headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    }
+    if (csrfMeta) headers["X-CSRF-Token"] = csrfMeta.content
+    return headers
+  }
+
+  async toggleExclude(event) {
+    var checkbox = event.currentTarget
+    var lineNumber = checkbox.dataset.lineNumber
+    checkbox.disabled = true
+
+    try {
+      var response = await fetch(this.excludeUrlValue, {
+        method: "PATCH",
+        headers: this.requestHeaders(),
+        body: JSON.stringify({ line_number: parseInt(lineNumber, 10), excluded: !checkbox.checked })
+      })
+      if (!response.ok) throw new Error("Request failed")
+
+      var data = await response.json()
+      var row = checkbox.closest("tr")
+      if (row) row.classList.toggle("dp-excluded", data.excluded)
+      this.updateSummary(data.report)
+    } catch (e) {
+      checkbox.checked = !checkbox.checked
+    } finally {
+      checkbox.disabled = false
+    }
+  }
+
   async patch(cell, body) {
     try {
-      var csrfMeta = document.querySelector("meta[name='csrf-token']")
-      var headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      }
-      if (csrfMeta) headers["X-CSRF-Token"] = csrfMeta.content
-
       var response = await fetch(this.updateUrlValue, {
         method: "PATCH",
-        headers: headers,
+        headers: this.requestHeaders(),
         body: JSON.stringify(body)
       })
 
@@ -126,10 +152,15 @@ export default class extends Controller {
     cell.classList.add("dp-cell--success")
     setTimeout(function() { cell.classList.remove("dp-cell--success") }, 800)
 
-    cell.textContent = data.value
     cell.dataset.value = data.value
 
     var lineNumber = cell.dataset.lineNumber
+    if (this.hasActionLabelsValue) {
+      this.updateRowAction(lineNumber, data.action)
+      this.updateRowDiff(lineNumber, data.diff)
+    } else {
+      cell.textContent = data.value
+    }
     this.updateRowStatus(lineNumber, data.status)
     this.updateErrors(lineNumber, data.errors)
     this.updateSummary(data.report)
@@ -144,6 +175,58 @@ export default class extends Controller {
     if (statusCell) statusCell.textContent = status
   }
 
+  updateRowAction(lineNumber, action) {
+    var row = this.element.querySelector("tr[data-line-number='" + lineNumber + "']")
+    var actionCell = row && row.querySelector(".dp-cell--action")
+    if (!actionCell) return
+
+    actionCell.textContent = ""
+    if (!action) return
+
+    var badge = document.createElement("span")
+    badge.className = "dp-action dp-action--" + action
+    badge.textContent = this.actionLabelsValue[action] || action
+    actionCell.appendChild(badge)
+  }
+
+  updateRowDiff(lineNumber, diff) {
+    var self = this
+    this.cellTargets.forEach(function(cell) {
+      if (cell.dataset.lineNumber !== String(lineNumber)) return
+
+      var change = (diff || {})[cell.dataset.column]
+      if (change) {
+        cell.dataset.oldValue = change[0] == null ? "" : String(change[0])
+      } else {
+        delete cell.dataset.oldValue
+      }
+      self.renderCell(cell)
+    })
+  }
+
+  renderCell(cell) {
+    var value = cell.dataset.value || ""
+    var oldValue = cell.dataset.oldValue
+    cell.textContent = ""
+
+    if (oldValue === undefined) {
+      cell.classList.remove("dp-cell--changed")
+      cell.textContent = value
+      return
+    }
+
+    cell.classList.add("dp-cell--changed")
+    cell.appendChild(this.diffSpan("dp-diff__old", oldValue))
+    cell.appendChild(this.diffSpan("dp-diff__new", value))
+  }
+
+  diffSpan(className, text) {
+    var span = document.createElement("span")
+    span.className = className
+    span.textContent = text
+    return span
+  }
+
   updateErrors(lineNumber, errors) {
     var errorsCell = this.errorsTargets.find(function(el) {
       return el.dataset.lineNumber === String(lineNumber)
@@ -154,7 +237,8 @@ export default class extends Controller {
   updateSummary(report) {
     if (!report) return
 
-    this.summaryTargets.forEach(function(el) {
+    var root = this.element.closest(".data-porter") || document
+    root.querySelectorAll("[data-count-key]").forEach(function(el) {
       var key = el.dataset.countKey
       if (key && report[key] !== undefined) {
         el.textContent = String(report[key])

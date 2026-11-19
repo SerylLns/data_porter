@@ -2,19 +2,34 @@
 
 module DataPorter
   class RecordUpdater
+    STATUS_COUNTS = {
+      "complete" => :complete_count,
+      "partial" => :partial_count,
+      "missing" => :missing_count
+    }.freeze
+
+    ACTION_COUNTS = {
+      "create" => :create_count,
+      "update" => :update_count,
+      "unchanged" => :unchanged_count
+    }.freeze
+
     def initialize(data_import)
       @data_import = data_import
       @target = data_import.target_class.new
       @target.import_params = data_import.config&.dig("import_params") || {}
       @revalidator = RecordRevalidator.new(@target)
+      @resolver = RecordActionResolver.new(@target) if @target.class._match_keys
     end
 
     def call(line_number:, column:, value:)
       record = find_record(line_number)
       old_status = record.status
+      old_action = record.action
       update_cell(record, column, value)
       @revalidator.call(record)
-      update_report(old_status, record.status)
+      @resolver&.call_one(record, @data_import.records)
+      update_report(old_status, old_action, record)
       persist!
       build_response(record, column)
     end
@@ -37,30 +52,17 @@ module DataPorter
       column.to_s
     end
 
-    def update_report(old_status, new_status)
-      return if old_status == new_status
+    def update_report(old_status, old_action, record)
+      shift_count(STATUS_COUNTS.fetch(old_status, :partial_count), STATUS_COUNTS.fetch(record.status, :partial_count))
+      shift_count(ACTION_COUNTS[old_action], ACTION_COUNTS[record.action]) unless record.excluded
+    end
+
+    def shift_count(from, to)
+      return if from == to
 
       report = @data_import.report
-      decrement_count(report, old_status)
-      increment_count(report, new_status)
-    end
-
-    def decrement_count(report, status)
-      attr = count_attribute(status)
-      report.send(:"#{attr}=", [report.send(attr) - 1, 0].max)
-    end
-
-    def increment_count(report, status)
-      attr = count_attribute(status)
-      report.send(:"#{attr}=", report.send(attr) + 1)
-    end
-
-    def count_attribute(status)
-      {
-        "complete" => :complete_count,
-        "partial" => :partial_count,
-        "missing" => :missing_count
-      }.fetch(status, :partial_count)
+      report.send(:"#{from}=", [report.send(from) - 1, 0].max) if from
+      report.send(:"#{to}=", report.send(to) + 1) if to
     end
 
     def persist!
@@ -74,19 +76,11 @@ module DataPorter
       key = resolve_key(record.data, column)
       {
         status: record.status,
+        action: record.action,
+        diff: record.diff,
         value: record.data[key].to_s,
         errors: record.errors_list.map(&:message),
-        report: report_hash
-      }
-    end
-
-    def report_hash
-      r = @data_import.report
-      {
-        complete_count: r.complete_count,
-        partial_count: r.partial_count,
-        missing_count: r.missing_count,
-        duplicate_count: r.duplicate_count
+        report: @data_import.report.preview_counts
       }
     end
   end

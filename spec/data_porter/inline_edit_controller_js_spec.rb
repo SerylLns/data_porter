@@ -16,8 +16,26 @@ RSpec.describe "inline_edit_controller.js" do
     expect(content).to include('static targets = ["cell", "errors", "summary"]')
   end
 
-  it "defines updateUrl value" do
-    expect(content).to include("static values = { updateUrl: String }")
+  it "defines updateUrl, excludeUrl and actionLabels values" do
+    expect(content).to include("static values = { updateUrl: String, excludeUrl: String, actionLabels: Object }")
+  end
+
+  it "sends the exclusion to excludeUrl" do
+    expect(content).to include("toggleExclude")
+    expect(content).to include("this.excludeUrlValue")
+  end
+
+  it "reverts the checkbox when the exclusion fails" do
+    expect(content).to include("checkbox.checked = !checkbox.checked")
+  end
+
+  it "updates the row action from response" do
+    expect(content).to include("updateRowAction")
+  end
+
+  it "renders cell diffs from response" do
+    expect(content).to include("updateRowDiff")
+    expect(content).to include("dp-diff__old")
   end
 
   it "creates an input element on edit" do
@@ -64,6 +82,11 @@ RSpec.describe "inline_edit_controller.js" do
 
   it "updates summary cards from response" do
     expect(content).to include("updateSummary")
+  end
+
+  it "looks up summary counts outside the table element" do
+    expect(content).to include('closest(".data-porter")')
+    expect(content).to include("[data-count-key]")
   end
 
   it "includes CSRF token in headers" do

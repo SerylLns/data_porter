@@ -6,14 +6,16 @@ module DataPorter
     include Concerns::ImportParamsBuilder
     include Concerns::MappingManagement
     include Concerns::RecordPagination
+    include Concerns::RecordFiltering
+    include Concerns::ApplyOptions
     include Concerns::ScopeManagement
 
     layout "data_porter/application"
 
     before_action :set_import, only: %i[show parse confirm cancel dry_run update_mapping
-                                        update_record status export_rejects destroy
+                                        update_record exclude_record status export_rejects destroy
                                         back_to_mapping resume]
-    before_action :ensure_previewing, only: :update_record
+    before_action :ensure_previewing, only: %i[update_record exclude_record]
     before_action :load_targets, only: %i[index new create]
 
     def index
@@ -39,6 +41,7 @@ module DataPorter
       @target = @import.target_class
       @records = @import.records
       @grouped = @records.group_by(&:status)
+      filter_records
       paginate_records
       load_mapping_data if @import.mapping?
     end
@@ -57,6 +60,7 @@ module DataPorter
     end
 
     def confirm
+      store_apply_options
       @import.update!(status: :pending)
       DataPorter::ImportJob.perform_later(@import.id)
       redirect_to import_path(@import)
@@ -79,6 +83,7 @@ module DataPorter
     end
 
     def dry_run
+      store_apply_options
       @import.update!(status: :pending)
       DataPorter::DryRunJob.perform_later(@import.id)
       redirect_to import_path(@import)
@@ -90,6 +95,14 @@ module DataPorter
         line_number: params[:line_number].to_i,
         column: params[:column],
         value: params[:value]
+      )
+      render json: result
+    end
+
+    def exclude_record
+      result = RecordExcluder.new(@import).call(
+        line_number: params[:line_number].to_i,
+        excluded: ActiveModel::Type::Boolean.new.cast(params[:excluded]) == true
       )
       render json: result
     end

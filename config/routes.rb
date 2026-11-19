@@ -15,6 +15,8 @@ DataPorter::Engine.routes.draw do
       patch :update_mapping
       post :update_record
       patch :update_record
+      post :exclude_record
+      patch :exclude_record
       get :status
       get :export_rejects
     end

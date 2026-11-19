@@ -11,7 +11,7 @@ module DataPorter
       attr_reader :_label, :_model_name, :_icon, :_sources,
                   :_columns, :_csv_mappings, :_dedup_keys, :_json_root,
                   :_api_config, :_dry_run_enabled, :_params, :_webhooks,
-                  :_bulk_config, :_header_row
+                  :_bulk_config, :_header_row, :_match_keys
 
       def label(value)
         @_label = value
@@ -49,7 +49,12 @@ module DataPorter
       end
 
       def deduplicate_by(*keys)
+        DataPorter.deprecator.warn("deduplicate_by has no effect and will be removed; use match_by instead")
         @_dedup_keys = keys.map(&:to_sym)
+      end
+
+      def match_by(*keys)
+        @_match_keys = keys.map(&:to_sym)
       end
 
       def json_root(path)
@@ -121,10 +126,21 @@ module DataPorter
       raise Error, "model_name is required for default persist_batch" unless self.class._model_name
 
       now = Time.current
-      model_class = self.class._model_name.constantize
-      model_class.insert_all(
+      self.class._model_name.constantize.insert_all(
         records.map { |r| r.data.merge("created_at" => now, "updated_at" => now) }
       )
+    end
+
+    def existing_scope
+      raise Error, "match_by requires existing_scope to be defined on #{self.class}"
+    end
+
+    def diff_attributes(existing)
+      existing.attributes.slice(*(self.class._columns || []).map { |column| column.name.to_s })
+    end
+
+    def update(record, existing, context:) # rubocop:disable Lint/UnusedMethodArgument
+      existing.update!(record.present_attributes)
     end
 
     def after_import(_results, context:); end

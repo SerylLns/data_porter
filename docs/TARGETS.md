@@ -58,7 +58,7 @@ class OrderTarget < DataPorter::Target
     response_root "data.orders"
   end
 
-  deduplicate_by :order_number
+  match_by :order_number
 
   dry_run_enabled
 
@@ -158,14 +158,27 @@ Given `{ "data": { "users": [...] } }`, records are extracted from `data.users`.
 
 See [Sources: API](SOURCES.md#api) for full documentation.
 
-### `deduplicate_by(*keys)`
+### `match_by(*keys)`
 
-Skip records that share the same value(s) for the given column(s):
+Enables update mode: incoming records are matched against existing records of `existing_scope` by the given column(s). Matched records are updated through `update`, unmatched ones are created through `persist`. Requires `existing_scope` to be defined.
 
 ```ruby
-deduplicate_by :email
-deduplicate_by :first_name, :last_name
+match_by :email
+match_by :first_name, :last_name
 ```
+
+Matching rules:
+
+- Every key must be a declared column, and its name must match the model attribute and database column used for the lookup. An unknown key fails the import with an error.
+- Keys are compared by their column type: `integer`, `decimal`, `boolean` and `date` columns are cast on both sides, so `"007"` matches `7` and `"1.50"` matches `1.5`. Declare the key column with the type of the database column.
+- Other columns are compared as exact strings: case and whitespace matter. Normalize the file side with `transform` (e.g. `column :email, type: :email, transform: %i[strip downcase]`) and make sure stored values follow the same normalization, otherwise existing records are not found and are created again.
+- With a case-insensitive database collation (e.g. MySQL defaults), normalize both sides the same way too: the database may return a record that the exact comparison then rejects.
+- A record with a blank key value is always created.
+- Blank cells never overwrite existing values (see `update`).
+
+### `deduplicate_by(*keys)` (deprecated)
+
+Never had any effect and emits a deprecation warning. Use `match_by` instead. Will be removed in 3.0.
 
 ### `header_row(value)`
 
@@ -280,6 +293,44 @@ end
 ```ruby
 def persist(record, context:)
   User.create!(record.attributes)
+end
+```
+
+### `existing_scope`
+
+Relation used by `match_by` to look up existing records. Required when `match_by` is declared: there is no default, so that a multi-tenant app cannot match or update records belonging to another tenant by accident. Scope it to what the importing user may touch, e.g. with import params:
+
+```ruby
+def existing_scope
+  Contact.where(hotel_id: import_params["hotel_id"])
+end
+```
+
+A single-tenant app can return the whole model explicitly:
+
+```ruby
+def existing_scope = Contact.all
+```
+
+### `diff_attributes(existing)`
+
+Values of an existing record compared against the incoming record to build the diff preview. Defaults to the existing record's attributes whose names match declared columns. Values are cast by column type before comparison, and `nil` incoming values are ignored. Override it when column names differ from model attributes:
+
+```ruby
+def diff_attributes(existing)
+  { "email" => existing.email_address, "full_name" => existing.name }
+end
+```
+
+### `update(record, existing, context:)`
+
+Called instead of `persist` for records matched by `match_by`. Defaults to `existing.update!(record.present_attributes)`.
+
+Blank values (`nil`, empty or whitespace-only strings) never change an existing record: they are left out of the diff and of `present_attributes`. An import cannot clear a field by default; override `update` with `record.attributes` to write blanks on purpose.
+
+```ruby
+def update(record, existing, context:)
+  existing.update!(record.present_attributes.except("email"))
 end
 ```
 
