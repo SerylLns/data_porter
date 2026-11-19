@@ -10,11 +10,13 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
       complete_count: 10,
       partial_count: 3,
       missing_count: 2,
-      duplicate_count: 1
+      create_count: 7,
+      update_count: 4,
+      unchanged_count: 5
     )
   end
 
-  it "renders all four count cards" do
+  it "renders the three status count cards" do
     html = render(described_class.new(report: report))
 
     expect(html).to include("10")
@@ -23,13 +25,45 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
     expect(html).to include("Incomplete")
     expect(html).to include("2")
     expect(html).to include("Missing")
-    expect(html).to include("1")
-    expect(html).to include("Duplicates")
+  end
+
+  it "does not render a duplicates card" do
+    html = render(described_class.new(report: report))
+
+    expect(html).not_to include("Duplicates")
+    expect(html).not_to include("dp-card--duplicate")
   end
 
   it "wraps in dp-summary-cards container" do
     html = render(described_class.new(report: report))
     expect(html).to include("dp-summary-cards")
+  end
+
+  context "when update_mode: false (default)" do
+    it "does not render action cards" do
+      html = render(described_class.new(report: report))
+
+      expect(html).not_to include("dp-card--create")
+      expect(html).not_to include("To update")
+    end
+  end
+
+  context "when update_mode: true" do
+    let(:html) { render(described_class.new(report: report, update_mode: true)) }
+
+    it "renders create, update and unchanged cards" do
+      doc = Nokogiri::HTML(html)
+
+      expect(doc.at_css(".dp-card--create strong").text).to eq("7")
+      expect(doc.at_css(".dp-card--update strong").text).to eq("4")
+      expect(doc.at_css(".dp-card--unchanged strong").text).to eq("5")
+    end
+
+    it "labels the action cards" do
+      expect(html).to include("To create")
+      expect(html).to include("To update")
+      expect(html).to include("Unchanged")
+    end
   end
 
   context "when editable: false (default)" do
@@ -40,26 +74,22 @@ RSpec.describe DataPorter::Components::Preview::SummaryCards do
   end
 
   context "when editable: true" do
-    let(:html) { render(described_class.new(report: report, editable: true)) }
+    let(:html) { render(described_class.new(report: report, editable: true, update_mode: true)) }
 
     it "adds summary target to count elements" do
       expect(html).to include("summary")
     end
 
-    it "adds count_key for complete_count" do
+    it "adds count_key for status counts" do
       expect(html).to include("complete-count")
-    end
-
-    it "adds count_key for partial_count" do
       expect(html).to include("partial-count")
-    end
-
-    it "adds count_key for missing_count" do
       expect(html).to include("missing-count")
     end
 
-    it "adds count_key for duplicate_count" do
-      expect(html).to include("duplicate-count")
+    it "adds count_key for action counts" do
+      expect(html).to include("create-count")
+      expect(html).to include("update-count")
+      expect(html).to include("unchanged-count")
     end
   end
 end

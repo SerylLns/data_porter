@@ -90,7 +90,6 @@ module DataPorter
         complete_count: r.complete_count,
         partial_count: r.partial_count,
         missing_count: r.missing_count,
-        duplicate_count: r.duplicate_count,
         create_count: r.create_count,
         update_count: r.update_count,
         unchanged_count: r.unchanged_count

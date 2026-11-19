@@ -51,7 +51,9 @@
 
   <% if @import.previewing? %>
     <div id="records">
-    <%= raw DataPorter::Components::Preview::SummaryCards.new(report: @import.report, editable: true).call %>
+    <%= raw DataPorter::Components::Preview::SummaryCards.new(
+          report: @import.report, editable: true, update_mode: @target._match_keys.present?
+        ).call %>
     <%= raw DataPorter::Components::Preview::Table.new(
           columns: @target._columns,
           records: @records,

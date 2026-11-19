@@ -85,7 +85,9 @@ en:
         ready: "Ready"
         incomplete: "Incomplete"
         missing: "Missing"
-        duplicates: "Duplicates"
+        to_create: "To create"
+        to_update: "To update"
+        unchanged: "Unchanged"
       results_summary:
         completed: "Import completed"
         completed_with_errors: "Import completed with errors"

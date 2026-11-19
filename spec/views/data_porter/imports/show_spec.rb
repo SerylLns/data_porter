@@ -191,6 +191,29 @@ RSpec.describe "data_porter/imports/show.html.erb" do
     it "renders summary cards with count-key targets" do
       expect(html).to include("data-count-key")
     end
+
+    it "does not render action cards without match_by" do
+      expect(html).not_to include("dp-card--create")
+    end
+
+    context "with match_by" do
+      let(:target_class) do
+        Class.new(DataPorter::Target) do
+          label "Guests"
+          model_name "Guest"
+          match_by :email
+
+          columns do
+            column :name, type: :string, required: true
+            column :email, type: :email
+          end
+        end
+      end
+
+      it "renders action cards" do
+        expect(html).to include("dp-card--create")
+      end
+    end
   end
 
   context "when completed" do

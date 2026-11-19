@@ -85,7 +85,9 @@ fr:
         ready: "Prêt"
         incomplete: "Incomplet"
         missing: "Manquant"
-        duplicates: "Doublons"
+        to_create: "À créer"
+        to_update: "À mettre à jour"
+        unchanged: "Inchangés"
       results_summary:
         completed: "Import terminé"
         completed_with_errors: "Import terminé avec des erreurs"
