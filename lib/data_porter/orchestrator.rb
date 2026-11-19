@@ -48,7 +48,6 @@ module DataPorter
       @data_import.importing!
       WebhookNotifier.notify(@data_import, "import.started")
       results = import_records
-      update_import_report(results)
       @target.after_import(results, context: build_context)
     rescue StandardError => e
       handle_failure(e)

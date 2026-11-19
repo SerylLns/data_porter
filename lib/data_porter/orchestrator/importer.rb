@@ -48,6 +48,7 @@ module DataPorter
       end
 
       def finalize_import(results)
+        update_import_report(results)
         clear_checkpoint
         @data_import.update!(status: :completed)
         @broadcaster.success

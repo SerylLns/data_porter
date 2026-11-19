@@ -183,6 +183,31 @@ RSpec.describe DataPorter::Orchestrator, "update mode" do
     end
   end
 
+  describe "#import! notifications" do
+    it "sends the completed webhook with the final counts" do
+      counts = nil
+      allow(DataPorter::WebhookNotifier).to receive(:notify)
+      allow(DataPorter::WebhookNotifier).to receive(:notify).with(anything, "import.completed") do |import, _event|
+        counts = [import.report.imported_count, import.report.updated_count, import.report.skipped_count]
+      end
+
+      import!
+
+      expect(counts).to eq([1, 1, 1])
+    end
+
+    it "broadcasts success once the report is updated" do
+      counts = nil
+      allow_any_instance_of(DataPorter::Broadcaster).to receive(:success) do
+        counts = data_import.reload.report.imported_count
+      end
+
+      import!
+
+      expect(counts).to eq(1)
+    end
+  end
+
   describe "#import! with excluded records" do
     it "does not write excluded records" do
       DataPorter::RecordExcluder.new(data_import.reload).call(line_number: 3, excluded: true)
