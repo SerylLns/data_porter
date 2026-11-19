@@ -98,7 +98,12 @@ fr:
       table:
         line_number: "#"
         status: "Statut"
+        action: "Action"
         errors: "Erreurs"
+        actions:
+          create: "Création"
+          update: "Mise à jour"
+          unchanged: "Inchangé"
       progress:
         waiting: "En attente..."
         extracting_headers: "Extraction des en-têtes..."

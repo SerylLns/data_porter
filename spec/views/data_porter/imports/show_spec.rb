@@ -213,6 +213,10 @@ RSpec.describe "data_porter/imports/show.html.erb" do
       it "renders action cards" do
         expect(html).to include("dp-card--create")
       end
+
+      it "renders the action column in the preview table" do
+        expect(html).to include("dp-cell--action")
+      end
     end
   end
 

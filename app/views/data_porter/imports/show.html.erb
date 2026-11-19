@@ -58,7 +58,8 @@
           columns: @target._columns,
           records: @records,
           editable: true,
-          update_url: update_record_import_path(@import)
+          update_url: update_record_import_path(@import),
+          update_mode: @target._match_keys.present?
         ).call %>
     </div>
     <%= raw DataPorter::Components::Shared::Pagination.new(

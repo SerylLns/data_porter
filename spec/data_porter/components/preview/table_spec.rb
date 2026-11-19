@@ -129,4 +129,79 @@ RSpec.describe DataPorter::Components::Preview::Table do
       expect(html).to include('data-line-number="2"')
     end
   end
+
+  context "with update mode" do
+    let(:changed_record) do
+      DataPorter::StoreModels::ImportRecord.new(
+        line_number: 3, status: "complete", action: "update",
+        data: { "first_name" => "Alice", "last_name" => "Smith" },
+        diff: { "first_name" => %w[Alicia Alice] }
+      )
+    end
+
+    let(:pending_record) do
+      DataPorter::StoreModels::ImportRecord.new(line_number: 4, status: "partial", data: { "first_name" => "Bob" })
+    end
+
+    def render_doc(**options)
+      records = [changed_record, pending_record]
+      Nokogiri::HTML(render(described_class.new(columns: target_class._columns, records: records, **options)))
+    end
+
+    context "when update_mode: false (default)" do
+      let(:doc) { render_doc }
+
+      it "does not render the action column" do
+        expect(doc.css(".dp-cell--action")).to be_empty
+      end
+
+      it "does not render diffs" do
+        expect(doc.css(".dp-cell--changed")).to be_empty
+      end
+    end
+
+    context "when update_mode: true" do
+      let(:doc) { render_doc(update_mode: true) }
+
+      it "renders an action header" do
+        expect(doc.css("th").map(&:text)).to include("Action")
+      end
+
+      it "renders the record action badge" do
+        expect(doc.at_css(".dp-cell--action .dp-action--update").text).to eq("Update")
+      end
+
+      it "renders an empty action cell when the record has no action" do
+        expect(doc.css(".dp-cell--action")[1].text).to eq("")
+      end
+
+      it "renders old and new values in changed cells" do
+        cell = doc.at_css("td.dp-cell--changed")
+
+        expect([cell.at_css(".dp-diff__old").text, cell.at_css(".dp-diff__new").text]).to eq(%w[Alicia Alice])
+      end
+
+      it "renders other cells as plain values" do
+        expect(doc.css("td.dp-cell--changed").size).to eq(1)
+      end
+    end
+
+    context "when editable and update_mode: true" do
+      let(:doc) { render_doc(update_mode: true, editable: true, update_url: "/u") }
+
+      it "keeps the new value as the editable value of changed cells" do
+        expect(doc.at_css("td.dp-cell--changed")["data-value"]).to eq("Alice")
+      end
+
+      it "exposes the old value of changed cells" do
+        expect(doc.at_css("td.dp-cell--changed")["data-old-value"]).to eq("Alicia")
+      end
+
+      it "exposes action labels to the inline edit controller" do
+        labels = JSON.parse(doc.at_css(".dp-preview-table")["data-data-porter--inline-edit-action-labels-value"])
+
+        expect(labels).to eq("create" => "Create", "update" => "Update", "unchanged" => "Unchanged")
+      end
+    end
+  end
 end

@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["cell", "errors", "summary"]
-  static values = { updateUrl: String }
+  static values = { updateUrl: String, actionLabels: Object }
 
   edit(event) {
     var cell = event.currentTarget
@@ -57,8 +57,7 @@ export default class extends Controller {
     input.removeEventListener("blur", input._blurHandler)
     input.removeEventListener("keydown", input._keyHandler)
     cell.classList.remove("dp-cell--editing")
-    var original = cell.dataset.originalValue || ""
-    cell.textContent = original
+    this.renderCell(cell)
     delete cell.dataset.originalValue
     cell.blur()
   }
@@ -77,7 +76,7 @@ export default class extends Controller {
     cell.classList.remove("dp-cell--editing")
 
     if (newValue === original) {
-      cell.textContent = original
+      this.renderCell(cell)
       delete cell.dataset.originalValue
       cell.blur()
       return
@@ -126,10 +125,15 @@ export default class extends Controller {
     cell.classList.add("dp-cell--success")
     setTimeout(function() { cell.classList.remove("dp-cell--success") }, 800)
 
-    cell.textContent = data.value
     cell.dataset.value = data.value
 
     var lineNumber = cell.dataset.lineNumber
+    if (this.hasActionLabelsValue) {
+      this.updateRowAction(lineNumber, data.action)
+      this.updateRowDiff(lineNumber, data.diff)
+    } else {
+      cell.textContent = data.value
+    }
     this.updateRowStatus(lineNumber, data.status)
     this.updateErrors(lineNumber, data.errors)
     this.updateSummary(data.report)
@@ -142,6 +146,58 @@ export default class extends Controller {
     row.className = row.className.replace(/dp-row--\w+/, "dp-row--" + status)
     var statusCell = row.children[1]
     if (statusCell) statusCell.textContent = status
+  }
+
+  updateRowAction(lineNumber, action) {
+    var row = this.element.querySelector("tr[data-line-number='" + lineNumber + "']")
+    var actionCell = row && row.querySelector(".dp-cell--action")
+    if (!actionCell) return
+
+    actionCell.textContent = ""
+    if (!action) return
+
+    var badge = document.createElement("span")
+    badge.className = "dp-action dp-action--" + action
+    badge.textContent = this.actionLabelsValue[action] || action
+    actionCell.appendChild(badge)
+  }
+
+  updateRowDiff(lineNumber, diff) {
+    var self = this
+    this.cellTargets.forEach(function(cell) {
+      if (cell.dataset.lineNumber !== String(lineNumber)) return
+
+      var change = (diff || {})[cell.dataset.column]
+      if (change) {
+        cell.dataset.oldValue = change[0] == null ? "" : String(change[0])
+      } else {
+        delete cell.dataset.oldValue
+      }
+      self.renderCell(cell)
+    })
+  }
+
+  renderCell(cell) {
+    var value = cell.dataset.value || ""
+    var oldValue = cell.dataset.oldValue
+    cell.textContent = ""
+
+    if (oldValue === undefined) {
+      cell.classList.remove("dp-cell--changed")
+      cell.textContent = value
+      return
+    }
+
+    cell.classList.add("dp-cell--changed")
+    cell.appendChild(this.diffSpan("dp-diff__old", oldValue))
+    cell.appendChild(this.diffSpan("dp-diff__new", value))
+  }
+
+  diffSpan(className, text) {
+    var span = document.createElement("span")
+    span.className = className
+    span.textContent = text
+    return span
   }
 
   updateErrors(lineNumber, errors) {

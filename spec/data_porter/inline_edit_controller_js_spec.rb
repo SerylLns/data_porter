@@ -16,8 +16,17 @@ RSpec.describe "inline_edit_controller.js" do
     expect(content).to include('static targets = ["cell", "errors", "summary"]')
   end
 
-  it "defines updateUrl value" do
-    expect(content).to include("static values = { updateUrl: String }")
+  it "defines updateUrl and actionLabels values" do
+    expect(content).to include("static values = { updateUrl: String, actionLabels: Object }")
+  end
+
+  it "updates the row action from response" do
+    expect(content).to include("updateRowAction")
+  end
+
+  it "renders cell diffs from response" do
+    expect(content).to include("updateRowDiff")
+    expect(content).to include("dp-diff__old")
   end
 
   it "creates an input element on edit" do
