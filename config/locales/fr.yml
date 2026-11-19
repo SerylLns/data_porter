@@ -14,6 +14,8 @@ fr:
       start_import: "Lancer l'import"
       confirm_import: "Confirmer l'import"
       dry_run: "Essai à blanc"
+      apply_creates: "Appliquer les créations"
+      apply_updates: "Appliquer les mises à jour"
       cancel: "Annuler"
       back_to_mapping: "Retour au mapping"
       download_rejects: "Télécharger les rejets CSV"

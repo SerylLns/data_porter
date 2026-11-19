@@ -200,12 +200,17 @@ RSpec.describe "data_porter/imports/show.html.erb" do
       expect(html).not_to include("dp-filters")
     end
 
+    it "does not render apply options without match_by" do
+      expect(html).not_to include("apply_creates")
+    end
+
     context "with match_by" do
       let(:target_class) do
         Class.new(DataPorter::Target) do
           label "Guests"
           model_name "Guest"
           match_by :email
+          dry_run_enabled
 
           columns do
             column :name, type: :string, required: true
@@ -224,6 +229,25 @@ RSpec.describe "data_porter/imports/show.html.erb" do
 
       it "renders the action filters" do
         expect(html).to include("dp-filters")
+      end
+
+      it "renders apply checkboxes checked by default in the confirm form" do
+        form = Nokogiri::HTML(html).at_css("form.dp-confirm-form")
+        boxes = %w[apply_creates apply_updates].map { |name| form.at_css("input[type=checkbox][name=#{name}]") }
+
+        expect(boxes.map { |box| box.has_attribute?("checked") }).to eq([true, true])
+      end
+
+      it "sends unchecked apply options as false" do
+        hidden = Nokogiri::HTML(html).css("form.dp-confirm-form input[type=hidden][name=apply_creates]")
+
+        expect(hidden.map { |input| input["value"] }).to eq(["0"])
+      end
+
+      it "submits the dry run from the confirm form" do
+        button = Nokogiri::HTML(html).at_css("form.dp-confirm-form button[formaction]")
+
+        expect(button["formaction"]).to include("dry_run")
       end
     end
   end

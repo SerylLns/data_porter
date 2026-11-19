@@ -50,3 +50,23 @@
   color: var(--dp-primary);
   font-weight: 600;
 }
+
+.dp-confirm-form {
+  margin-bottom: 0.75rem;
+}
+
+.dp-apply-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.dp-apply-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--dp-text);
+  cursor: pointer;
+}

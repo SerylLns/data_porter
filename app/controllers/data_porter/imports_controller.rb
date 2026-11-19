@@ -7,6 +7,7 @@ module DataPorter
     include Concerns::MappingManagement
     include Concerns::RecordPagination
     include Concerns::RecordFiltering
+    include Concerns::ApplyOptions
     include Concerns::ScopeManagement
 
     layout "data_porter/application"
@@ -59,6 +60,7 @@ module DataPorter
     end
 
     def confirm
+      store_apply_options
       @import.update!(status: :pending)
       DataPorter::ImportJob.perform_later(@import.id)
       redirect_to import_path(@import)
@@ -81,6 +83,7 @@ module DataPorter
     end
 
     def dry_run
+      store_apply_options
       @import.update!(status: :pending)
       DataPorter::DryRunJob.perform_later(@import.id)
       redirect_to import_path(@import)

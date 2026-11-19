@@ -14,6 +14,8 @@ en:
       start_import: "Start Import"
       confirm_import: "Confirm Import"
       dry_run: "Dry Run"
+      apply_creates: "Apply creations"
+      apply_updates: "Apply updates"
       cancel: "Cancel"
       back_to_mapping: "Back to Mapping"
       download_rejects: "Download rejects CSV"

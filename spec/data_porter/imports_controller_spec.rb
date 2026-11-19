@@ -162,6 +162,50 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
+  describe "#store_apply_options" do
+    let(:controller) { described_class.new }
+    let(:match_target) do
+      Class.new(DataPorter::Target) do
+        match_by :email
+
+        columns do
+          column :email, type: :email
+        end
+      end
+    end
+
+    after { DataPorter::Registry.clear }
+
+    def store(params, target: match_target)
+      DataPorter::Registry.clear
+      DataPorter::Registry.register(:contacts, target)
+      import = DataPorter::DataImport.create!(target_key: "contacts", source_type: "csv",
+                                              config: { "import_params" => { "hotel_id" => "1" } })
+      controller.instance_variable_set(:@import, import)
+      controller.params = ActionController::Parameters.new(params)
+      controller.send(:store_apply_options)
+      import.reload.config
+    end
+
+    it "stores checked and unchecked options" do
+      config = store({ apply_creates: "1", apply_updates: "0" })
+
+      expect(config).to include("apply_creates" => true, "apply_updates" => false)
+    end
+
+    it "applies everything when options are missing" do
+      expect(store({})).to include("apply_creates" => true, "apply_updates" => true)
+    end
+
+    it "keeps the existing config" do
+      expect(store({ apply_creates: "0" })).to include("import_params" => { "hotel_id" => "1" })
+    end
+
+    it "does nothing when the target has no match_by" do
+      expect(store({ apply_creates: "0" }, target: Class.new(DataPorter::Target))).not_to have_key("apply_creates")
+    end
+  end
+
   describe "#valid_file_presence?" do
     let(:controller) { described_class.new }
 

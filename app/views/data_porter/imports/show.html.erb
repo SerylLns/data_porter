@@ -69,13 +69,36 @@
           page: @page, total_pages: @total_pages, base_url: import_path(@import, filter: @filter)
         ).call %>
 
-    <div class="dp-actions">
-      <%= button_to confirm_import_path(@import), method: :post, class: "dp-btn dp-btn--primary", data: { dp_submit: true } do %>
-        <%= t("data_porter.imports.confirm_import") %>
+    <% update_mode = @target._match_keys.present? %>
+    <% if update_mode %>
+      <%= form_with url: confirm_import_path(@import), method: :post, class: "dp-confirm-form" do %>
+        <div class="dp-apply-options">
+          <% DataPorter::Concerns::ApplyOptions::APPLY_OPTIONS.each do |option| %>
+            <label class="dp-apply-option">
+              <%= hidden_field_tag option, "0", id: nil %>
+              <%= check_box_tag option, "1", true, id: "dp_#{option}" %>
+              <%= t("data_porter.imports.#{option}") %>
+            </label>
+          <% end %>
+        </div>
+        <div class="dp-actions">
+          <button type="submit" class="dp-btn dp-btn--primary" data-dp-submit><%= t("data_porter.imports.confirm_import") %></button>
+          <% if @target._dry_run_enabled %>
+            <button type="submit" formaction="<%= dry_run_import_path(@import) %>" class="dp-btn dp-btn--secondary" data-dp-submit><%= t("data_porter.imports.dry_run") %></button>
+          <% end %>
+        </div>
       <% end %>
-      <% if @target._dry_run_enabled %>
-        <%= button_to dry_run_import_path(@import), method: :post, class: "dp-btn dp-btn--secondary", data: { dp_submit: true } do %>
-          <%= t("data_porter.imports.dry_run") %>
+    <% end %>
+
+    <div class="dp-actions">
+      <% unless update_mode %>
+        <%= button_to confirm_import_path(@import), method: :post, class: "dp-btn dp-btn--primary", data: { dp_submit: true } do %>
+          <%= t("data_porter.imports.confirm_import") %>
+        <% end %>
+        <% if @target._dry_run_enabled %>
+          <%= button_to dry_run_import_path(@import), method: :post, class: "dp-btn dp-btn--secondary", data: { dp_submit: true } do %>
+            <%= t("data_porter.imports.dry_run") %>
+          <% end %>
         <% end %>
       <% end %>
       <% if @import.file_based? %>
@@ -133,7 +156,8 @@
 <script>
   (function() {
     document.querySelectorAll("[data-dp-submit]").forEach(function(btn) {
-      btn.closest("form").addEventListener("submit", function() {
+      btn.closest("form").addEventListener("submit", function(event) {
+        if (event.submitter && event.submitter !== btn) return;
         btn.disabled = true;
         btn.innerHTML = '<span class="dp-spinner"></span><%= j t("data_porter.imports.processing") %>';
       });

@@ -155,6 +155,16 @@ RSpec.describe DataPorter::Orchestrator, "update mode" do
     end
   end
 
+  describe "#parse!" do
+    it "clears apply options from a previous confirmation" do
+      data_import.update!(config: data_import.config.merge("apply_updates" => false))
+
+      described_class.new(data_import.reload, content: csv_content).parse!
+
+      expect(data_import.reload.config).not_to have_key("apply_updates")
+    end
+  end
+
   describe "#dry_run!" do
     it "runs updates without persisting them" do
       described_class.new(data_import.reload).dry_run!

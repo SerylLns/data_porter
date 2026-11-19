@@ -120,8 +120,7 @@ module DataPorter
 
     def clear_stale_import_data
       config = @data_import.config || {}
-      config.delete("checkpoint")
-      config.delete("progress")
+      config.except!("checkpoint", "progress", "apply_creates", "apply_updates")
       @data_import.config = config
     end
 
