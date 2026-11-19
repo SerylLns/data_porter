@@ -45,6 +45,13 @@ RSpec.describe DataPorter::RecordUpdater, "update mode" do
     expect(record(1).diff).to eq("first_name" => %w[Alicia Alice])
   end
 
+  it "keeps a record unchanged when a cell is cleared" do
+    updater.call(line_number: 1, column: "first_name", value: "")
+
+    expect(record(1).action).to eq("unchanged")
+    expect(record(1).diff).to eq({})
+  end
+
   it "resolves the record again when its match key is edited" do
     updater.call(line_number: 1, column: "email", value: "new@example.com")
 

@@ -129,6 +129,16 @@ RSpec.describe DataPorter::Target do
 
       expect(existing).to have_received(:update!).with(record.attributes)
     end
+
+    it "does not overwrite existing values with blank ones" do
+      existing = User.create!
+      allow(existing).to receive(:update!)
+      record = DataPorter::StoreModels::ImportRecord.new(data: { "name" => "Alice", "email" => "" })
+
+      target_class.new.update(record, existing, context: nil)
+
+      expect(existing).to have_received(:update!).with({ "name" => "Alice" })
+    end
   end
 
   describe "column label" do

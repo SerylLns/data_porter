@@ -99,6 +99,15 @@ RSpec.describe DataPorter::StoreModels::ImportRecord do
     end
   end
 
+  describe "#present_attributes" do
+    it "drops nil, empty and whitespace-only values but keeps false" do
+      record = described_class.new(data: { "name" => "Alice", "email" => "", "phone" => "  ", "vip" => false,
+                                           "city" => nil })
+
+      expect(record.present_attributes).to eq("name" => "Alice", "vip" => false)
+    end
+  end
+
   describe "#determine_status!" do
     it "sets missing when required field error exists" do
       record.add_error("Name is required")

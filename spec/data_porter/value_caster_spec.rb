@@ -37,6 +37,20 @@ RSpec.describe DataPorter::ValueCaster do
     expect([caster.call("external_id", nil), caster.call("email", "")]).to eq([nil, nil])
   end
 
+  it "returns nil for whitespace-only values" do
+    expect(caster.call("email", "   ")).to be_nil
+  end
+
+  describe ".blank?" do
+    it "is true for nil, empty and whitespace-only strings" do
+      expect([nil, "", "  "].map { |value| described_class.blank?(value) }).to all(be(true))
+    end
+
+    it "is false for false, zero and present strings" do
+      expect([false, 0, "x"].map { |value| described_class.blank?(value) }).to all(be(false))
+    end
+  end
+
   it "accepts symbol field names" do
     expect(caster.call(:external_id, "7")).to eq(7)
   end

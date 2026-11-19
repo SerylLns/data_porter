@@ -2,6 +2,7 @@
 
 require "store_model"
 require_relative "error"
+require_relative "../value_caster"
 
 module DataPorter
   module StoreModels
@@ -37,6 +38,10 @@ module DataPorter
 
       def attributes
         data.stringify_keys.compact.with_indifferent_access
+      end
+
+      def present_attributes
+        attributes.reject { |_key, value| ValueCaster.blank?(value) }
       end
 
       def determine_status!

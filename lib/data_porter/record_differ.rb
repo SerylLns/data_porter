@@ -10,7 +10,7 @@ module DataPorter
     def call(record, existing)
       @target.diff_attributes(existing).each_with_object({}) do |(field, old_value), diff|
         new_value = record.data[field]
-        next if new_value.nil? || same?(field, old_value, new_value)
+        next if ValueCaster.blank?(new_value) || same?(field, old_value, new_value)
 
         diff[field] = [old_value.as_json, new_value.as_json]
       end

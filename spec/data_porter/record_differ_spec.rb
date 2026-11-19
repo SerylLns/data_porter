@@ -59,6 +59,14 @@ RSpec.describe DataPorter::RecordDiffer do
     expect(differ.call(build_record("first_name" => nil), existing)).to eq({})
   end
 
+  it "ignores empty and whitespace-only incoming values" do
+    expect(differ.call(build_record("first_name" => "", "nickname" => "  "), existing)).to eq({})
+  end
+
+  it "reports false booleans as a change" do
+    expect(differ.call(build_record("active" => false), existing)).to eq("active" => [true, false])
+  end
+
   it "treats an empty string and nil as equal" do
     expect(differ.call(build_record("email" => ""), Contact.new)).to eq({})
   end

@@ -140,7 +140,7 @@ module DataPorter
     end
 
     def update(record, existing, context:) # rubocop:disable Lint/UnusedMethodArgument
-      existing.update!(record.attributes)
+      existing.update!(record.present_attributes)
     end
 
     def after_import(_results, context:); end

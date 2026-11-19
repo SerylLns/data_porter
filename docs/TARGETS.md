@@ -174,6 +174,7 @@ Matching rules:
 - Other columns are compared as exact strings: case and whitespace matter. Normalize the file side with `transform` (e.g. `column :email, type: :email, transform: %i[strip downcase]`) and make sure stored values follow the same normalization, otherwise existing records are not found and are created again.
 - With a case-insensitive database collation (e.g. MySQL defaults), normalize both sides the same way too: the database may return a record that the exact comparison then rejects.
 - A record with a blank key value is always created.
+- Blank cells never overwrite existing values (see `update`).
 
 ### `deduplicate_by(*keys)` (deprecated)
 
@@ -323,11 +324,13 @@ end
 
 ### `update(record, existing, context:)`
 
-Called instead of `persist` for records matched by `match_by`. Defaults to `existing.update!(record.attributes)`.
+Called instead of `persist` for records matched by `match_by`. Defaults to `existing.update!(record.present_attributes)`.
+
+Blank values (`nil`, empty or whitespace-only strings) never change an existing record: they are left out of the diff and of `present_attributes`. An import cannot clear a field by default; override `update` with `record.attributes` to write blanks on purpose.
 
 ```ruby
 def update(record, existing, context:)
-  existing.update!(record.attributes.except("email"))
+  existing.update!(record.present_attributes.except("email"))
 end
 ```
 
