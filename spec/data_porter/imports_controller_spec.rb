@@ -107,6 +107,61 @@ RSpec.describe DataPorter::ImportsController do
     end
   end
 
+  describe "#filter_records" do
+    let(:controller) { described_class.new }
+    let(:target_class) do
+      Class.new(DataPorter::Target) do
+        match_by :email
+
+        columns do
+          column :email, type: :email
+        end
+      end
+    end
+    let(:records) do
+      [
+        DataPorter::StoreModels::ImportRecord.new(line_number: 1, action: "create"),
+        DataPorter::StoreModels::ImportRecord.new(line_number: 2, action: "update"),
+        DataPorter::StoreModels::ImportRecord.new(line_number: 3, action: "update", excluded: true),
+        DataPorter::StoreModels::ImportRecord.new(line_number: 4, action: "unchanged")
+      ]
+    end
+
+    def filtered_lines(filter, target: target_class)
+      controller.instance_variable_set(:@target, target)
+      controller.instance_variable_set(:@records, records)
+      controller.params = ActionController::Parameters.new(filter: filter)
+      controller.send(:filter_records)
+      controller.instance_variable_get(:@records).map(&:line_number)
+    end
+
+    it "keeps records with the requested action" do
+      expect(filtered_lines("update")).to eq([2, 3])
+    end
+
+    it "keeps excluded records with the excluded filter" do
+      expect(filtered_lines("excluded")).to eq([3])
+    end
+
+    it "keeps every record without a filter" do
+      expect(filtered_lines(nil)).to eq([1, 2, 3, 4])
+    end
+
+    it "ignores unknown filters" do
+      expect(filtered_lines("destroy")).to eq([1, 2, 3, 4])
+    end
+
+    it "ignores filters when the target has no match_by" do
+      expect(filtered_lines("update", target: Class.new(DataPorter::Target))).to eq([1, 2, 3, 4])
+    end
+
+    it "exposes the applied filter" do
+      filtered_lines("unchanged")
+
+      expect(controller.instance_variable_get(:@filter)).to eq("unchanged")
+    end
+  end
+
   describe "#valid_file_presence?" do
     let(:controller) { described_class.new }
 

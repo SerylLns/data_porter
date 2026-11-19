@@ -50,6 +50,9 @@
   <% end %>
 
   <% if @import.previewing? %>
+    <% if @target._match_keys.present? %>
+      <%= raw DataPorter::Components::Preview::ActionFilter.new(current: @filter, base_url: import_path(@import)).call %>
+    <% end %>
     <div id="records">
     <%= raw DataPorter::Components::Preview::SummaryCards.new(
           report: @import.report, editable: true, update_mode: @target._match_keys.present?
@@ -63,7 +66,7 @@
         ).call %>
     </div>
     <%= raw DataPorter::Components::Shared::Pagination.new(
-          page: @page, total_pages: @total_pages, base_url: import_path(@import)
+          page: @page, total_pages: @total_pages, base_url: import_path(@import, filter: @filter)
         ).call %>
 
     <div class="dp-actions">

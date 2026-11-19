@@ -196,6 +196,10 @@ RSpec.describe "data_porter/imports/show.html.erb" do
       expect(html).not_to include("dp-card--create")
     end
 
+    it "does not render action filters without match_by" do
+      expect(html).not_to include("dp-filters")
+    end
+
     context "with match_by" do
       let(:target_class) do
         Class.new(DataPorter::Target) do
@@ -216,6 +220,10 @@ RSpec.describe "data_porter/imports/show.html.erb" do
 
       it "renders the action column in the preview table" do
         expect(html).to include("dp-cell--action")
+      end
+
+      it "renders the action filters" do
+        expect(html).to include("dp-filters")
       end
     end
   end

@@ -6,6 +6,7 @@ module DataPorter
     include Concerns::ImportParamsBuilder
     include Concerns::MappingManagement
     include Concerns::RecordPagination
+    include Concerns::RecordFiltering
     include Concerns::ScopeManagement
 
     layout "data_porter/application"
@@ -39,6 +40,7 @@ module DataPorter
       @target = @import.target_class
       @records = @import.records
       @grouped = @records.group_by(&:status)
+      filter_records
       paginate_records
       load_mapping_data if @import.mapping?
     end

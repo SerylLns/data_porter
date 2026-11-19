@@ -88,6 +88,12 @@ fr:
         to_create: "À créer"
         to_update: "À mettre à jour"
         unchanged: "Inchangés"
+      action_filter:
+        all: "Toutes"
+        to_create: "À créer"
+        to_update: "À mettre à jour"
+        unchanged: "Inchangées"
+        excluded: "Exclues"
       results_summary:
         completed: "Import terminé"
         completed_with_errors: "Import terminé avec des erreurs"

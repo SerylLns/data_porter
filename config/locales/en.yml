@@ -88,6 +88,12 @@ en:
         to_create: "To create"
         to_update: "To update"
         unchanged: "Unchanged"
+      action_filter:
+        all: "All"
+        to_create: "To create"
+        to_update: "To update"
+        unchanged: "Unchanged"
+        excluded: "Excluded"
       results_summary:
         completed: "Import completed"
         completed_with_errors: "Import completed with errors"
